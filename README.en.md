@@ -54,6 +54,7 @@ in settings.
 - **System controls.** Audio, networking, Bluetooth, screenshots and recording.
 - **Dashboard.** Calendar, media controls, system status and weather.
 - **Appearance.** 18 built-in colour themes, light and dark modes, accents,
+  colour synchronization for GTK, Qt, Java Swing and popular terminals,
   interface scaling, gaps, corners, transparency and animations.
 - **Lock and authentication.** PAM screen lock and a built-in Polkit agent.
 

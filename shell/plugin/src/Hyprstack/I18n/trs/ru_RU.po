@@ -5445,3 +5445,61 @@ msgstr "Не удалось отменить выбор области запи�
 #: modules/utilities/cards/Record.qml assets/hyprstack_cli.py
 msgid "The recording could not be stopped"
 msgstr "Не удалось остановить запись"
+
+msgid "GTK, Qt, Java and terminal colour synchronization"
+msgstr "Синхронизация цветов GTK, Qt, Java и терминалов"
+
+msgid "Synchronize application colours"
+msgstr "Синхронизировать цвета приложений"
+
+msgid "Apply the shell palette to applications. Turning this off restores previous settings."
+msgstr "Применять палитру оболочки к приложениям. При отключении восстанавливаются прежние настройки."
+
+msgid "System colour preference"
+msgstr "Системное предпочтение цветовой схемы"
+
+msgid "Light or dark mode for applications using desktop portals, including browsers and Electron apps"
+msgstr "Светлый или тёмный режим для приложений, использующих desktop portal, включая браузеры и приложения Electron"
+
+msgid "Requires qt5ct and qt6ct for Qt applications"
+msgstr "Для приложений Qt требуются qt5ct и qt6ct"
+
+msgid "Use the GTK look and feel. Requires GTK colour synchronization and an application restart."
+msgstr "Использовать оформление GTK. Требуется синхронизация цветов GTK и перезапуск приложения."
+
+msgid "Terminals"
+msgstr "Терминалы"
+
+msgid "Synchronize terminal colours"
+msgstr "Синхронизировать цвета терминалов"
+
+msgid "Background, text, cursor, selection and the 16 ANSI colours. Only installed or configured terminals are changed."
+msgstr "Фон, текст, курсор, выделение и 16 цветов ANSI. Изменяются только установленные или настроенные терминалы."
+
+msgid "Update running terminals"
+msgstr "Обновлять открытые терминалы"
+
+msgid "Send the palette to open terminals in the current session"
+msgstr "Передавать палитру открытым терминалам текущего сеанса"
+
+msgid "Choose terminals"
+msgstr "Выбор терминалов"
+
+msgid "Some applications need to be reopened. Applications with their own themes and sandboxed applications may require additional configuration."
+msgstr "Некоторые приложения нужно открыть заново. Приложения с собственными темами и изолированные приложения могут требовать дополнительной настройки."
+
+msgid "Applying colours…"
+msgstr "Применение цветов…"
+
+msgid "Apply colours now"
+msgstr "Применить цвета сейчас"
+
+#, qt-format
+msgid "Unable to synchronize application colours: %1"
+msgstr "Не удалось синхронизировать цвета приложений: %1"
+
+msgid "Unable to synchronize application colours"
+msgstr "Не удалось синхронизировать цвета приложений"
+
+msgid "Choose a palette for the shell, window decorations and synchronized applications."
+msgstr "Выберите палитру для оболочки, оформления окон и синхронизируемых приложений."

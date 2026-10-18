@@ -14,6 +14,7 @@ Scope {
         WindowSwitcher;
         Brightness;
         Weather.reload();
+        ThemeSync.requestSync();
 
         if (GlobalConfig.utilities.vpn.enabled)
             VPN;

@@ -38,7 +38,7 @@ Scope {
                 return;
             }
             if (!clipboardOnly)
-                Quickshell.execDetached(["env", "GDK_BACKEND=wayland", "swappy", "-f", imagePath]);
+                ThemeSync.exec(["env", "GDK_BACKEND=wayland", "swappy", "-f", imagePath]);
             Quickshell.execDetached(["notify-send", "-a", "hyprstack", "-i", "image-x-generic-symbolic",
                 "-h", "string:image-path:" + imagePath, "-h", "boolean:x-hyprstack-screenshot:true",
                 Tr.tr("Screenshot taken"), Tr.tr("Screenshot copied to clipboard")]);

@@ -37,6 +37,9 @@ QtObject {
                 Component {
                     ColourSelect {}
                 }
+                Component {
+                    ApplicationColours {}
+                }
             }
         },
 

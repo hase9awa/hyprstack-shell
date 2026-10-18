@@ -119,6 +119,22 @@ QString CUtils::userDirectory(const QString& kind) {
     return {};
 }
 
+void CUtils::setThemeEnvironment(const QVariantMap& environment) {
+    // Update Qt URL handlers and Quickshell.env(). Detached launches additionally
+    // pass ThemeSync.launchEnvironment because Quickshell caches its startup env.
+    // The helper returns null for variables that must be removed on restoration.
+    for (const auto* key : { "GTK_THEME", "QT_QPA_PLATFORMTHEME", "QT_QUICK_CONTROLS_STYLE", "QT_PLUGIN_PATH", "JAVA_TOOL_OPTIONS" }) {
+        const auto name = QString::fromLatin1(key);
+        if (!environment.contains(name))
+            continue;
+        const auto value = environment.value(name);
+        if (value.isNull())
+            qunsetenv(key);
+        else
+            qputenv(key, value.toString().toUtf8());
+    }
+}
+
 qreal CUtils::clamp(qreal value, qreal min, qreal max) {
     return qBound(min, value, max);
 }

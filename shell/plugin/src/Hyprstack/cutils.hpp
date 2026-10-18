@@ -5,6 +5,7 @@
 #include <qqmlintegration.h>
 #include <qquickitem.h>
 #include <qvariant.h>
+#include <qvariantmap.h>
 
 namespace hyprstack {
 
@@ -26,6 +27,7 @@ public:
     Q_INVOKABLE static bool deleteFile(const QUrl& path);
     Q_INVOKABLE static QString toLocalFile(const QUrl& url);
     Q_INVOKABLE static QString userDirectory(const QString& kind);
+    Q_INVOKABLE static void setThemeEnvironment(const QVariantMap& environment);
 
     Q_INVOKABLE static qreal clamp(qreal value, qreal min, qreal max);
 

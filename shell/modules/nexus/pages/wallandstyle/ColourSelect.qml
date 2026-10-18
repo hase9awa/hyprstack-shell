@@ -97,7 +97,7 @@ PageBase {
         StyledText {
             Layout.fillWidth: true
             Layout.minimumWidth: 0
-            text: Tr.tr("Choose a palette for the shell and window decorations.")
+            text: Tr.tr("Choose a palette for the shell, window decorations and synchronized applications.")
             color: Colours.palette.m3onSurfaceVariant
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
         }

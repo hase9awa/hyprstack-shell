@@ -24,13 +24,18 @@ pacman -Si hyprland quickshell qt6-base
 ```bash
 sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   hyprland quickshell nlohmann-json qt6-base qt6-declarative qt6-shadertools \
-  qt6-svg qt6-imageformats qt6-wayland libqalculate lm_sensors \
+  qt6-svg qt6-imageformats qt6-wayland qt5ct qt6ct libqalculate lm_sensors \
   pixman libdrm libinput systemd-libs wayland libxkbcommon pango cairo \
   python python-pillow kitty firefox fuzzel btop pavucontrol \
   wl-clipboard cliphist grim slurp wf-recorder swappy libnotify \
   brightnessctl networkmanager pipewire pipewire-pulse wireplumber \
-  polkit hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus
+  polkit hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \
+  glib2 gsettings-desktop-schemas xdg-desktop-portal-gtk
 ```
+
+To update colours in running Dolphin and other KDE applications, use
+[qt6ct-kde](https://aur.archlinux.org/packages/qt6ct-kde) in place of `qt6ct`.
+Plain `qt6ct` applies the KDE colour scheme when the application is reopened.
 
 ### 2. Build
 

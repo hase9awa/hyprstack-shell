@@ -22,6 +22,16 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.large
 
+        NavRow {
+            objectName: "applicationColours"
+            first: true
+            last: true
+            icon: "palette"
+            text: Tr.tr("Application colours")
+            subtext: Tr.tr("GTK, Qt, Java and terminal colour synchronization")
+            onClicked: root.nState.openSubPage(4)
+        }
+
         StyledClippingRect {
             id: wallWrapper
 

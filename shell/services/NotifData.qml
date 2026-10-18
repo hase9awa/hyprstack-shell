@@ -112,7 +112,7 @@ QtObject {
         }
         const entry = DesktopEntries.applications.values.find(e => e.id === desktopEntry || e.id === desktopEntry + ".desktop");
         if (entry) {
-            entry.execute();
+            ThemeSync.launchEntry(entry);
             return true;
         }
         return false;

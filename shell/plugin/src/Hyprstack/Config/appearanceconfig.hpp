@@ -293,6 +293,28 @@ class AppearanceTransparency : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(qreal, layers, 0.4)
 };
 
+class ThemeSyncConfig : public settings::ObjectNode {
+    CONFIG_NODE(ThemeSyncConfig, settings::ObjectNode)
+
+    CONFIG_PROPERTY(bool, enabled, true)
+    CONFIG_PROPERTY(bool, gtk, true)
+    CONFIG_PROPERTY(bool, qt, true)
+    CONFIG_PROPERTY(bool, java, true)
+    CONFIG_PROPERTY(bool, system, true)
+    CONFIG_PROPERTY(bool, terminals, true)
+    CONFIG_PROPERTY(bool, liveReload, true)
+    CONFIG_PROPERTY(bool, kitty, true)
+    CONFIG_PROPERTY(bool, foot, true)
+    CONFIG_PROPERTY(bool, alacritty, true)
+    CONFIG_PROPERTY(bool, wezterm, true)
+    CONFIG_PROPERTY(bool, ghostty, true)
+    CONFIG_PROPERTY(bool, konsole, true)
+    CONFIG_PROPERTY(bool, xfce4Terminal, true)
+    CONFIG_PROPERTY(bool, gnomeTerminal, true)
+    CONFIG_PROPERTY(bool, tilix, true)
+    CONFIG_PROPERTY(bool, xterm, true)
+};
+
 class AppearanceConfig : public settings::ObjectNode {
     CONFIG_NODE(AppearanceConfig, settings::ObjectNode)
 
@@ -304,6 +326,7 @@ class AppearanceConfig : public settings::ObjectNode {
     CONFIG_SUBOBJECT(AppearanceFont, font)
     CONFIG_SUBOBJECT(AppearanceAnim, anim)
     CONFIG_SUBOBJECT(AppearanceTransparency, transparency)
+    CONFIG_GLOBAL_SUBOBJECT(ThemeSyncConfig, themeSync)
 public:
     [[nodiscard]] qreal effectiveScale() const {
         const auto value = scale();

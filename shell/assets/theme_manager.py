@@ -310,7 +310,7 @@ def save_current(scheme: dict) -> None:
     values = validate_colours(scheme["colours"], scheme["mode"])
     scheme = {**scheme, "colours": values}
     # The shell observes this file and applies native decoration colours live.
-    # Themes own only Hyprstack files, never unrelated application settings.
+    # Application integration has its own journal and can be disabled separately.
     atomic_json(STATE / "scheme.json", scheme)
     config_root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
     path = config_root / "hypr/scheme/current.lua"
@@ -325,6 +325,18 @@ def save_current(scheme: dict) -> None:
             temporary.replace(path)
         finally:
             temporary.unlink(missing_ok=True)
+    sync_applications()
+
+
+def sync_applications() -> None:
+    """A failed optional integration must not prevent changing the shell theme."""
+    from theme_sync import sync_current
+    try:
+        result = sync_current()
+        for error in result["errors"]:
+            print("hyprstack theme sync: " + error, file=sys.stderr)
+    except (OSError, ValueError, TypeError, KeyError) as error:
+        print("hyprstack theme sync: " + str(error), file=sys.stderr)
 
 
 def read_current() -> dict:

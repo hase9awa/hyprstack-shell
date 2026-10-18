@@ -12,6 +12,9 @@
 !/MAINTENANCE.md
 !/update.sh
 !/THIRD_PARTY.md
+!/tests/
+/tests/*
+!/tests/test_theme_sync.py
 !/flake.nix
 !/flake.lock
 !/nix/
@@ -66,6 +69,7 @@
 !/shell/assets/notification_tools.py
 !/shell/assets/session_runner.py
 !/shell/assets/theme_manager.py
+!/shell/assets/theme_sync.py
 !/shell/assets/wrap_term_launch.sh
 !/shell/assets/logo.svg
 !/shell/assets/bongocat.gif

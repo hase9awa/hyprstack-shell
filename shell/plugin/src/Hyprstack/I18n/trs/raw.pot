@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hyprstack-shell\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 19:08+0400\n"
+"POT-Creation-Date: 2026-10-18 18:42+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2348,6 +2348,8 @@ msgid "Workspaces"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+#: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Application colours"
 msgstr ""
 
@@ -2943,10 +2945,6 @@ msgstr ""
 
 #: modules/nexus/pages/wallandstyle/ColourSelect.qml
 msgid "Create a colour scheme"
-msgstr ""
-
-#: modules/nexus/pages/wallandstyle/ColourSelect.qml
-msgid "Choose a palette for the shell and window decorations."
 msgstr ""
 
 #: modules/nexus/pages/wallandstyle/ColourSelect.qml
@@ -3934,7 +3932,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: plugin/src/Hyprstack/Config/rootnodes.cpp
-#, qt-plural-format, c-format
+#, c-format, qt-plural-format
 msgid "Config loaded with %n issue."
 msgid_plural "Config loaded with %n issues."
 msgstr[0] ""
@@ -4493,4 +4491,84 @@ msgstr ""
 
 #: assets/theme_manager.py
 msgid "Theme file is too large (maximum 1 MiB)"
+msgstr ""
+
+#: services/ThemeSync.qml
+msgid "Unable to synchronize application colours: %1"
+msgstr ""
+
+#: services/ThemeSync.qml
+msgid "Unable to synchronize application colours"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Synchronize application colours"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Apply the shell palette to applications. Turning this off restores previous settings."
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Applications"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "System colour preference"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Light or dark mode for applications using desktop portals, including browsers and Electron apps"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Requires qt5ct and qt6ct for Qt applications"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Use the GTK look and feel. Requires GTK colour synchronization and an application restart."
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Terminals"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Synchronize terminal colours"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Background, text, cursor, selection and the 16 ANSI colours. Only installed or configured terminals are changed."
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Update running terminals"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Send the palette to open terminals in the current session"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Choose terminals"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Some applications need to be reopened. Applications with their own themes and sandboxed applications may require additional configuration."
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Applying colours…"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+msgid "Apply colours now"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "GTK, Qt, Java and terminal colour synchronization"
+msgstr ""
+
+#: modules/nexus/pages/wallandstyle/ColourSelect.qml
+msgid "Choose a palette for the shell, window decorations and synchronized applications."
 msgstr ""
