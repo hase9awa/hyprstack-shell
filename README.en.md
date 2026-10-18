@@ -68,6 +68,13 @@ Rebuild the native extension after a Hyprland ABI change.
 
 [Updates and recovery (Russian)](MAINTENANCE.md#обновление).
 
+Keep custom settings in `~/.config/hyprstack/`: override default keybindings in
+`hypr-vars.lua`, add bindings and other settings in `local.lua`, and configure
+displays in `monitors.lua`. These files and interface preferences survive
+`./update.sh`. Updates overwrite the standard files in `~/.config/hypr/` and the managed
+`hyprstack/hypr-user.lua`; the current colour scheme is preserved.
+See [configuration (Russian)](CONFIGURATION.md).
+
 ## Getting started
 
 | Shortcut | Action |

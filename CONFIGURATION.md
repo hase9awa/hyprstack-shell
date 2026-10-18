@@ -14,12 +14,18 @@
 | `hyprstack/hypr-vars.lua` | Приложения, горячие клавиши, оформление Hyprland |
 | `hyprstack/monitors.lua` | Настройки экранов |
 | `hyprstack/local.lua` | Дополнительные настройки Hyprland |
-| `hyprstack/hypr-user.lua` | Подключение Hyprstack и пользовательских файлов |
+| `hyprstack/hypr-user.lua` | Служебное подключение Hyprstack; не редактировать |
 | `hyprstack/monitors/<имя экрана>/shell.json` | Настройки отдельного монитора |
 
 Настройки оболочки доступны в интерфейсе. `hypr-vars.lua` возвращает таблицу;
 дополнительные вызовы `hl.config` и `hl.monitor` размещайте в `local.lua`
 и `monitors.lua`.
+
+**Обновление через `./update.sh` сохраняет пользовательские JSON-файлы,
+`hypr-vars.lua`, `local.lua` и `monitors.lua`.** Не редактируйте стандартные файлы
+в `hypr/`, включая `variables.lua` и `hyprland/keybinds.lua`, и служебный
+`hyprstack/hypr-user.lua`: обновление перезаписывает их. Текущая цветовая схема
+`hypr/scheme/current.lua` сохраняется.
 
 ## Экраны и клавиатура
 
@@ -75,9 +81,11 @@ programs.hyprstack.extraConfig = ''
 | Super + Alt + R | Запись со звуком |
 
 Раздел **Сочетания клавиш** показывает действующие привязки с поиском.
-Для своих привязок задавайте `description` в третьем аргументе `hl.bind`.
+Дополнительные привязки `hl.bind` размещайте в `local.lua` и задавайте им
+`description` в третьем аргументе.
 Переменные перечислены в [variables.lua](shell/assets/hyprland/config/variables.lua);
-переопределяйте их в `hypr-vars.lua`, например `terminal = "foot"`.
+переопределяйте их в таблице `hypr-vars.lua`, например `kbTerminal = "SUPER + T"`
+или `terminal = "foot"`.
 Приложения для действий оболочки задаются отдельно в `shell.json`: `general.apps`.
 
 ## Окна
