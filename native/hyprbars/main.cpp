@@ -23,6 +23,7 @@
 #include "globals.hpp"
 #include "task-animation.hpp"
 #include "scrolling-opening.hpp"
+#include "initial-geometry.hpp"
 #include "client-surface.hpp" // HYPRSTACK_CLIENT_SURFACE
 #include <set>
 #include <hyprland/src/devices/IKeyboard.hpp>
@@ -396,6 +397,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprstackSnap::install(PHANDLE); // HYPRSTACK_SNAP_ZONES
     HyprstackAutoscroll::install(PHANDLE);
     HyprstackTilingHover::install(PHANDLE);
+    HyprstackInitialGeometry::install(PHANDLE);
 
     // add deco to existing windows
     for (auto& w : Desktop::windowState()->windows()) {
@@ -411,6 +413,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {
+    HyprstackInitialGeometry::remove(PHANDLE);
     HyprstackTilingHover::remove();
     HyprstackShaders::remove();
     HyprstackAutoscroll::remove();
