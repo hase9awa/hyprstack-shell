@@ -168,11 +168,18 @@ CustomMouseArea {
 
             Layout.fillWidth: true
             locale: grid.locale
+            spacing: grid.spacing
+            topPadding: 0
+            bottomPadding: 0
+            implicitHeight: root.dayHeight
 
             delegate: StyledText {
                 required property var model
 
+                width: (daysRow.availableWidth - daysRow.spacing * 6) / 7
+                height: root.dayHeight
                 horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
                 text: model.shortName
                 font: Tokens.font.body.builders.small.weight(Font.Medium).build()
                 color: (model.day === 0 || model.day === 6) ? Colours.palette.m3tertiary : Colours.palette.m3onSurface

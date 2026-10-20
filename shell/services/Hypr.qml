@@ -48,6 +48,7 @@ Singleton {
     property bool perMonitorWorkspaces: false
     property int workspaceCount: 10
     property var workspaceBases: ({})
+    property bool secondaryOnSpecial: false
 
     signal configReloaded
 
@@ -101,6 +102,11 @@ Singleton {
         return workspaceBases[monitor.name] ?? Math.floor(((monitor.activeWorkspace?.id ?? 1) - 1) / workspaceCount) * workspaceCount;
     }
 
+    function setSecondaryOnSpecial(enabled: bool): void {
+        if (usingLua && perMonitorWorkspaces)
+            extras.message(`eval hyprstack_layouts.configure_workspaces({secondary_on_special=${enabled}})`);
+    }
+
     function workspaceNumber(id: int, monitor: HyprlandMonitor): int {
         return perMonitorWorkspaces ? id - workspaceBase(monitor) : id;
     }
@@ -123,6 +129,10 @@ Singleton {
     }
 
     function toggleSpecial(name: string): void {
+        if (usingLua && name === "hyprstack-secondary") {
+            extras.message("eval hyprstack_layouts.toggle_special()");
+            return;
+        }
         dispatch(usingLua ? `hl.dsp.workspace.toggle_special("${name}")` : `togglespecialworkspace ${name}`);
     }
 
@@ -287,6 +297,7 @@ Singleton {
             root.perMonitorWorkspaces = state.per_monitor === true;
             root.workspaceCount = Math.max(1, state.count ?? 10);
             root.workspaceBases = state.monitor_bases ?? {};
+            root.secondaryOnSpecial = state.secondary_on_special === true;
         }
     }
 

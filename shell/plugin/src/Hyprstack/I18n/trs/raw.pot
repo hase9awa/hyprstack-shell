@@ -4572,3 +4572,11 @@ msgstr ""
 #: modules/nexus/pages/wallandstyle/ColourSelect.qml
 msgid "Choose a palette for the shell, window decorations and synchronized applications."
 msgstr ""
+
+#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+msgid "Second monitor overlay with Super+S"
+msgstr ""
+
+#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+msgid "Works with the second monitor switched off. Super+1–0 selects its workspace; press Super+S again to close the overlay."
+msgstr ""

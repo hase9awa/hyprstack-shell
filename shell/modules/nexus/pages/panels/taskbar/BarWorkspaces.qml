@@ -76,6 +76,15 @@ PageBase {
         }
 
         ToggleRow {
+            objectName: "workspaceSecondaryOnSpecial"
+            text: Tr.tr("Second monitor overlay with Super+S")
+            subtext: Tr.tr("Works with the second monitor switched off. Super+1–0 selects its workspace; press Super+S again to close the overlay.")
+            enabled: Hypr.usingLua && Hypr.perMonitorWorkspaces
+            checked: Hypr.secondaryOnSpecial
+            onToggled: Hypr.setSecondaryOnSpecial(checked)
+        }
+
+        ToggleRow {
             text: Tr.trCtx("Show windows", "bar workspaces")
             subtext: Tr.tr("Show icons of open windows on each workspace")
             checked: Config.bar.workspaces.showWindows

@@ -2,6 +2,7 @@
 
 // Static metadata: searching never creates hidden pages or starts their services.
 var catalogue = [
+  {"page": 4, "subpages": [2, 6], "path": ["Panels", "Taskbar", "Workspaces"], "label": "Second monitor overlay with Super+S", "context": "", "target": "workspaceSecondaryOnSpecial", "match": "Second monitor overlay with Super+S", "keywords": "Super Win S второй монитор выключен отключён рабочие столы пространства наложение поверх"},
   {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Synchronize application colours", "context": "", "target": "themeSyncEnabled", "match": "Synchronize application colours", "keywords": "GTK Qt Java приложения синхронизация тема цвета"},
   {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "System colour preference", "context": "", "target": "themeSyncSystem", "match": "System colour preference", "keywords": "system dark light системная светлая тёмная тема"},
   {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "GTK 2 / 3 / 4 · libadwaita", "context": "", "target": "themeSyncGtk", "match": "GTK 2 / 3 / 4 · libadwaita", "keywords": "GTK libadwaita цвета приложений"},

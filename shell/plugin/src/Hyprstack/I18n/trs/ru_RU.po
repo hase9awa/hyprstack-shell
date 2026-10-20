@@ -5503,3 +5503,9 @@ msgstr "Не удалось синхронизировать цвета прил
 
 msgid "Choose a palette for the shell, window decorations and synchronized applications."
 msgstr "Выберите палитру для оболочки, оформления окон и синхронизируемых приложений."
+
+msgid "Second monitor overlay with Super+S"
+msgstr "Наложение со второго монитора по Super+S"
+
+msgid "Works with the second monitor switched off. Super+1–0 selects its workspace; press Super+S again to close the overlay."
+msgstr "Работает при выключенном втором мониторе. Super+1–0 выбирает его рабочий стол, повторное Super+S закрывает наложение."

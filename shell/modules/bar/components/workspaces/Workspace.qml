@@ -299,6 +299,7 @@ Item {
 
         property string name
         readonly property string icon: Icons.matchIconRuleList(Hypr.trimWsName(name), root.iconRules)
+            || (Hypr.trimWsName(name) === "hyprstack-secondary" ? "desktop_windows" : "")
         readonly property HyprlandWorkspace wsObj: Hypr.workspaces.values.find(w => w.id === root.ws) ?? null
 
         readonly property Connections conn: Connections {

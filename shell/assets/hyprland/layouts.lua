@@ -25,6 +25,10 @@ local workspace_count = math.max(1, math.floor(tonumber(workspace_config.count) 
 workspace_config.monitor_bases = workspace_config.monitor_bases or {}
 
 local runtime = read(runtime_path)
+local workspace_bank_views = runtime.workspace_bank_views or {}
+local secondary_overlay = runtime.secondary_overlay
+local secondary_overlay_timer
+local secondary_overlay_name = "hyprstack-secondary"
 local records = runtime.windows or runtime
 local tiled_views = runtime.tiled_views or {}
 local changing = false
@@ -157,19 +161,27 @@ function layouts.workspace_base(monitor)
 end
 
 function layouts.focus(number, monitor)
-    if layouts.mode() ~= "scrolling" then return end
     monitor = monitor_for(monitor)
     if not monitor then return end
     if per_monitor and (number < 1 or number > workspace_count) then return end
+    if secondary_overlay and secondary_overlay.monitor == monitor.name then
+        layouts.show_secondary_workspace(number)
+        return
+    end
+    if layouts.mode() ~= "scrolling" then return end
     navigation_since_reload = true
     hl.dispatch(hl.dsp.focus({ monitor = monitor }))
     hl.dispatch(hl.dsp.focus({ workspace = tostring(layouts.workspace_base(monitor) + number) }))
 end
 
 function layouts.step(direction, monitor)
-    if layouts.mode() ~= "scrolling" then return end
     monitor = monitor_for(monitor)
     if not monitor or not monitor.active_workspace then return end
+    if secondary_overlay and secondary_overlay.monitor == monitor.name then
+        layouts.show_secondary_workspace(secondary_overlay.workspace - secondary_overlay.base + direction)
+        return
+    end
+    if layouts.mode() ~= "scrolling" then return end
     if not per_monitor then
         if direction > 0 or monitor.active_workspace.id > 1 then
             hl.dispatch(hl.dsp.focus({ monitor = monitor }))
@@ -237,7 +249,8 @@ end
 local function save()
     write(config_dir .. "/layouts.json", preferences)
     write(runtime_path, { windows = records, tiled_views = tiled_views, tiled_no_warps = tiled_no_warps,
-        tiled_resize_on_border = tiled_resize_on_border, tiled_border_grab = tiled_border_grab, tiled_focus = tiled_focus })
+        tiled_resize_on_border = tiled_resize_on_border, tiled_border_grab = tiled_border_grab, tiled_focus = tiled_focus,
+        secondary_overlay = secondary_overlay, workspace_bank_views = workspace_bank_views })
 end
 
 local function eligible(window)
@@ -1272,6 +1285,7 @@ function layouts.overview_activate(address, identity, workspace, name)
 end
 
 function layouts.toggle()
+    layouts.close_secondary_overlay()
     layouts.end_switcher("Cancel")
     local monitor = hl.get_active_monitor()
     local workspace = monitor and monitor.active_workspace
@@ -1459,7 +1473,12 @@ local function prepare_workspace_banks()
     local views = capture_views()
     if not per_monitor then return views, function() end end
     local remap = {}
-    for _, monitor in ipairs(hl.get_monitors()) do layouts.workspace_base(monitor) end
+    local connected = hl.get_monitors()
+    for _, monitor in ipairs(connected) do layouts.workspace_base(monitor) end
+    table.sort(connected, function(a, b) return layouts.workspace_base(a) < layouts.workspace_base(b) end)
+    -- Remember the current pair even while the shortcut option is off. Old
+    -- connector names must not replace this output after it is disconnected.
+    if #connected >= 2 then workspace_config.secondary_monitor = connected[2].name end
     for _, workspace in ipairs(hl.get_workspaces()) do
         local monitor = workspace.monitor
         if workspace.id > 0 and monitor then
@@ -1525,6 +1544,202 @@ end
 function layouts.enforce_workspace_banks()
     local views, prepare = prepare_workspace_banks()
     change(prepare, views)
+end
+
+function layouts.configure_workspaces(options)
+    workspace_config.secondary_on_special = options.secondary_on_special == true
+    write(config_dir .. "/workspaces.json", workspace_config)
+    if not workspace_config.secondary_on_special then
+        layouts.close_secondary_overlay()
+        layouts.enforce_workspace_banks()
+    end
+    save()
+end
+
+local function remember_workspace_views()
+    if changing then return end
+    for _, monitor in ipairs(hl.get_monitors()) do
+        local base = layouts.workspace_base(monitor)
+        local workspace = monitor.active_workspace
+        if workspace and workspace.id > base and workspace.id <= base + workspace_count
+            and (workspace.windows > 0 or workspace_bank_views[tostring(base)] == nil) then
+            workspace_bank_views[tostring(base)] = workspace.id
+        end
+    end
+end
+
+local function secondary_window_state(window, workspace)
+    local monitor = window.monitor
+    local record = record_for(window)
+    return { id = window.stable_id, workspace = tostring(workspace), floating = window.floating,
+        pinned = window.pinned, geometry = geometry(window), scroll = scroll_position(window),
+        monitor_x = monitor and monitor.x or 0, monitor_y = monitor and monitor.y or 0,
+        fullscreen = window.fullscreen, fullscreen_client = window.fullscreen_client,
+        controller_state = record and json.decode(json.encode(record)) or false }
+end
+
+-- Only the temporary special workspace changes. Keep all regular monitor views
+-- and the window controller's original workspace/stacking records intact.
+local function secondary_transition(action)
+    local views = capture_views()
+    local camera = hl.plugin.hyprbars and hl.plugin.hyprbars.workspace_camera
+    if camera then camera("pause", true) end
+    changing = true
+    local ok, err = pcall(function()
+        without_cursor_warps(function()
+            action()
+            for _, view in ipairs(views) do
+                local monitor = hl.get_monitor(view.monitor)
+                if monitor then monitor:set_workspace({ workspace = view.workspace }) end
+            end
+        end)
+    end)
+    changing = false
+    if camera then camera("pause", overview_active) end
+    save()
+    if not ok then error(err) end
+end
+
+local function restore_secondary_windows(overlay)
+    local windows = {}
+    for _, window in ipairs(hl.get_windows()) do
+        if window.mapped and window.workspace and window.workspace.name == "special:" .. secondary_overlay_name then
+            local state = overlay.windows[window.address]
+            if not state or state.id ~= window.stable_id then
+                state = secondary_window_state(window, overlay.workspace)
+            end
+            windows[#windows + 1] = { window = window, state = state }
+        end
+    end
+    table.sort(windows, function(a, b)
+        return (a.state.scroll.column or 100000) < (b.state.scroll.column or 100000)
+    end)
+    for _, entry in ipairs(windows) do
+        local window, state = entry.window, entry.state
+        hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 0, action = "set" }))
+        hl.dispatch(hl.dsp.window.move({ window = window, workspace = state.workspace, follow = false }))
+        if window.floating ~= state.floating then float(window, state.floating) end
+        if state.floating and window.monitor then
+            local box = state.geometry
+            set_geometry(window, fit_geometry(window, { x = box.x + window.monitor.x - state.monitor_x,
+                y = box.y + window.monitor.y - state.monitor_y, width = box.width, height = box.height }, 0))
+        elseif state.scroll.width and window.layout and window.layout.column then
+            hl.dispatch(hl.dsp.focus({ window = window }))
+            hl.dispatch(hl.dsp.layout("colresize " .. tostring(state.scroll.width)))
+        end
+        hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = state.fullscreen,
+            client = state.fullscreen_client, action = "set" }))
+        if state.pinned then hl.dispatch(hl.dsp.window.pin({ window = window, action = "enable" })) end
+        records[window.address] = state.controller_state or nil
+    end
+    overlay.windows = {}
+end
+
+function layouts.close_secondary_overlay(refocus)
+    if not secondary_overlay then return end
+    local overlay = secondary_overlay
+    local active = hl.get_active_window()
+    local keep_focus = refocus == false and active and active.workspace
+        and active.workspace.name ~= "special:" .. secondary_overlay_name
+        and { address = active.address, id = active.stable_id } or overlay.focus
+    if secondary_overlay_timer then secondary_overlay_timer:set_enabled(false) end
+    secondary_transition(function()
+        local monitor = hl.get_monitor(overlay.monitor)
+        if monitor and monitor.active_special_workspace
+            and monitor.active_special_workspace.name == "special:" .. secondary_overlay_name then
+            monitor:set_special_workspace({})
+        end
+        restore_secondary_windows(overlay)
+        secondary_overlay = nil
+    end)
+    local monitor = hl.get_monitor(overlay.monitor)
+    if monitor then
+        hl.dispatch(hl.dsp.focus({ monitor = monitor }))
+        local window = keep_focus and hl.get_window("address:" .. keep_focus.address)
+        if window and window.mapped and window.stable_id == keep_focus.id then
+            hl.dispatch(hl.dsp.focus({ window = window }))
+        end
+    end
+end
+
+function layouts.show_secondary_workspace(number)
+    local overlay = secondary_overlay
+    if not overlay or number < 1 or number > workspace_count then return end
+    local monitor = hl.get_monitor(overlay.monitor)
+    if not monitor then layouts.close_secondary_overlay(false); return end
+    secondary_transition(function()
+        restore_secondary_windows(overlay)
+        overlay.workspace = overlay.base + number
+        workspace_bank_views[tostring(overlay.base)] = overlay.workspace
+        -- Capture every column before the first move changes its neighbours.
+        local windows = {}
+        for _, window in ipairs(hl.get_windows()) do
+            if window.mapped and window.workspace and window.workspace.id == overlay.workspace then
+                overlay.windows[window.address] = secondary_window_state(window, overlay.workspace)
+                windows[#windows + 1] = window
+            end
+        end
+        save()
+        hl.workspace_rule({ workspace = "special:" .. secondary_overlay_name, monitor = overlay.monitor,
+            gaps_out = 40, layout = "scrolling" })
+        for _, window in ipairs(windows) do
+            local state = overlay.windows[window.address]
+            if window.pinned then hl.dispatch(hl.dsp.window.pin({ window = window, action = "disable" })) end
+            hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 0, action = "set" }))
+            hl.dispatch(hl.dsp.window.move({ window = window, workspace = "special:" .. secondary_overlay_name, follow = false }))
+            if window.floating then
+                local box = state.geometry
+                set_geometry(window, fit_geometry(window, { x = box.x + monitor.x - state.monitor_x,
+                    y = box.y + monitor.y - state.monitor_y, width = box.width, height = box.height }, 0))
+            elseif state.scroll.width then
+                hl.dispatch(hl.dsp.focus({ window = window }))
+                hl.dispatch(hl.dsp.layout("colresize " .. tostring(state.scroll.width)))
+            end
+        end
+    end)
+    hl.dispatch(hl.dsp.focus({ monitor = monitor }))
+    local special = monitor.active_special_workspace
+    if not special or special.name ~= "special:" .. secondary_overlay_name then
+        hl.dispatch(hl.dsp.workspace.toggle_special(secondary_overlay_name))
+    end
+end
+
+function layouts.toggle_special()
+    if secondary_overlay then layouts.close_secondary_overlay(); return end
+    if not per_monitor or not workspace_config.secondary_on_special then
+        return require("utils.functions").toggle("specialws")()
+    end
+    local source = hl.get_active_monitor()
+    if not source or not source.active_workspace then return end
+    local special = source.active_special_workspace
+    if special then return require("utils.functions").toggle("specialws")() end
+    remember_workspace_views()
+    local home, candidates = layouts.workspace_base(source), {}
+    for name, base in pairs(workspace_config.monitor_bases) do
+        if base ~= home then candidates[#candidates + 1] = { name = name, base = base } end
+    end
+    table.sort(candidates, function(a, b)
+        local a_preferred, b_preferred = a.name == workspace_config.secondary_monitor, b.name == workspace_config.secondary_monitor
+        if a_preferred ~= b_preferred then return a_preferred end
+        local a_connected, b_connected = hl.get_monitor(a.name) ~= nil, hl.get_monitor(b.name) ~= nil
+        if a_connected ~= b_connected then return a_connected end
+        return a.base < b.base
+    end)
+    local target = candidates[1]
+    if not target then return end
+    local active = hl.get_active_window()
+    secondary_overlay = { monitor = source.name, owner = target.name, base = target.base, windows = {},
+        workspace = workspace_bank_views[tostring(target.base)] or target.base + 1,
+        focus = active and { address = active.address, id = active.stable_id } or nil }
+    navigation_since_reload = true
+    layouts.show_secondary_workspace(secondary_overlay.workspace - target.base)
+    secondary_overlay_timer = hl.timer(function()
+        if changing or not secondary_overlay then return end
+        local monitor = hl.get_monitor(secondary_overlay.monitor)
+        local special = monitor and monitor.active_special_workspace
+        if not special or special.name ~= "special:" .. secondary_overlay_name then layouts.close_secondary_overlay(false) end
+    end, { timeout = 120, type = "repeat" })
+    save()
 end
 
 local function sync_window(window)
@@ -1707,6 +1922,7 @@ local function replace_binds(keys, action, description, options)
     end
 end
 local shortcut_vars = require("variables")
+replace_binds(shortcut_vars.kbSpecialWs, layouts.toggle_special, "Workspaces: Toggle special workspace")
 replace_binds(shortcut_vars.kbToggleWindowFloating, layouts.toggle_floating, "Windows: Toggle floating")
 replace_binds(shortcut_vars.kbWindowCycleNext, function() layouts.window_cycle(1) end, "Windows: Next window", "repeat")
 replace_binds(shortcut_vars.kbWindowCyclePrev, function() layouts.window_cycle(-1) end, "Windows: Previous window", "repeat")
@@ -1832,9 +2048,12 @@ if per_monitor then
     end
     hl.on("monitor.added", function()
         hl.timer(function()
+            layouts.close_secondary_overlay(false)
             layouts.enforce_workspace_banks()
         end, { timeout = 100, type = "oneshot" })
     end)
+    hl.on("workspace.active", remember_workspace_views)
+    hl.on("window.active", remember_workspace_views)
 end
 hl.on("window.open", function(window)
     place_telegram_webview(window)
@@ -1924,6 +2143,8 @@ for _, window in ipairs(hl.get_windows()) do
         finish_minimize(window, record.minimized)
     end
 end
+-- A configuration reload is a recovery point for temporary borrowed windows.
+layouts.close_secondary_overlay(false)
 local initial_views, prepare_banks = prepare_workspace_banks()
 local initial_active, initial_focused = hl.get_active_window(), hl.get_active_monitor()
 if per_monitor then
