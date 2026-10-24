@@ -5509,3 +5509,228 @@ msgstr "Наложение со второго монитора по Super+S"
 
 msgid "Works with the second monitor switched off. Super+1–0 selects its workspace; press Super+S again to close the overlay."
 msgstr "Работает при выключенном втором мониторе. Super+1–0 выбирает его рабочий стол, повторное Super+S закрывает наложение."
+
+#. VPN controls
+msgid "VPN settings"
+msgstr "Настройки VPN"
+
+#. VPN controls
+msgid "Profiles, subscriptions and connection mode"
+msgstr "Профили, подписки и режим подключения"
+
+#. VPN controls
+msgid "Unable to read VPN status"
+msgstr "Не удалось прочитать состояние VPN"
+
+#. VPN controls
+msgid "The VPN action did not complete"
+msgstr "Не удалось выполнить действие с VPN"
+
+#. VPN controls
+msgid "Updating connection…"
+msgstr "Обновление подключения…"
+
+#. VPN controls
+msgid "Connection profile"
+msgstr "Профиль подключения"
+
+#. VPN controls
+msgid "Add a profile below"
+msgstr "Добавьте профиль ниже"
+
+#. VPN controls
+msgid "Test latency"
+msgstr "Проверить задержку"
+
+#. VPN controls
+msgid "Delete profile"
+msgstr "Удалить профиль"
+
+#. VPN controls
+msgid "No profiles configured"
+msgstr "Профили не настроены"
+
+#. VPN controls
+msgid "Connection mode"
+msgstr "Режим подключения"
+
+#. VPN controls
+msgid "VPN · all applications"
+msgstr "VPN · все приложения"
+
+#. VPN controls
+msgid "Local proxy · selected applications"
+msgstr "Локальный прокси · выбранные приложения"
+
+
+#. VPN controls
+msgid "Traffic is routed through a VPN tunnel, including applications without proxy settings."
+msgstr "Трафик проходит через VPN-туннель, в том числе в приложениях без настроек прокси."
+
+#. VPN controls
+msgid "Authorize VPN tunnel"
+msgstr "Разрешить работу VPN-туннеля"
+
+#. VPN controls
+msgid "Routing profile"
+msgstr "Профиль маршрутизации"
+
+#. VPN controls
+msgid "Reconnect after login"
+msgstr "Подключаться после входа"
+
+#. VPN controls
+msgid "Add profiles or a subscription"
+msgstr "Добавить профили или подписку"
+
+#. VPN controls
+msgid "Profile links or configuration"
+msgstr "Ссылки на профили или конфигурация"
+
+#. VPN controls
+msgid "Subscription URL"
+msgstr "Ссылка на подписку"
+
+#. VPN controls
+msgid "Subscription name"
+msgstr "Название подписки"
+
+#. VPN controls
+msgid "Update subscriptions"
+msgstr "Обновить подписки"
+
+#. VPN controls
+msgid "Delete profile?"
+msgstr "Удалить профиль?"
+
+#. VPN controls
+msgid "Install background VPN engine"
+msgstr "Установить фоновый движок VPN"
+
+#. VPN controls
+msgid "Authorize the VPN tunnel in VPN settings first"
+msgstr "Сначала разрешите работу VPN-туннеля в настройках VPN"
+
+#. VPN controls
+msgid "Add or select a VPN profile first"
+msgstr "Сначала добавьте или выберите профиль VPN"
+
+#. VPN controls
+msgid "Paste a profile link or subscription URL"
+msgstr "Вставьте ссылку на профиль или подписку"
+
+
+
+#. VPN controls
+msgid "Disconnect this profile before deleting it"
+msgstr "Отключите профиль перед его удалением"
+
+
+
+#. VPN controls
+msgid "VPN tunnel authorization failed or was cancelled"
+msgstr "Разрешение на работу VPN-туннеля не получено или отменено"
+
+#. VPN controls
+msgid "SOCKS5: 127.0.0.1:2080 · HTTP: 127.0.0.1:2081"
+msgstr "SOCKS5: 127.0.0.1:2080 · HTTP: 127.0.0.1:2081"
+
+#. VPN controls
+msgid "All traffic"
+msgstr "Весь трафик"
+
+#. VPN controls
+msgid "Bypass Russia"
+msgstr "Обход российских ресурсов"
+
+#. VPN controls
+msgid "The VPN core is not installed"
+msgstr "Сетевое ядро VPN не установлено"
+
+#. VPN controls
+msgid "The profile configuration is invalid or unsupported"
+msgstr "Конфигурация профиля неверна или не поддерживается"
+
+#. VPN controls
+msgid "Another VPN operation is in progress"
+msgstr "Уже выполняется другое действие с VPN"
+
+#. VPN controls
+msgid "The VPN core download did not pass verification"
+msgstr "Загруженное ядро VPN не прошло проверку"
+
+#. VPN controls
+msgid "The installed VPN core did not pass verification"
+msgstr "Установленное ядро VPN не прошло проверку"
+
+#. VPN controls
+msgid "The VPN service could not complete the operation"
+msgstr "Службе VPN не удалось выполнить действие"
+
+#. VPN controls
+msgid "The VPN tunnel did not start"
+msgstr "VPN-туннель не запустился"
+
+#. VPN controls
+msgid "The VPN server did not respond to the connection test"
+msgstr "VPN-сервер не ответил при проверке подключения"
+
+#. VPN controls
+msgid "The VPN connection test failed"
+msgstr "Не удалось проверить VPN-подключение"
+
+#. VPN controls
+msgid "The VPN core could not start the connection test"
+msgstr "Ядру VPN не удалось запустить проверку подключения"
+
+#. VPN controls
+msgid "Unable to update routing rules"
+msgstr "Не удалось обновить правила маршрутизации"
+
+#. VPN controls
+msgid "Choose a routing profile"
+msgstr "Выберите профиль маршрутизации"
+
+#. VPN controls
+msgid "The selected profile no longer exists"
+msgstr "Выбранный профиль больше не существует"
+
+#. VPN controls
+msgid "A subscription URL must begin with https:// or http://"
+msgstr "Ссылка на подписку должна начинаться с https:// или http://"
+
+#. VPN controls
+msgid "Choose VPN mode or local proxy mode"
+msgstr "Выберите режим VPN или локального прокси"
+
+#. VPN controls
+msgid "No supported profiles were found"
+msgstr "Поддерживаемые профили не найдены"
+
+#. VPN controls
+msgid "Use native JSON configuration for this transport"
+msgstr "Для этого транспорта используйте нативную JSON-конфигурацию"
+
+#. VPN controls
+msgid "Use native JSON configuration for Shadowsocks plugins"
+msgstr "Для плагинов Shadowsocks используйте нативную JSON-конфигурацию"
+
+#. VPN controls
+msgid "This share-link format is unsupported; use native JSON configuration"
+msgstr "Формат ссылки не поддерживается; используйте нативную JSON-конфигурацию"
+
+#. VPN controls
+msgid "The profile has no server address"
+msgstr "В профиле не указан адрес сервера"
+
+#. VPN controls
+msgid "Paste a share link or a native sing-box/Xray outbound JSON"
+msgstr "Вставьте ссылку на профиль или нативный outbound JSON sing-box/Xray"
+
+#. VPN controls
+msgid "The download is too large"
+msgstr "Размер загрузки слишком велик"
+
+#. VPN controls
+msgid "Install the VPN core using your package manager"
+msgstr "Установите сетевое ядро VPN через менеджер пакетов"

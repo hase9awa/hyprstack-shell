@@ -52,6 +52,20 @@ in {
       };
     };
 
+    systemd.user.services.hyprstack-vpn = {
+      Unit = {
+        Description = "Hyprstack VPN core";
+        After = [ "network-online.target" ];
+      };
+      Service = {
+        Type = "simple";
+        ExecStart = "${package}/bin/hyprstack-vpn serve";
+        Restart = "on-failure";
+        RestartSec = 3;
+        UMask = "0077";
+      };
+    };
+
     # GUI-editable preferences stay ordinary user files. Only missing defaults
     # are created, so activation preserves monitor rules and local overrides.
     home.activation.hyprstackDefaults = lib.hm.dag.entryAfter [ "linkGeneration" ] ''

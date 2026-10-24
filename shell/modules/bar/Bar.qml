@@ -212,6 +212,14 @@ Item {
                     }
                 }
                 DelegateChoice {
+                    roleValue: "vpn"
+                    delegate: EntryWrapper {
+                        VpnToggle {
+                            objectName: "taskbarVpnToggle"
+                        }
+                    }
+                }
+                DelegateChoice {
                     roleValue: "notifications"
                     delegate: EntryWrapper {
                         NotificationCenterButton {

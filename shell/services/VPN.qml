@@ -21,8 +21,8 @@ Singleton {
 
     property bool connectPending: false
     property bool disconnectPending: false
-    readonly property bool connecting: connectProc.running || connectPending
-    readonly property bool disconnecting: disconnectProc.running || disconnectPending
+    readonly property bool connecting: connectProc.running || connectPending || (active.name === "native" && ManagedVPN.busy && ManagedVPN.action === "connect")
+    readonly property bool disconnecting: disconnectProc.running || disconnectPending || (active.name === "native" && ManagedVPN.busy && ManagedVPN.action === "disconnect")
 
     // Internal id of the currently selected provider (persisted). Only one
     // provider can be selected at a time; empty means none. Keyed by id rather
@@ -83,7 +83,7 @@ Singleton {
     readonly property string interfaceName: active.interface
     readonly property var currentConfig: active
 
-    readonly property var adapters: [wireguardAdapter, warpAdapter, netbirdAdapter, tailscaleAdapter]
+    readonly property var adapters: [managedAdapter, wireguardAdapter, warpAdapter, netbirdAdapter, tailscaleAdapter]
 
     // Live list of configured providers, straight from the typed config list.
     // Each entry is a config node with id/name/displayName/interface and the
@@ -181,6 +181,10 @@ Singleton {
     }
 
     function connect(): void {
+        if (active.name === "native") {
+            ManagedVPN.run("connect", {});
+            return;
+        }
         if (status.state === "needs-auth" && status.authUrl) {
             emitStatusToast(status);
             return;
@@ -192,6 +196,10 @@ Singleton {
     }
 
     function disconnect(): void {
+        if (active.name === "native") {
+            ManagedVPN.run("disconnect", {});
+            return;
+        }
         if (connected && !connecting) {
             disconnectPending = true;
             disconnectProc.exec(active.disconnectCmd);
@@ -490,8 +498,8 @@ Singleton {
             pingMs = -1;
         }
 
-        // Update config flag, but not on provider switch
-        if (pendingSwitchProvider.length === 0 && GlobalConfig.utilities.vpn.enabled !== connected)
+        // Managed VPN keeps enabled as an explicit reconnect preference.
+        if (active.name !== "native" && pendingSwitchProvider.length === 0 && GlobalConfig.utilities.vpn.enabled !== connected)
             GlobalConfig.utilities.vpn.enabled = connected;
 
         if (!connected && pendingSwitchProvider.length > 0) {
@@ -531,6 +539,9 @@ Singleton {
     }
 
     Component.onCompleted: {
+        // A visible VPN toggle must also provide a working first-time setup path.
+        if (root.providers.length === 0)
+            root.addProvider({name: "native", displayName: "VPN", interface: "hyprstack-vpn", connectCmd: [], disconnectCmd: []});
         root.ensureProviderIds();
         root.ensureSelection();
         if (root.selectedProvider.length > 0) {
@@ -539,10 +550,39 @@ Singleton {
         }
     }
 
+    IpcHandler {
+        target: "vpn"
+        function open(): void { ManagedVPN.openSettings(); }
+        function authorize(): void { ManagedVPN.run("authorize", {}); }
+        function connect(): void { root.connect(); }
+        function disconnect(): void { root.disconnect(); }
+        function toggle(): void { root.toggle(); }
+        function status(): string {
+            return JSON.stringify({connected: root.connected, state: root.status.state, provider: root.active.name});
+        }
+    }
+
     // ── Provider adapters ───────────────────────────────────────────────────
     // One adapter per built-in provider, holding everything that is specific
     // to it. Supporting a new provider means adding one adapter here (plus a
     // parser if it has a status command) - nothing else changes.
+
+    Adapter {
+        id: managedAdapter
+        name: "native"
+        display: "VPN"
+        iface: "hyprstack-vpn"
+        connectCmd: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "connect"]
+        disconnectCmd: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "disconnect"]
+        statusCmd: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "status"]
+        parse: out => {
+            try {
+                return JSON.parse(out);
+            } catch (err) {
+                return {connected: false, state: "error", reason: Tr.tr("Unable to read VPN status"), authUrl: "", server: ""};
+            }
+        }
+    }
 
     Adapter {
         id: wireguardAdapter
@@ -602,6 +642,13 @@ Singleton {
     }
 
     // ── Generic engine ──────────────────────────────────────────────────────
+
+    Timer {
+        interval: 3000
+        running: root.active.name === "native"
+        repeat: true
+        onTriggered: root.checkStatus()
+    }
 
     Process {
         id: nmMonitor

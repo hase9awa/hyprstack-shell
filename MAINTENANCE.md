@@ -21,6 +21,11 @@ JSON-файлы, `hypr-vars.lua` (переопределения стандар�
 перезаписываются; текущая цветовая схема `hypr/scheme/current.lua` сохраняется.
 Подробнее — [куда вносить пользовательские настройки](CONFIGURATION.md).
 
+Служба `hyprstack-vpn.service` обновляется вместе с оболочкой. Профили VPN в
+`${XDG_DATA_HOME:-$HOME/.local/share}/hyprstack/vpn/` и отдельно установленные
+сетевые ядра сохраняются. Этот каталог содержит параметры серверов и пароли;
+его не следует публиковать вместе с персональными настройками.
+
 Если `update.sh` ещё нет в старом клоне, сначала выполните `git pull --ff-only`.
 
 Опции: `--dry-run` — план изменений, `--jobs 1` — сборка с меньшим расходом памяти,
@@ -75,6 +80,15 @@ hyprstack-shell
   и `M3Shapes`. После обновления Qt пересоберите Hyprstack и, если нужно, Quickshell.
 - **PAM:** проверьте пакет `hyprlock` и `/etc/pam.d/hyprlock`.
 - **Polkit:** остановите сторонний агент авторизации.
+- **Пропадающие значки трея:** если приложение объявляет значок раньше готовности
+  своего D-Bus объекта, для Quickshell доступен
+  [патч повторного обнаружения](distribution/patches/quickshell-tray-retry.patch).
+  Он подготовлен для коммита `11ca60be22b063478ed9586ca1d7f92f0f261caf`:
+  в исходниках Quickshell выполните `git apply /путь/к/quickshell-tray-retry.patch`,
+  затем пересоберите Quickshell с установленным Qt. CMake Hyprstack и установщик
+  Gist сами этот патч к системному пакету не применяют.
+- **VPN:** проверьте `journalctl --user -u hyprstack-vpn.service -b` и настройки
+  сети. После замены ядра заново выдайте права кнопкой в окне VPN.
 
 Перезапуск оболочки: `hyprstack-session restart`.
 
@@ -89,12 +103,18 @@ hyprstack-shell
 1. Найдите `hyprstack-backup.*`, выведенный при установке.
 2. Перенесите нынешние `hypr` и `hyprstack` из `${XDG_CONFIG_HOME:-$HOME/.config}`
    в отдельный каталог и верните туда прежние каталоги или ссылки из копии.
-3. Верните сохранённый `hyprstack-session.service` в `systemd/user/`.
-   Если прежней службы не было, удалите только установленную службу Hyprstack.
+3. Верните сохранённые `hyprstack-session.service` и `hyprstack-vpn.service`
+   в `systemd/user/`. Если прежних служб не было, удалите установленные службы
+   Hyprstack.
 4. При наличии пользовательского systemd выполните `systemctl --user daemon-reload`
    и войдите в прежнее окружение.
 
 ## Удаление
+
+Сначала отключите VPN и выполните `systemctl --user stop hyprstack-vpn.service`.
+На Arch-based системах выданные через окно VPN сетевые права можно удалить
+вместе с `/usr/local/lib/hyprstack-vpn/` и правилом
+`/etc/polkit-1/rules.d/49-hyprstack-vpn-<UID>.rules` (нужны права администратора).
 
 Перед удалением отключите **Обои и оформление → Цвета приложений →
 Синхронизировать цвета приложений** и дождитесь применения: это восстановит
@@ -115,3 +135,5 @@ hyprstack-shell
 | `${XDG_CONFIG_HOME:-$HOME/.config}/hyprstack` | Настройки |
 | `${XDG_STATE_HOME:-$HOME/.local/state}/hyprstack` | Тема, обои, история и состояние |
 | `${XDG_CACHE_HOME:-$HOME/.cache}/hyprstack` | Кеш изображений |
+| `${XDG_DATA_HOME:-$HOME/.local/share}/hyprstack/vpn` | Приватные профили VPN |
+| `${XDG_DATA_HOME:-$HOME/.local/share}/hyprstack/runtime/vpn` | Загруженные ядра VPN |

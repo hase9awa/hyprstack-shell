@@ -18,7 +18,7 @@ assert lib.assertMsg (lib.versionAtLeast quickshell.version "0.3.1") "Hyprstack 
 assert lib.assertMsg (lib.versionAtLeast qt6.qtbase.version "6.9") "Hyprstack requires Qt >= 6.9";
 (hyprland.stdenv or stdenv).mkDerivation {
   pname = "hyprstack";
-  version = "1.1.1";
+  version = "1.2.0";
   inherit src;
 
   nativeBuildInputs = [ cmake ninja pkg-config gettext makeWrapper qt6.wrapQtAppsHook python hyprland ];
@@ -40,7 +40,7 @@ assert lib.assertMsg (lib.versionAtLeast qt6.qtbase.version "6.9") "Hyprstack re
   '';
 
   postInstall = ''
-    for program in hyprstack hyprstack-shell hyprstack-session hyprstack-session-runner hyprstack-doctor; do
+    for program in hyprstack hyprstack-shell hyprstack-session hyprstack-session-runner hyprstack-doctor hyprstack-vpn; do
       wrapProgram "$out/bin/$program" \
         --set HYPRSTACK_DATA_DIR "$out/share/hyprstack" \
         --set HYPRSTACK_TITLEBAR_PLUGIN "$out/share/hyprstack/native/hyprstack-bars.so" \

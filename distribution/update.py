@@ -42,8 +42,9 @@ class Update(Installer):
         for file in self.tree(ROOT / "distribution/defaults/hyprstack", self.config / "hyprstack"):
             file.preserve = file.path.name != "hypr-user.lua"
             yield file
-        yield from self.tree(ROOT / "distribution/systemd/user/hyprstack-session.service",
-                             self.config / "systemd/user/hyprstack-session.service")
+        for unit in ("hyprstack-session.service", "hyprstack-vpn.service"):
+            yield from self.tree(ROOT / "distribution/systemd/user" / unit,
+                                 self.config / "systemd/user" / unit)
 
 
 def validate_destinations(update, files):

@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Services.SystemTray
 import Hyprstack.Config
@@ -34,10 +35,9 @@ StyledRect {
             return 0;
         if (!Config.bar.tray.compact)
             return layout.implicitWidth + padding * 2;
-        const pad = (Config.bar.tray.background ? Tokens.padding.extraSmall : 0) + padding;
         if (expanded)
-            return expandIcon.implicitWidth + layout.implicitWidth + spacing + pad;
-        return Math.max(Config.bar.tray.background ? height : 0, expandIcon.implicitWidth + pad);
+            return expandIcon.implicitWidth + layout.implicitWidth + spacing + padding;
+        return expandIcon.implicitWidth;
     }
 
     clip: true
@@ -53,86 +53,121 @@ StyledRect {
         color: Qt.alpha(Colours.tPalette.m3surfaceContainer, (Config.bar.tray.background && root.items.count > 0) ? Colours.tPalette.m3surfaceContainer.a : 0)
     }
 
-    Row {
-        id: layout
+    Item {
+        id: contentClip
 
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        anchors.leftMargin: root.padding
-        spacing: Tokens.spacing.small
+        // Reveal the stationary icon row beside the button without overlapping it.
+        x: root.padding
+        width: Math.max(0, root.width - root.padding - (Config.bar.tray.compact ? expandIcon.width + root.spacing : root.padding))
+        height: parent.height
+        clip: true
+        enabled: root.expanded || !Config.bar.tray.compact
 
-        opacity: root.expanded || !Config.bar.tray.compact ? 1 : 0
+        Row {
+            id: layout
 
-        add: Transition {
-            Anim {
-                properties: "scale"
-                from: 0
-                to: 1
-                easing: Tokens.anim.standardDecel
-            }
-        }
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            spacing: Tokens.spacing.small
 
-        move: Transition {
-            Anim {
-                properties: "scale"
-                to: 1
-                easing: Tokens.anim.standardDecel
-            }
-            Anim {
-                properties: "x,y"
-            }
-        }
+            opacity: root.expanded || !Config.bar.tray.compact ? 1 : 0
 
-        Repeater {
-            id: items
-
-            model: ScriptModel {
-                values: SystemTray.items.values.filter(i => i.status !== Status.Passive && !GlobalConfig.bar.tray.hiddenIcons.includes(i.id) && !root.redundant(i))
+            add: Transition {
+                Anim {
+                    properties: "scale"
+                    from: 0
+                    to: 1
+                    easing: Tokens.anim.standardDecel
+                }
             }
 
-            TrayItem {}
-        }
+            move: Transition {
+                Anim {
+                    properties: "scale"
+                    to: 1
+                    easing: Tokens.anim.standardDecel
+                }
+                Anim {
+                    properties: "x,y"
+                }
+            }
 
-        Behavior on opacity {
-            Anim {
-                type: Anim.DefaultEffects
+            Repeater {
+                id: items
+
+                model: ScriptModel {
+                    values: SystemTray.items.values.filter(i => i.status !== Status.Passive && !GlobalConfig.bar.tray.hiddenIcons.includes(i.id) && !root.redundant(i))
+                }
+
+                TrayItem {}
+            }
+
+            Behavior on opacity {
+                Anim {
+                    type: Anim.DefaultEffects
+                }
             }
         }
     }
 
-    Loader {
+    MouseArea {
         id: expandIcon
-
-        asynchronous: true
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        anchors.rightMargin: root.padding
 
-        active: Config.bar.tray.compact && items.count > 0
+        implicitWidth: root.implicitHeight
+        implicitHeight: root.implicitHeight
+        visible: Config.bar.tray.compact && items.count > 0
+        acceptedButtons: Qt.LeftButton
+        cursorShape: Qt.PointingHandCursor
 
-        sourceComponent: Item {
-            implicitWidth: expandIconInner.implicitWidth
-            implicitHeight: expandIconInner.implicitHeight
+        onClicked: root.expanded = !root.expanded
 
-            MaterialIcon {
-                id: expandIconInner
+        Shape {
+            id: chevron
 
-                anchors.centerIn: parent
-                text: "chevron_left"
-                color: Colours.palette.m3onSurfaceVariant
-                fontStyle: Tokens.font.icon.medium
-                rotation: root.expanded ? 180 : 0
+            anchors.centerIn: parent
+            anchors.alignWhenCentered: false
+            width: 24 * Tokens.scale
+            height: width
+            preferredRendererType: Shape.CurveRenderer
+            rotation: root.expanded ? 180 : 0
 
-                Behavior on rotation {
-                    Anim {}
+            ShapePath {
+                strokeWidth: 2 * root.Tokens.scale
+                strokeColor: Colours.palette.m3onSurfaceVariant
+                fillColor: "transparent"
+                capStyle: ShapePath.RoundCap
+                joinStyle: ShapePath.RoundJoin
+                startX: chevron.width * 0.625
+                startY: chevron.height * 0.25
+
+                PathLine {
+                    x: chevron.width * 0.375
+                    y: chevron.height * 0.5
+                }
+                PathLine {
+                    x: chevron.width * 0.625
+                    y: chevron.height * 0.75
                 }
 
+                Behavior on strokeColor {
+                    CAnim {}
+                }
+            }
+
+            Behavior on rotation {
+                Anim {
+                    type: Anim.Standard
+                }
             }
         }
     }
 
     Behavior on implicitWidth {
-        Anim {}
+        Anim {
+            type: Anim.Standard
+        }
     }
 }

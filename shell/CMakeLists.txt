@@ -82,6 +82,7 @@ if("shell" IN_LIST ENABLE_MODULES)
     install(FILES
         assets/diagnostics.py assets/hyprstack_cli.py assets/i18n.py
         assets/notification_tools.py assets/session_runner.py assets/theme_manager.py assets/theme_sync.py
+        assets/vpn.py assets/vpn_profiles.py
         assets/logo.svg assets/bongocat.gif assets/kurukuru.gif assets/dino.png
         DESTINATION "${INSTALL_QSCONFDIR}/assets")
     install(PROGRAMS assets/wrap_term_launch.sh DESTINATION "${INSTALL_QSCONFDIR}/assets")

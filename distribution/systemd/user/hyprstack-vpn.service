@@ -1,0 +1,13 @@
+[Unit]
+Description=Hyprstack VPN core
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/hyprstack-vpn serve
+Restart=on-failure
+RestartSec=3
+UMask=0077
+
+[Install]
+WantedBy=default.target

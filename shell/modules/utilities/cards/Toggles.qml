@@ -29,10 +29,6 @@ StyledRect {
                 return false;
             }
 
-            if (item.id === "vpn") {
-                return GlobalConfig.utilities.vpn.selectedProvider.length > 0;
-            }
-
             seenIds.add(item.id);
             return true;
         });
@@ -65,6 +61,7 @@ StyledRect {
             visible: root.needExtraRow
             model: root.needExtraRow ? root.quickToggles.slice(root.splitIndex) : []
         }
+
     }
 
     component QuickToggleRow: ButtonRow {
@@ -142,12 +139,42 @@ StyledRect {
                 DelegateChoice {
                     roleValue: "vpn"
                     delegate: Toggle {
-                        icon: "vpn_key"
+                        id: vpnToggle
+                        objectName: "utilitiesVpnToggle"
+                        icon: "shield_lock"
+                        label.visible: false
+                        implicitHeight: vpnLabel.implicitHeight + Tokens.padding.small * 2
                         checked: VPN.connected && VPN.status.state !== "needs-auth" && VPN.status.state !== "error"
-                        enabled: !VPN.connecting && !VPN.disconnecting
+                        disabled: VPN.connecting || VPN.disconnecting || (VPN.active.name === "native" && ManagedVPN.busy)
                         isToggle: VPN.status.state !== "needs-auth" && VPN.status.state !== "error"
                         inactiveOnColour: Colours.palette.m3onSurfaceVariant
-                        onClicked: VPN.toggle()
+                        onClicked: {
+                            if (VPN.active.name === "native" && ManagedVPN.profiles.length === 0)
+                                ManagedVPN.openSettings();
+                            else
+                                VPN.toggle();
+                        }
+
+                        ColumnLayout {
+                            id: vpnLabel
+                            anchors.centerIn: parent
+                            spacing: Tokens.spacing.extraSmall / 2
+
+                            MaterialIcon {
+                                Layout.alignment: Qt.AlignHCenter
+                                text: "shield_lock"
+                                fontStyle: Tokens.font.icon.small
+                                color: vpnToggle.onColour
+                                fill: vpnToggle.internalChecked ? 1 : 0
+                            }
+
+                            StyledText {
+                                Layout.alignment: Qt.AlignHCenter
+                                text: Tr.tr("VPN")
+                                font: Tokens.font.label.builders.small.weight(Font.DemiBold).build()
+                                color: vpnToggle.onColour
+                            }
+                        }
                     }
                 }
             }

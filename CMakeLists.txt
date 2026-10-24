@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(hyprstack VERSION 1.1.1 LANGUAGES CXX)
+project(hyprstack VERSION 1.2.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_DATADIR}/hyprstack/lib" CACHE PATH "Private runtime libraries" FORCE)
 
@@ -52,8 +52,8 @@ if(HYPRSTACK_BUILD_NATIVE)
 endif()
 
 install(DIRECTORY distribution/defaults/ DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/defaults")
-install(PROGRAMS distribution/bin/hyprstack distribution/bin/hyprstack-shell distribution/bin/hyprstack-session distribution/bin/hyprstack-session-runner distribution/bin/hyprstack-doctor DESTINATION "${CMAKE_INSTALL_BINDIR}")
-install(FILES distribution/systemd/user/hyprstack-session.service DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/systemd")
+install(PROGRAMS distribution/bin/hyprstack distribution/bin/hyprstack-shell distribution/bin/hyprstack-session distribution/bin/hyprstack-session-runner distribution/bin/hyprstack-doctor distribution/bin/hyprstack-vpn DESTINATION "${CMAKE_INSTALL_BINDIR}")
+install(FILES distribution/systemd/user/hyprstack-session.service distribution/systemd/user/hyprstack-vpn.service DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/systemd")
 install(FILES shell/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack" RENAME LICENSE)
 install(FILES THIRD_PARTY.md DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack")
 install(FILES native/hyprbars/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/licenses" RENAME hyprbars-BSD-3-Clause)

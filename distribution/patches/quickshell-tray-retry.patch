@@ -1,0 +1,55 @@
+diff --git a/src/services/status_notifier/item.cpp b/src/services/status_notifier/item.cpp
+index 67bde01..89fb1e1 100644
+--- a/src/services/status_notifier/item.cpp
++++ b/src/services/status_notifier/item.cpp
+@@ -17,6 +17,7 @@
+ #include <qsize.h>
+ #include <qstring.h>
+ #include <qtmetamacros.h>
++#include <qtimer.h>
+ #include <qtypes.h>
+ 
+ #include "../../core/iconimageprovider.hpp"
+@@ -290,8 +291,19 @@ void StatusNotifierItem::onGetAllFinished() {
+ 	emit this->ready();
+ }
+ 
+-void StatusNotifierItem::onGetAllFailed() const {
+-	// Not changing the item to ready, as it is almost definitely broken.
++void StatusNotifierItem::onGetAllFailed() {
++	// A client can announce its tray item before the exported object is ready.
++	// Retry initial discovery briefly instead of hiding that item until restart.
++	if (!this->mReady && this->initialLoadRetries < 4) {
++		auto delay = 250 * (1 << this->initialLoadRetries++);
++		qCDebug(logStatusNotifierItem)
++		    << "Retrying tray item" << this->properties.toString() << "after" << delay << "ms";
++		QTimer::singleShot(delay, this, [this]() {
++			if (!this->mReady) this->properties.updateAllViaGetAll();
++		});
++		return;
++	}
++
+ 	if (!this->mReady) {
+ 		qWarning(logStatusNotifierItem) << "Failed to load tray item" << this->properties.toString();
+ 
+diff --git a/src/services/status_notifier/item.hpp b/src/services/status_notifier/item.hpp
+index bd8fe8c..54e98aa 100644
+--- a/src/services/status_notifier/item.hpp
++++ b/src/services/status_notifier/item.hpp
+@@ -166,7 +166,7 @@ signals:
+ 
+ private slots:
+ 	void onGetAllFinished();
+-	void onGetAllFailed() const;
++	void onGetAllFailed();
+ 
+ private:
+ 	void updateMenuState();
+@@ -176,6 +176,7 @@ private:
+ 	DBusStatusNotifierItem* item = nullptr;
+ 	TrayImageHandle imageHandle {this};
+ 	bool mReady = false;
++	int initialLoadRetries = 0;
+ 
+ 	dbus::dbusmenu::DBusMenuHandle mMenuHandle {this};
+ 

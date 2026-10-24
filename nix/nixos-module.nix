@@ -40,5 +40,17 @@ in {
         KillMode = "process";
       };
     };
+
+    systemd.user.services.hyprstack-vpn = {
+      description = "Hyprstack VPN core";
+      after = [ "network-online.target" ];
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${package}/bin/hyprstack-vpn serve";
+        Restart = "on-failure";
+        RestartSec = 3;
+        UMask = "0077";
+      };
+    };
   };
 }

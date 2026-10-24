@@ -10,6 +10,7 @@
 !/INSTALL.en.md
 !/CONFIGURATION.md
 !/MAINTENANCE.md
+!/CHANGELOG.md
 !/update.sh
 !/THIRD_PARTY.md
 !/flake.nix
@@ -20,6 +21,10 @@
 !/nix/nixos-module.nix
 !/nix/home-manager.nix
 
+!/tests/
+/tests/*
+!/tests/test_vpn.py
+
 !/distribution/
 /distribution/*
 !/distribution/bin/
@@ -28,6 +33,7 @@
 !/distribution/update_transaction.py
 !/distribution/defaults/
 !/distribution/systemd/
+!/distribution/patches/
 
 !/native/
 /native/*
@@ -67,6 +73,8 @@
 !/shell/assets/session_runner.py
 !/shell/assets/theme_manager.py
 !/shell/assets/theme_sync.py
+!/shell/assets/vpn.py
+!/shell/assets/vpn_profiles.py
 !/shell/assets/wrap_term_launch.sh
 !/shell/assets/logo.svg
 !/shell/assets/bongocat.gif

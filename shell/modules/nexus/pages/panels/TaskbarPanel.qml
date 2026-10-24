@@ -34,6 +34,7 @@ PageBase {
         {id: "tray", label: Tr.tr("Tray")},
         {id: "clock", label: Tr.tr("Clock")},
         {id: "statusIcons", label: Tr.tr("Status icons")},
+        {id: "vpn", label: Tr.tr("VPN")},
         {id: "power", label: Tr.tr("Power button")}
     ]
 
@@ -116,7 +117,10 @@ PageBase {
                     const entries = root.targetConfig.bar.entries;
                     const entry = entries.values.find(entry => entry.id === modelData.id);
                     if (entry) entry.enabled = checked;
-                    else entries.insert({id: modelData.id, enabled: checked});
+                    else {
+                        const beforePower = modelData.id === "vpn" ? entries.values.findIndex(item => item.id === "power") : -1;
+                        entries.insert({id: modelData.id, enabled: checked}, beforePower);
+                    }
                 }
             }
         }

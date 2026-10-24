@@ -29,7 +29,7 @@ sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   python python-pillow kitty firefox fuzzel btop pavucontrol \
   wl-clipboard cliphist grim slurp wf-recorder swappy libnotify \
   brightnessctl networkmanager pipewire pipewire-pulse wireplumber \
-  polkit hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \
+  polkit libcap hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \
   glib2 gsettings-desktop-schemas xdg-desktop-portal-gtk
 ```
 
@@ -69,7 +69,7 @@ cmake --install build
 ```bash
 config_dir=${XDG_CONFIG_HOME:-$HOME/.config}
 backup_dir=$(mktemp -d "$HOME/hyprstack-backup.XXXXXXXX")
-for name in hypr hyprstack systemd/user/hyprstack-session.service; do
+for name in hypr hyprstack systemd/user/hyprstack-session.service systemd/user/hyprstack-vpn.service; do
     if [ -e "$config_dir/$name" ] || [ -L "$config_dir/$name" ]; then
         mv "$config_dir/$name" "$backup_dir/"
     fi
@@ -87,17 +87,19 @@ export PATH="$HOME/.local/bin:$PATH"
 hyprstack scheme set -n hyprstack-catppuccin -m dark
 ```
 
-**Только для Arch-based систем:** установите пользовательскую службу.
-На NixOS её предоставляет модуль — этот блок пропустите.
+**Только для Arch-based систем:** установите пользовательские службы.
+На NixOS их предоставляет модуль — этот блок пропустите.
 
 ```bash
 mkdir -p "$config_dir/systemd/user"
-cp distribution/systemd/user/hyprstack-session.service "$config_dir/systemd/user/"
+cp distribution/systemd/user/hyprstack-{session,vpn}.service "$config_dir/systemd/user/"
 systemctl --user daemon-reload
 ```
 
 Без пользовательского systemd пропустите этот блок: оболочка использует
 встроенный менеджер сеанса. Добавьте `~/.local/bin` в `PATH` своего профиля входа.
+Встроенному VPN нужна пользовательская служба systemd; включать её в автозапуск
+не нужно — она запускается кнопкой подключения.
 
 ### 4. Запуск
 
@@ -193,5 +195,9 @@ cd hyprstack-shell
 По необходимости: `bluez` — Bluetooth, `upower` — батарея,
 `power-profiles-daemon` — профили питания, `ddcutil` — яркость внешних экранов,
 `wtype` — ввод emoji. Файловый менеджер выберите самостоятельно.
+
+VPN настраивается в **Настройки → Сеть → Настройки VPN**. Ядра sing-box/Xray
+загружаются по необходимости; для TUN на Arch-based системах один раз выдаются
+сетевые права через Polkit. [Протоколы, импорт и маршрутизация](CONFIGURATION.md#vpn-и-прокси).
 
 [Настройки и клавиши](CONFIGURATION.md) · [Обновление и диагностика](MAINTENANCE.md)

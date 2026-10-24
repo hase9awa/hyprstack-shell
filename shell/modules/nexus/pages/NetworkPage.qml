@@ -114,6 +114,14 @@ PageBase {
         }
 
         // ---- VPN -------------------------------------------------------------
+
+        RowButton {
+            text: Tr.tr("VPN settings")
+            subtext: Tr.tr("Profiles, subscriptions and connection mode")
+            icon: "vpn_key"
+            trailingIcon: "open_in_new"
+            onClicked: ManagedVPN.openSettings()
+        }
         ToggleRow {
             Layout.topMargin: Tokens.spacing.large
             Layout.fillWidth: true

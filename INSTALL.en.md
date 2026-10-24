@@ -29,7 +29,7 @@ sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   python python-pillow kitty firefox fuzzel btop pavucontrol \
   wl-clipboard cliphist grim slurp wf-recorder swappy libnotify \
   brightnessctl networkmanager pipewire pipewire-pulse wireplumber \
-  polkit hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \
+  polkit libcap hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \
   glib2 gsettings-desktop-schemas xdg-desktop-portal-gtk
 ```
 
@@ -69,7 +69,7 @@ Move the previous configuration to a backup:
 ```bash
 config_dir=${XDG_CONFIG_HOME:-$HOME/.config}
 backup_dir=$(mktemp -d "$HOME/hyprstack-backup.XXXXXXXX")
-for name in hypr hyprstack systemd/user/hyprstack-session.service; do
+for name in hypr hyprstack systemd/user/hyprstack-session.service systemd/user/hyprstack-vpn.service; do
     if [ -e "$config_dir/$name" ] || [ -L "$config_dir/$name" ]; then
         mv "$config_dir/$name" "$backup_dir/"
     fi
@@ -87,17 +87,19 @@ export PATH="$HOME/.local/bin:$PATH"
 hyprstack scheme set -n hyprstack-catppuccin -m dark
 ```
 
-**Arch-based systems only:** install the user service.
-On NixOS, the module provides it; skip this block.
+**Arch-based systems only:** install the user services.
+On NixOS, the module provides them; skip this block.
 
 ```bash
 mkdir -p "$config_dir/systemd/user"
-cp distribution/systemd/user/hyprstack-session.service "$config_dir/systemd/user/"
+cp distribution/systemd/user/hyprstack-{session,vpn}.service "$config_dir/systemd/user/"
 systemctl --user daemon-reload
 ```
 
 Without user systemd, skip this block; the shell uses its built-in session
 manager. Add `~/.local/bin` to your login profile's `PATH`.
+The built-in VPN requires a user systemd service. It starts when you connect;
+do not enable it at login.
 
 ### 4. Launch
 
@@ -193,6 +195,10 @@ panel, notification daemon and external Polkit agent.
 Optional packages: `bluez` for Bluetooth, `upower` for battery information,
 `power-profiles-daemon` for power profiles, `ddcutil` for external display
 brightness and `wtype` for emoji typing. Install a file manager of your choice.
+
+Configure VPN under **Settings → Network → VPN settings**. sing-box/Xray cores
+are downloaded when needed; TUN on Arch-based systems requires a one-time
+Polkit authorization. [Protocols, imports and routing (Russian)](CONFIGURATION.md#vpn-и-прокси).
 
 [Configuration and shortcuts (Russian)](CONFIGURATION.md) ·
 [Updates and diagnostics (Russian)](MAINTENANCE.md)

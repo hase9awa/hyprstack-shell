@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+data_dir=${HYPRSTACK_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/hyprstack}
+exec python3 "$data_dir/shell/assets/vpn.py" "$@"

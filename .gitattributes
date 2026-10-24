@@ -4,3 +4,4 @@
 *.png binary
 *.webp binary
 *.mp4 binary
+distribution/patches/*.patch -whitespace

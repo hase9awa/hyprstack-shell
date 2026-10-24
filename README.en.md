@@ -20,6 +20,8 @@ Switch modes with a single shortcut; each mode remembers your window layout.
 Russian is the default language; English and the system language are available
 in settings.
 
+Current version: **1.2.0**. [Release notes](CHANGELOG.md).
+
 <a id="demo"></a>
 
 ## See it in action
@@ -52,6 +54,9 @@ in settings.
   and wallpapers.
 - **Notifications.** History, grouping, actions and Do Not Disturb.
 - **System controls.** Audio, networking, Bluetooth, screenshots and recording.
+- **VPN.** VLESS/XHTTP/Reality, Trojan, VMess, Shadowsocks, Hysteria2 and TUIC
+  using sing-box/Xray, profile and subscription imports, TUN and local proxies.
+  Connect from quick actions or the taskbar; open VPN settings under Network.
 - **Dashboard.** Calendar, media controls, system status and weather.
 - **Appearance.** 18 built-in colour themes, light and dark modes, accents,
   colour synchronization for GTK, Qt, Java Swing and popular terminals,
@@ -103,6 +108,7 @@ swipe down to activate the selection and close it.
 ## Documentation
 
 - [Configuration, shortcuts, themes and weather (Russian)](CONFIGURATION.md)
+- [Release notes](CHANGELOG.md)
 - [Updates, diagnostics and manual removal (Russian)](MAINTENANCE.md)
 - [Third-party components and licences](THIRD_PARTY.md)
 
