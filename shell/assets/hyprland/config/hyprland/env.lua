@@ -20,6 +20,14 @@ hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 -- Others
 hl.env("_JAVA_AWT_WM_NONREPARENTING", "1")
 
+-- ssh falls back to this only without a terminal to ask on, and sudo only
+-- when it is called with -A, so neither takes over a terminal prompt.
+local data_dir = os.getenv("HYPRSTACK_DATA_DIR")
+    or ((os.getenv("XDG_DATA_HOME") or os.getenv("HOME") .. "/.local/share") .. "/hyprstack")
+local askpass = data_dir .. "/shell/assets/askpass.py"
+hl.env("SSH_ASKPASS", askpass)
+hl.env("SUDO_ASKPASS", askpass)
+
 -- Application theme inheritance is generated from the shell's theme settings.
 local theme_env = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config")
     .. "/hyprstack/theme/environment.lua"

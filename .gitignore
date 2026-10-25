@@ -64,6 +64,7 @@
 !/shell/services/
 !/shell/utils/
 /shell/assets/*
+!/shell/assets/askpass.py
 !/shell/assets/diagnostics.py
 !/shell/assets/emoji.json
 !/shell/assets/hyprstack_cli.py

@@ -3175,7 +3175,7 @@ msgstr ""
 msgid "Waiting for authentication..."
 msgstr ""
 
-#: modules/polkit/AuthDialog.qml
+#: modules/polkit/AuthDialog.qml modules/askpass/AskpassDialog.qml
 msgid "Caps Lock is on"
 msgstr ""
 
@@ -4709,4 +4709,25 @@ msgstr ""
 #: modules/launcher/EmojiList.qml
 #, qt-format
 msgid "Add \"%1\""
+msgstr ""
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Passphrase required"
+msgstr ""
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Passphrase"
+msgstr ""
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Show passphrase"
+msgstr ""
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Hide passphrase"
+msgstr ""
+
+#: modules/askpass/AskpassDialog.qml
+msgctxt "button"
+msgid "Unlock"
 msgstr ""

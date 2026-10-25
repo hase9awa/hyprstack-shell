@@ -41,7 +41,7 @@ msgstr "Не удалось пройти авторизацию. Попробу�
 msgid "Waiting for authentication..."
 msgstr "Ожидание авторизации…"
 
-#: modules/polkit/AuthDialog.qml
+#: modules/polkit/AuthDialog.qml modules/askpass/AskpassDialog.qml
 msgid "Caps Lock is on"
 msgstr "Caps Lock включён"
 
@@ -5865,3 +5865,24 @@ msgstr "Введите что-нибудь, чтобы добавить"
 #, qt-format
 msgid "Add \"%1\""
 msgstr "Добавить «%1»"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Passphrase required"
+msgstr "Требуется пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Passphrase"
+msgstr "Пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Show passphrase"
+msgstr "Показать пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Hide passphrase"
+msgstr "Скрыть пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgctxt "button"
+msgid "Unlock"
+msgstr "Разблокировать"
