@@ -20,7 +20,7 @@ Switch modes with a single shortcut; each mode remembers your window layout.
 Russian is the default language; English and the system language are available
 in settings.
 
-Current version: **1.2.0**. [Release notes](CHANGELOG.md).
+Current version: **1.2.1**. [Release notes](CHANGELOG.md).
 
 <a id="demo"></a>
 

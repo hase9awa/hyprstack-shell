@@ -1,5 +1,21 @@
 # Изменения / Release notes
 
+## 1.2.1 · 2026-10-25
+
+- Быстрые действия в правой панели используют компактные кнопки одинакового
+  размера. Подпись VPN находится рядом со значком; неполный ряд центрируется.
+- Исправлено обрезание меню Bluetooth краем экрана после подключения устройства
+  ([#4](https://github.com/hase9awa/hyprstack-shell/issues/4)). Ширина меню
+  постоянна, статус переносится, длинное имя устройства сокращается.
+
+English:
+
+- Quick actions use equally sized compact buttons. The VPN caption sits beside
+  its icon, and incomplete rows are centred.
+- Fixed Bluetooth popout overflow after connecting a device
+  ([#4](https://github.com/hase9awa/hyprstack-shell/issues/4)). The menu keeps
+  a stable width, wraps its status text and elides long device names.
+
 ## 1.2.0 · 2026-10-24
 
 - Встроено управление VPN через sing-box и Xray: профили, подписки, проверка
