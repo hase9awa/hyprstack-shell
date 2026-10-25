@@ -21,8 +21,21 @@ Item {
 
     readonly property bool showWallpapers: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}wallpaper `)
     readonly property bool showClipboard: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}clipboard `)
-    readonly property var currentList: showWallpapers ? wallpaperList.item : showClipboard ? clipList.item : appList.item // Can be either ListView or PathView, so can't type properly
-    property string animState: showWallpapers ? "wallpapers" : showClipboard ? "clipboard" : "apps"
+    readonly property bool showEmoji: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}emoji `)
+    readonly property var currentList: { // Can be a ListView, a GridView or a PathView, so can't type properly
+        if (showWallpapers)
+            return wallpaperList.item;
+        if (showClipboard)
+            return clipList.item;
+        return showEmoji ? emojiList.item : appList.item;
+    }
+    property string animState: {
+        if (showWallpapers)
+            return "wallpapers";
+        if (showClipboard)
+            return "clipboard";
+        return showEmoji ? "emoji" : "apps";
+    }
 
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
@@ -52,6 +65,20 @@ Item {
                 root.implicitWidth: Math.max(root.Tokens.sizes.launcher.itemWidth * 1.2, wallpaperList.implicitWidth)
                 root.implicitHeight: root.Tokens.sizes.launcher.wallpaperHeight
                 wallpaperList.active: true
+            }
+        },
+        State {
+            name: "emoji"
+
+            PropertyChanges {
+                root.implicitWidth: root.Tokens.sizes.launcher.itemWidth
+                root.implicitHeight: root.Tokens.sizes.launcher.emojiHeight
+                emojiList.active: true
+            }
+
+            AnchorChanges {
+                anchors.left: root.parent.left
+                anchors.right: root.parent.right
             }
         },
         State {
@@ -141,6 +168,22 @@ Item {
         }
     }
 
+    Loader {
+        id: emojiList
+
+        asynchronous: true
+        active: false
+
+        anchors.fill: parent
+
+        sourceComponent: EmojiList {
+            objectName: "launcherEmojiList"
+
+            search: root.search
+            screenState: root.screenState
+        }
+    }
+
     Row {
         id: empty
 
@@ -159,7 +202,9 @@ Item {
             text: {
                 if (root.state === "wallpapers")
                     return "wallpaper_slideshow";
-                return root.state === "clipboard" ? "content_paste_off" : "manage_search";
+                if (root.state === "clipboard")
+                    return "content_paste_off";
+                return root.state === "emoji" ? "mood_bad" : "manage_search";
             }
             color: Colours.palette.m3onSurfaceVariant
             fontStyle: Tokens.font.icon.extraLarge
@@ -177,7 +222,9 @@ Item {
                 text: {
                     if (root.state === "wallpapers")
                         return Tr.tr("No wallpapers found");
-                    return root.state === "clipboard" ? Tr.tr("Clipboard is empty") : Tr.tr("No results");
+                    if (root.state === "clipboard")
+                        return Tr.tr("Clipboard is empty");
+                    return Tr.tr("No results");
                 }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()

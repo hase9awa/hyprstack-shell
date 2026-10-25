@@ -9,9 +9,14 @@ import qs.services
 Singleton {
     property ShellRoot shellRoot
 
-    function setLauncher(state: ScreenState, open: bool): void {
+    // What the search box should start with when the launcher next opens,
+    // so a keybind can land directly in one of its modes.
+    property string launcherPrefill
+
+    function setLauncher(state: ScreenState, open: bool, prefill: string): void {
         if (!state)
             return;
+        launcherPrefill = open ? (prefill ?? "") : "";
         Overview.close(false);
         for (const other of states.instances)
             if (other !== state)

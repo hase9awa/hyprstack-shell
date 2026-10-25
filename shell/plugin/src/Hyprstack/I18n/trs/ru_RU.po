@@ -5824,7 +5824,7 @@ msgstr "Буфер обмена пуст"
 msgid "Copy something and it will show up here"
 msgstr "Скопируйте что-нибудь, и оно появится здесь"
 
-#: modules/launcher/items/ClipItem.qml
+#: modules/launcher/items/ClipItem.qml services/Emoji.qml
 msgid "Pinned"
 msgstr "Закреплено"
 
@@ -5838,3 +5838,20 @@ msgstr "Удалить запись"
 #: modules/launcher/items/ClipItem.qml
 msgid "Image"
 msgstr "Изображение"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgctxt "launcher action"
+msgid "Emoji"
+msgstr "Смайлики"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgid "Pick an emoji, a kaomoji or a symbol"
+msgstr "Выбрать смайлик, комодзи или символ"
+
+#: services/Emoji.qml
+msgid "Mine"
+msgstr "Мои"
+
+#: modules/launcher/EmojiList.qml
+msgid "Add what was typed"
+msgstr "Добавить введённое"

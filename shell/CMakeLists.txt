@@ -84,6 +84,7 @@ if("shell" IN_LIST ENABLE_MODULES)
         assets/notification_tools.py assets/session_runner.py assets/theme_manager.py assets/theme_sync.py
         assets/vpn.py assets/vpn_profiles.py
         assets/logo.svg assets/bongocat.gif assets/kurukuru.gif assets/dino.png
+        assets/emoji.json
         DESTINATION "${INSTALL_QSCONFDIR}/assets")
     install(PROGRAMS assets/wrap_term_launch.sh DESTINATION "${INSTALL_QSCONFDIR}/assets")
 

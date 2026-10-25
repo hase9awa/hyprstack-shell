@@ -151,6 +151,7 @@ class LauncherTokens : public settings::ObjectNode {
     CONFIG_PROPERTY(int, itemWidth, 600)
     CONFIG_PROPERTY(int, itemHeight, 57)
     CONFIG_PROPERTY(int, clipHeight, 72)
+    CONFIG_PROPERTY(int, emojiHeight, 300)
     CONFIG_PROPERTY(int, wallpaperWidth, 280)
     CONFIG_PROPERTY(int, wallpaperHeight, 200)
 };

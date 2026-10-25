@@ -100,6 +100,7 @@ public:
     SCALED_DIMENSION(itemWidth)
     SCALED_DIMENSION(itemHeight)
     SCALED_DIMENSION(clipHeight)
+    SCALED_DIMENSION(emojiHeight)
     SCALED_DIMENSION(wallpaperWidth)
     SCALED_DIMENSION(wallpaperHeight)
 private:

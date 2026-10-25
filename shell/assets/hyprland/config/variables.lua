@@ -148,7 +148,6 @@ return {
 
     -- Clipboard and emoji picker
     kbClipboard                = "SUPER + V",
-    kbClipboardDel             = "SUPER + ALT + V",
     kbClipboardPasteLatest     = "CTRL + SHIFT + ALT + V",
     kbEmoji                    = "SUPER + Period",
 }

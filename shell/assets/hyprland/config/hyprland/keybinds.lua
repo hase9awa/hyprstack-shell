@@ -270,9 +270,8 @@ create_bind(
 bind_variable("kbSleep", hl.dsp.exec_cmd(vars.sleepGestureCmd), locked)
 
 -- Clipboard and emoji picker
-bind_variable("kbClipboard", hl.dsp.exec_cmd("pkill fuzzel || hyprstack clipboard"))
-bind_variable("kbClipboardDel", hl.dsp.exec_cmd("pkill fuzzel || hyprstack clipboard -d"))
-bind_variable("kbEmoji", hl.dsp.exec_cmd("pkill fuzzel || hyprstack emoji -p"))
+bind_variable("kbClipboard", hl.dsp.exec_cmd("hyprstack clipboard"))
+bind_variable("kbEmoji", hl.dsp.exec_cmd("hyprstack emoji"))
 bind_variable("kbClipboardPasteLatest",
     hl.dsp.exec_cmd('sleep 0.5s && ydotool type -d 1 "$(cliphist list | head -1 | cliphist decode)"'),
     locked

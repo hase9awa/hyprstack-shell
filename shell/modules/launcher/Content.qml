@@ -73,6 +73,9 @@ Item {
                 } else if (list.showClipboard) {
                     Clipboard.activate(currentItem.modelData);
                     root.screenState.launcher = false;
+                } else if (list.showEmoji) {
+                    Emoji.activate(currentItem.modelData);
+                    root.screenState.launcher = false;
                 } else if (text.startsWith(GlobalConfig.launcher.actionPrefix)) {
                     if (text.startsWith(`${GlobalConfig.launcher.actionPrefix}calc `))
                         currentItem.onClicked();
@@ -115,8 +118,12 @@ Item {
 
         Connections {
             function onLauncherChanged(): void {
-                if (!root.screenState.launcher)
+                if (!root.screenState.launcher) {
                     search.text = "";
+                } else if (ShellState.launcherPrefill) {
+                    search.text = ShellState.launcherPrefill;
+                    ShellState.launcherPrefill = "";
+                }
             }
 
             function onSessionChanged(): void {

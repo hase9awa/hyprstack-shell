@@ -26,7 +26,7 @@ sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   hyprland quickshell nlohmann-json qt6-base qt6-declarative qt6-shadertools \
   qt6-svg qt6-imageformats qt6-wayland qt5ct qt6ct libqalculate lm_sensors \
   pixman libdrm libinput systemd-libs wayland libxkbcommon pango cairo \
-  python python-pillow kitty firefox fuzzel btop pavucontrol \
+  python python-pillow kitty firefox btop pavucontrol \
   wl-clipboard cliphist grim slurp wf-recorder swappy libnotify \
   brightnessctl networkmanager pipewire pipewire-pulse wireplumber \
   polkit libcap hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \

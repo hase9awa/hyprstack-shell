@@ -4669,7 +4669,7 @@ msgstr ""
 msgid "Copy something and it will show up here"
 msgstr ""
 
-#: modules/launcher/items/ClipItem.qml
+#: modules/launcher/items/ClipItem.qml services/Emoji.qml
 msgid "Pinned"
 msgstr ""
 
@@ -4682,4 +4682,21 @@ msgstr ""
 
 #: modules/launcher/items/ClipItem.qml
 msgid "Image"
+msgstr ""
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgctxt "launcher action"
+msgid "Emoji"
+msgstr ""
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgid "Pick an emoji, a kaomoji or a symbol"
+msgstr ""
+
+#: services/Emoji.qml
+msgid "Mine"
+msgstr ""
+
+#: modules/launcher/EmojiList.qml
+msgid "Add what was typed"
 msgstr ""

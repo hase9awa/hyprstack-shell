@@ -24,6 +24,7 @@
 /distribution/*
 !/distribution/bin/
 !/distribution/check_headers.py
+!/distribution/generate_emoji.py
 !/distribution/update.py
 !/distribution/update_transaction.py
 !/distribution/defaults/
@@ -64,6 +65,7 @@
 !/shell/utils/
 /shell/assets/*
 !/shell/assets/diagnostics.py
+!/shell/assets/emoji.json
 !/shell/assets/hyprstack_cli.py
 !/shell/assets/i18n.py
 !/shell/assets/notification_tools.py
