@@ -40,8 +40,36 @@ Item {
         anchors.rightMargin: Tokens.spacing.small
 
         clip: true
-        cellWidth: 48 * Tokens.scale
+        // A kaomoji is a whole phrase and a character of one's own can be
+        // anything, so the cells grow to whatever the longest entry on show
+        // needs rather than cutting it off at an emoji's width.
+        cellWidth: {
+            let needed = 0;
+            for (const metrics of [m0, m1, m2, m3, m4, m5, m6, m7])
+                needed = Math.max(needed, metrics.width);
+            return Math.min(width, Math.max(48 * Tokens.scale, needed + Tokens.padding.medium * 2));
+        }
         cellHeight: 48 * Tokens.scale
+
+        // Counting characters is not the same as measuring them: a kaomoji
+        // built from box drawing is wider than a longer one made of narrow
+        // ones. The longest few are measured and the widest of those wins.
+        readonly property var candidates: {
+            const long = [];
+            for (const entry of grid.model)
+                if (entry.c.length > 2)
+                    long.push(entry.c);
+            return long.sort((a, b) => b.length - a.length).slice(0, 8);
+        }
+
+        TextMetrics { id: m0; font: Tokens.font.body.small; text: grid.candidates[0] ?? "" }
+        TextMetrics { id: m1; font: Tokens.font.body.small; text: grid.candidates[1] ?? "" }
+        TextMetrics { id: m2; font: Tokens.font.body.small; text: grid.candidates[2] ?? "" }
+        TextMetrics { id: m3; font: Tokens.font.body.small; text: grid.candidates[3] ?? "" }
+        TextMetrics { id: m4; font: Tokens.font.body.small; text: grid.candidates[4] ?? "" }
+        TextMetrics { id: m5; font: Tokens.font.body.small; text: grid.candidates[5] ?? "" }
+        TextMetrics { id: m6; font: Tokens.font.body.small; text: grid.candidates[6] ?? "" }
+        TextMetrics { id: m7; font: Tokens.font.body.small; text: grid.candidates[7] ?? "" }
 
         // A plain array rather than a ScriptModel: picking a group replaces
         // every entry, and reconciling the old list against the new one
@@ -78,29 +106,15 @@ Item {
         }
     }
 
-    StyledRect {
-        id: hint
-
+    StyledTooltip {
         anchors.right: sidebar.left
         anchors.verticalCenter: sidebar.bottom
         anchors.verticalCenterOffset: -(sidebar.width / 2)
         anchors.rightMargin: Tokens.spacing.small
 
-        visible: root.addHovered
-        implicitWidth: hintText.implicitWidth + Tokens.padding.medium * 2
-        implicitHeight: hintText.implicitHeight + Tokens.padding.small * 2
-        radius: Tokens.rounding.small
-        color: Colours.palette.m3inverseSurface
         z: 1
-
-        StyledText {
-            id: hintText
-
-            anchors.centerIn: parent
-            text: root.query.trim() ? Tr.tr("Add \"%1\"").arg(root.query.trim()) : Tr.tr("Type something to add it")
-            color: Colours.palette.m3inverseOnSurface
-            font: Tokens.font.body.small
-        }
+        shown: root.addHovered
+        text: root.query.trim() ? Tr.tr("Add \"%1\"").arg(root.query.trim()) : Tr.tr("Type something to add it")
     }
 
     StyledRect {

@@ -43,6 +43,7 @@ Item {
     clip: true
     state: animState
 
+
     states: [
         State {
             name: "apps"
@@ -73,7 +74,6 @@ Item {
             PropertyChanges {
                 root.implicitWidth: root.Tokens.sizes.launcher.itemWidth
                 root.implicitHeight: root.Tokens.sizes.launcher.emojiHeight
-                emojiList.active: true
             }
 
             AnchorChanges {
@@ -174,7 +174,11 @@ Item {
         id: emojiList
 
         asynchronous: true
-        active: false
+        // Built in the background at start rather than on first use: the
+        // grid is the one list whose cells cost enough to be noticed, and
+        // paying for them on the first open showed as a stutter.
+        active: true
+        visible: root.state === "emoji"
 
         anchors.fill: parent
 
