@@ -1,5 +1,23 @@
 # Изменения / Release notes
 
+## 1.2.2 · 2026-10-25
+
+- Центр уведомлений и быстрые действия открываются как одна панель с общей
+  анимацией и фоном. Убраны сжатие ширины, разрыв и разделитель на стыке.
+- Учтены ожидание загрузки, быстрое открытие и закрытие, верхняя и нижняя панель
+  задач, а также переход из уже раскрытых быстрых действий.
+- Наведение на встроенные кнопки не запускает второе самостоятельное меню.
+  Список уведомлений ограничен своей областью и не перекрывает быстрые действия.
+
+English:
+
+- The notification center and quick actions share one surface and animation.
+  Removed width collapse, the gap and the divider between the sections.
+- Handled content preparation, reversing the transition, both taskbar positions
+  and opening the center while quick actions are already visible.
+- Hovering embedded controls no longer opens a second drawer. Notification
+  content stays within its area and cannot overlap the controls.
+
 ## 1.2.1 · 2026-10-25
 
 - Быстрые действия в правой панели используют компактные кнопки одинакового

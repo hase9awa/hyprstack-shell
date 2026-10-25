@@ -23,7 +23,7 @@ import unicodedata
 import theme_manager as themes
 from i18n import _, configure_argparse
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 ASSETS = Path(__file__).resolve().parent
 CONFIG = themes.CONFIG
 STATE = themes.STATE

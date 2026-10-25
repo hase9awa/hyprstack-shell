@@ -30,13 +30,5 @@ Item {
                 screenState: root.screenState
             }
         }
-
-        StyledRect {
-            Layout.topMargin: Tokens.padding.large - layout.spacing
-            Layout.fillWidth: true
-            implicitHeight: 1 * Tokens.scale
-
-            color: Colours.tPalette.m3outlineVariant
-        }
     }
 }

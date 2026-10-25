@@ -21,6 +21,7 @@ Item {
     property real offsetScale: shouldBeActive && readyToOpen ? 0 : 1
 
     visible: offsetScale < 1
+    clip: true
     anchors.rightMargin: atBottom ? 0 : (-implicitWidth - 5) * offsetScale
     implicitWidth: Tokens.sizes.sidebar.width
     opacity: 1 - offsetScale

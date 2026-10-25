@@ -258,7 +258,8 @@ CustomMouseArea {
         }
 
         // Show utilities on hover
-        const atUtilitiesCorner = bar.atBottom && x >= width - 8 && y < 8;
+        const attachedUtilities = screenState.sidebar || panels.sidebar.visible;
+        const atUtilitiesCorner = !attachedUtilities && bar.atBottom && x >= width - 8 && y < 8;
         if (atUtilitiesCorner && !screenState.utilities) {
             if (!utilitiesCornerTimer.running)
                 utilitiesCornerTimer.start();
@@ -268,9 +269,9 @@ CustomMouseArea {
         const showUtilities = (!bar.atBottom || screenState.utilities || screenState.sidebar) && inUtilities(x, y);
 
         // Always update visibility based on hover if not in shortcut mode
-        if (!utilitiesShortcutActive) {
+        if (!attachedUtilities && !utilitiesShortcutActive) {
             screenState.utilities = showUtilities;
-        } else if (showUtilities) {
+        } else if (!attachedUtilities && showUtilities) {
             // If hovering over utilities area while in shortcut mode, transition to hover control
             utilitiesShortcutActive = false;
         }
