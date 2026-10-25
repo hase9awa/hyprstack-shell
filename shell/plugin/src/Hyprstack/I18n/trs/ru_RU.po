@@ -5798,3 +5798,7 @@ msgstr "Открыть"
 #: modules/portals/AppChooserDialog.qml
 msgid "All applications"
 msgstr "Все приложения"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "Make it the default for this type"
+msgstr "Сделать приложением по умолчанию"

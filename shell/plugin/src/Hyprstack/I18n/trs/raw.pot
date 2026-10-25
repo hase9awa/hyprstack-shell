@@ -4643,3 +4643,7 @@ msgstr ""
 #: modules/portals/AppChooserDialog.qml
 msgid "All applications"
 msgstr ""
+
+#: modules/portals/AppChooserDialog.qml
+msgid "Make it the default for this type"
+msgstr ""

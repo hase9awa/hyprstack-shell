@@ -29,6 +29,7 @@ StyledWindow {
             .map(e => root.idFor(e.id));
     }
     readonly property string selected: candidates[list.currentIndex] ?? ""
+    readonly property var selectedEntry: entryFor(selected)
     // Desktop entry ids reach the portal with their suffix, while the entries
     // themselves are named without it.
     readonly property bool suffixed: request.choices.length > 0 && request.choices[0].endsWith(".desktop")
@@ -71,8 +72,18 @@ StyledWindow {
     }
 
     function submit(): void {
-        if (root.selected)
-            root.request.choose(root.selected);
+        if (!root.selected)
+            return;
+
+        // The association outlives this window, which the portal tears down
+        // the moment it is answered, so hand it to a detached process. An
+        // entry is named after its file without the suffix, so adding it
+        // back names the file even when the id carries one of its own.
+        if (defaultSwitch.checked && root.selectedEntry && root.request.contentType)
+            Quickshell.execDetached(["xdg-mime", "default", `${root.selectedEntry.id}.desktop`,
+                root.request.contentType]);
+
+        root.request.choose(root.selected);
     }
 
     name: "appchooser"
@@ -253,6 +264,28 @@ StyledWindow {
                 text: Tr.tr("No applications available")
                 color: Colours.palette.m3onSurfaceVariant
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                // Without a type there is no association to record.
+                visible: root.request.contentType.length > 0
+                spacing: Tokens.spacing.medium
+
+                StyledText {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: Tr.tr("Make it the default for this type")
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                }
+
+                StyledSwitch {
+                    id: defaultSwitch
+
+                    objectName: "appChooserDefault"
+                    // The file name is only known once the entry resolves.
+                    disabled: !root.selectedEntry
+                }
             }
 
             RowLayout {
