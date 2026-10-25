@@ -42,6 +42,29 @@ Current version: **1.2.2**. [Release notes](CHANGELOG.md).
   </tr>
 </table>
 
+### Application colours
+
+Apply the shell palette to GTK, Qt, Java Swing and terminals under
+**Wallpaper & style → Application colours**. Synchronization can be enabled
+separately for each application family.
+
+![Colour synchronization settings and a shared palette in Dolphin, Thunar, Java Swing and kitty: dark and light Catppuccin, then Gruvbox](docs/media/app-colours.gif)
+
+The demo opens applications with each selected palette. Java Swing uses the
+GTK look and feel and requires an application restart; some other applications
+may also need to be reopened.
+
+### VPN in the shell
+
+Manage profiles, subscriptions, connection mode and routing under
+**Settings → Network → VPN settings**. Connect using the **VPN** button in
+quick actions or the shield icon on the taskbar. Configure the visibility of
+both controls under **Panels**.
+
+![VPN settings, VLESS, Trojan and Hysteria2 profile selection, the quick-actions VPN button and the taskbar icon](docs/media/vpn.gif)
+
+The GIF uses demo profiles without connecting to servers.
+
 ## Features
 
 - **Scrolling and stacking.** A strip of columns and floating windows with
