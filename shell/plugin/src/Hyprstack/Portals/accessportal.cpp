@@ -86,12 +86,6 @@ QString AccessRequest::denyLabel() const {
     return label(u"deny_label"_s);
 }
 
-bool AccessRequest::modal() const {
-    // A prompt nobody asked to be modeless still has to be answered.
-    const auto value = option(u"modal"_s);
-    return !value.isValid() || value.toBool();
-}
-
 QVariantList AccessRequest::choices() const {
     QVariantList result;
     result.reserve(m_choices.size());

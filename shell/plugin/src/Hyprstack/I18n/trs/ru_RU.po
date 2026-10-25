@@ -5781,3 +5781,16 @@ msgstr "Запретить"
 msgctxt "button"
 msgid "Allow"
 msgstr "Разрешить"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "Open with"
+msgstr "Открыть с помощью"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "No applications available"
+msgstr "Подходящих приложений нет"
+
+#: modules/portals/AppChooserDialog.qml
+msgctxt "button"
+msgid "Open"
+msgstr "Открыть"

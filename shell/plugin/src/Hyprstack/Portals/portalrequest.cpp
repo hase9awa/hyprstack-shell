@@ -13,6 +13,8 @@ Q_LOGGING_CATEGORY(lcPortalRequest, "hyprstack.portals.request", QtInfoMsg)
 
 namespace hyprstack::portals {
 
+using Qt::StringLiterals::operator""_s;
+
 PortalRequest::PortalRequest(QString appId, QString title, QVariantMap options, QDBusMessage call,
     QDBusObjectPath handle, QObject* parent)
     : QObject(parent)
@@ -28,6 +30,12 @@ QString PortalRequest::appId() const {
 
 QString PortalRequest::title() const {
     return m_title;
+}
+
+bool PortalRequest::modal() const {
+    // A dialog nobody asked to be modeless still has to be answered.
+    const auto value = m_options.value(u"modal"_s);
+    return !value.isValid() || value.toBool();
 }
 
 bool PortalRequest::answered() const {

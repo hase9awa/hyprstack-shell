@@ -50,7 +50,6 @@ class AccessRequest : public PortalRequest {
     Q_PROPERTY(QString icon READ icon CONSTANT)
     Q_PROPERTY(QString grantLabel READ grantLabel CONSTANT)
     Q_PROPERTY(QString denyLabel READ denyLabel CONSTANT)
-    Q_PROPERTY(bool modal READ modal CONSTANT)
     // Each entry is {id, label, options, selected}, where an option is
     // {id, label} and an empty option list asks for a plain yes or no.
     Q_PROPERTY(QVariantList choices READ choices CONSTANT)
@@ -64,7 +63,6 @@ public:
     [[nodiscard]] QString icon() const;
     [[nodiscard]] QString grantLabel() const;
     [[nodiscard]] QString denyLabel() const;
-    [[nodiscard]] bool modal() const;
     [[nodiscard]] QVariantList choices() const;
 
     // Selections map a choice id onto the option id it was answered with;

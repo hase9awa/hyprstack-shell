@@ -45,6 +45,10 @@ Scope {
                 AccessPortal {
                     id: access
                 }
+
+                AppChooserPortal {
+                    id: appChooser
+                }
             }
 
             FileChooser {
@@ -53,6 +57,10 @@ Scope {
 
             Access {
                 portal: access
+            }
+
+            AppChooser {
+                portal: appChooser
             }
         }
     }

@@ -4626,3 +4626,16 @@ msgstr ""
 msgctxt "button"
 msgid "Allow"
 msgstr ""
+
+#: modules/portals/AppChooserDialog.qml
+msgid "Open with"
+msgstr ""
+
+#: modules/portals/AppChooserDialog.qml
+msgid "No applications available"
+msgstr ""
+
+#: modules/portals/AppChooserDialog.qml
+msgctxt "button"
+msgid "Open"
+msgstr ""

@@ -20,6 +20,7 @@ class PortalRequest : public QObject {
 
     Q_PROPERTY(QString appId READ appId CONSTANT)
     Q_PROPERTY(QString title READ title CONSTANT)
+    Q_PROPERTY(bool modal READ modal CONSTANT)
     Q_PROPERTY(bool answered READ answered NOTIFY answeredChanged)
 
 public:
@@ -28,6 +29,7 @@ public:
 
     [[nodiscard]] QString appId() const;
     [[nodiscard]] QString title() const;
+    [[nodiscard]] bool modal() const;
     [[nodiscard]] bool answered() const;
     [[nodiscard]] QDBusObjectPath handle() const;
 
