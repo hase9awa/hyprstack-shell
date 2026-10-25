@@ -85,6 +85,19 @@ CustomMouseArea {
         return panels.utilities.atBottom ? inBottomPanel(panels.utilities, x, y, true) : inTopPanel(panels.utilities, x, y);
     }
 
+    // A popout keeps its place while it grows, so hover follows where it
+    // settles. Measuring the animated size instead loses the pointer that
+    // already reached that place and closes the popout again.
+    function inPopouts(x: real, y: real): bool {
+        const wrapper = panels.popoutsWrapper;
+        if (wrapper.targetHeight <= 0)
+            return false;
+        const rounding = Config.border.rounding * Tokens.scale;
+        const origin = panels.mapToItem(root, wrapper.targetX, wrapper.targetY);
+        return x >= origin.x - rounding && x <= origin.x + wrapper.targetWidth + rounding
+            && y >= origin.y - rounding && y <= origin.y + wrapper.targetHeight + rounding;
+    }
+
     function onWheel(event: WheelEvent): void {
         if (fullscreen)
             return;
@@ -279,7 +292,7 @@ CustomMouseArea {
         if (inBar(x, y) && !screenState.dashboard) {
             bar.checkPopout(x, y);
         } else if (!panels.popoutsWrapper.hovered && (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1)
-            && !(withinPanelWidth(panels.popoutsWrapper, x, y) && withinPanelHeight(panels.popoutsWrapper, x, y))) {
+            && !inPopouts(x, y)) {
             popouts.hasCurrent = false;
             bar.closeTray();
         }

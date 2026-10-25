@@ -12,6 +12,7 @@ import "modules/lock"
 import "modules/overview" as OverviewModule
 import "modules/switcher" as SwitcherModule
 import "modules/polkit" as PolkitModule
+import "modules/portals" as PortalsModule
 import QtQuick
 import Quickshell
 import Hyprstack
@@ -33,6 +34,7 @@ ShellRoot {
     GSFLoader {}
     ServiceLoader {}
     PolkitModule.Polkit {}
+    PortalsModule.Portals {}
 
     Background {}
     Drawers {}

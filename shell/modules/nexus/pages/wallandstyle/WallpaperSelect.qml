@@ -47,8 +47,8 @@ PageBase {
                     title: Tr.tr("Select an image")
                     filterLabel: Tr.tr("Image files")
                     filters: Images.validImageExtensions
-                    onAccepted: path => {
-                        Wallpapers.setWallpaper(path);
+                    onAccepted: paths => {
+                        Wallpapers.setWallpaper(paths[0]);
                         root.nState.closeSubPage();
                     }
                 }

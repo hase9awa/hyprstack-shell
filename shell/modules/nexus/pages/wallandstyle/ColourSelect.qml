@@ -47,7 +47,7 @@ PageBase {
         title: Tr.tr("Import a colour scheme")
         filterLabel: Tr.tr("Colour schemes")
         filters: ["json", "txt"]
-        onAccepted: path => ThemeSchemes.importFile(Paths.toLocalFile(path), root.mode)
+        onAccepted: paths => ThemeSchemes.importFile(Paths.toLocalFile(paths[0]), root.mode)
     }
 
     ColumnLayout {

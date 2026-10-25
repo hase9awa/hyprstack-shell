@@ -9,9 +9,10 @@ Item {
     id: root
 
     required property var currentItem
+    property int selectedCount
 
     implicitWidth: content.implicitWidth + Tokens.padding.medium + content.anchors.rightMargin
-    implicitHeight: currentItem ? content.implicitHeight + Tokens.padding.medium + content.anchors.bottomMargin : 0
+    implicitHeight: currentItem || selectedCount > 1 ? content.implicitHeight + Tokens.padding.medium + content.anchors.bottomMargin : 0
 
     Shape {
         preferredRendererType: Shape.CurveRenderer
@@ -81,10 +82,20 @@ Item {
             anchors.bottomMargin: Tokens.padding.medium - Tokens.padding.extraSmall
 
             Connections {
-                function onCurrentItemChanged(): void {
-                    if (root.currentItem)
+                function update(): void {
+                    if (root.selectedCount > 1)
+                        content.text = Tr.trN("%n file selected", "%n files selected", root.selectedCount);
+                    else if (root.currentItem)
                         // TRANSLATORS: %1 = name of the selected file
                         content.text = Tr.trCtx('"%1" selected', "selected file").arg(root.currentItem.modelData.name);
+                }
+
+                function onCurrentItemChanged(): void {
+                    update();
+                }
+
+                function onSelectedCountChanged(): void {
+                    update();
                 }
 
                 target: root

@@ -52,6 +52,10 @@ if(HYPRSTACK_BUILD_NATIVE)
 endif()
 
 install(DIRECTORY distribution/defaults/ DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/defaults")
+# The desktop portal discovers the shell's backend here. Its name is owned by
+# the running shell; activation only hands the request to the session service.
+install(FILES distribution/portals/hyprstack.portal DESTINATION "${CMAKE_INSTALL_DATADIR}/xdg-desktop-portal/portals")
+install(FILES distribution/dbus/org.freedesktop.impl.portal.desktop.hyprstack.service DESTINATION "${CMAKE_INSTALL_DATADIR}/dbus-1/services")
 install(PROGRAMS distribution/bin/hyprstack distribution/bin/hyprstack-shell distribution/bin/hyprstack-session distribution/bin/hyprstack-session-runner distribution/bin/hyprstack-doctor distribution/bin/hyprstack-vpn DESTINATION "${CMAKE_INSTALL_BINDIR}")
 install(FILES distribution/systemd/user/hyprstack-session.service distribution/systemd/user/hyprstack-vpn.service DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/systemd")
 install(FILES shell/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack" RENAME LICENSE)

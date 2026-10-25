@@ -20,10 +20,14 @@ ColumnLayout {
     spacing: Tokens.spacing.small
 
     StyledText {
+        // A line that cannot shrink stretches the whole column past the
+        // popout, where the surrounding clip cuts it off at the screen edge.
+        Layout.fillWidth: true
         Layout.topMargin: Tokens.padding.medium
         Layout.rightMargin: Tokens.padding.extraSmall
         text: Tr.tr("Bluetooth")
         font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+        elide: Text.ElideRight
     }
 
     Toggle {
@@ -47,6 +51,7 @@ ColumnLayout {
     }
 
     StyledText {
+        Layout.fillWidth: true
         Layout.topMargin: Tokens.spacing.small
         Layout.rightMargin: Tokens.padding.extraSmall
         text: {
@@ -59,6 +64,7 @@ ColumnLayout {
         }
         color: Colours.palette.m3onSurfaceVariant
         font: Tokens.font.body.small
+        elide: Text.ElideRight
     }
 
     Repeater {
@@ -196,6 +202,7 @@ ColumnLayout {
         StyledText {
             Layout.fillWidth: true
             text: parent.label
+            elide: Text.ElideRight
         }
 
         StyledSwitch {

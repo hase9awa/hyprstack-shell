@@ -22,6 +22,17 @@ in {
     programs.hyprland.package = lib.mkDefault package.hyprland;
     programs.hyprlock.enable = true;
     environment.systemPackages = [ package ];
+
+    # The shell answers appearance settings and file dialogs itself, so
+    # applications follow its theme without gsettings and open its chooser.
+    # Every other interface keeps the backend the session already uses.
+    xdg.portal.enable = lib.mkDefault true;
+    xdg.portal.extraPortals = [ package ];
+    xdg.portal.config.hyprland = {
+      "org.freedesktop.impl.portal.Settings" = lib.mkDefault [ "hyprstack" "gtk" ];
+      "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault [ "hyprstack" "gtk" ];
+    };
+
     environment.sessionVariables = {
       HYPRSTACK_DATA_DIR = "${package}/share/hyprstack";
       HYPRSTACK_SESSION_COMMAND = "${package}/bin/hyprstack-session";
@@ -29,7 +40,12 @@ in {
 
     systemd.user.services.hyprstack-session = {
       description = "Hyprstack desktop session";
+      # Pull in graphical-session.target and settle before it is reached: it
+      # refuses a manual start, so nothing else raises it, and from 1.22 on
+      # xdg-desktop-portal holds a Requisite= on it.
       partOf = [ "graphical-session.target" ];
+      wants = [ "graphical-session.target" ];
+      before = [ "graphical-session.target" ];
       unitConfig.ConditionEnvironment = "HYPRLAND_INSTANCE_SIGNATURE";
       serviceConfig = {
         Type = "simple";

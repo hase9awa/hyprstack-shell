@@ -39,7 +39,11 @@ in {
     systemd.user.services.hyprstack-session = {
       Unit = {
         Description = "Hyprstack desktop session";
+        # See nixos-module.nix: the target refuses a manual start, so the
+        # session is what raises it, and portals depend on it being up.
         PartOf = [ "graphical-session.target" ];
+        Wants = [ "graphical-session.target" ];
+        Before = [ "graphical-session.target" ];
         ConditionEnvironment = "HYPRLAND_INSTANCE_SIGNATURE";
       };
       Service = {

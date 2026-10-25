@@ -4580,3 +4580,29 @@ msgstr ""
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
 msgid "Works with the second monitor switched off. Super+1–0 selects its workspace; press Super+S again to close the overlay."
 msgstr ""
+
+#: components/filedialog/FileDialog.qml
+msgctxt "button"
+msgid "Select folder"
+msgstr ""
+
+#: components/filedialog/DialogButtons.qml
+msgctxt "button"
+msgid "Replace"
+msgstr ""
+
+#: components/filedialog/DialogButtons.qml
+msgctxt "file name field"
+msgid "Name:"
+msgstr ""
+
+#: components/filedialog/DialogButtons.qml
+msgid "File name"
+msgstr ""
+
+#: components/filedialog/CurrentItem.qml
+#, qt-plural-format
+msgid "%n file selected"
+msgid_plural "%n files selected"
+msgstr[0] ""
+msgstr[1] ""

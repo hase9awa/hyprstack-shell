@@ -25,12 +25,16 @@ ColumnLayout {
 
     // Wireless section
     StyledText {
+        // A line that cannot shrink stretches the whole column past the
+        // popout, where the surrounding clip cuts it off at the screen edge.
         visible: root.view === "wireless"
+        Layout.fillWidth: true
         Layout.preferredHeight: visible ? implicitHeight : 0
         Layout.topMargin: visible ? Tokens.padding.medium : 0
         Layout.rightMargin: Tokens.padding.extraSmall
         text: Tr.tr("Wireless")
         font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+        elide: Text.ElideRight
     }
 
     Toggle {
@@ -43,12 +47,14 @@ ColumnLayout {
 
     StyledText {
         visible: root.view === "wireless"
+        Layout.fillWidth: true
         Layout.preferredHeight: visible ? implicitHeight : 0
         Layout.topMargin: visible ? Tokens.spacing.small : 0
         Layout.rightMargin: Tokens.padding.extraSmall
         text: Tr.trN("%n network available", "%n networks available", Nmcli.networks.length) // qmllint disable missing-property
         color: Colours.palette.m3onSurfaceVariant
         font: Tokens.font.body.small
+        elide: Text.ElideRight
     }
 
     Repeater {
@@ -224,21 +230,25 @@ ColumnLayout {
     // Ethernet section
     StyledText {
         visible: root.view === "ethernet"
+        Layout.fillWidth: true
         Layout.preferredHeight: visible ? implicitHeight : 0
         Layout.topMargin: visible ? Tokens.padding.medium : 0
         Layout.rightMargin: Tokens.padding.extraSmall
         text: Tr.tr("Ethernet")
         font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+        elide: Text.ElideRight
     }
 
     StyledText {
         visible: root.view === "ethernet"
+        Layout.fillWidth: true
         Layout.preferredHeight: visible ? implicitHeight : 0
         Layout.topMargin: visible ? Tokens.spacing.small : 0
         Layout.rightMargin: Tokens.padding.extraSmall
         text: Tr.trN("%n device available", "%n devices available", Nmcli.ethernetDevices.length)
         color: Colours.palette.m3onSurfaceVariant
         font: Tokens.font.body.small
+        elide: Text.ElideRight
     }
 
     Repeater {
@@ -388,6 +398,7 @@ ColumnLayout {
         StyledText {
             Layout.fillWidth: true
             text: parent.label
+            elide: Text.ElideRight
         }
 
         StyledSwitch {

@@ -34,6 +34,8 @@
 !/distribution/defaults/
 !/distribution/systemd/
 !/distribution/patches/
+!/distribution/portals/
+!/distribution/dbus/
 
 !/native/
 /native/*

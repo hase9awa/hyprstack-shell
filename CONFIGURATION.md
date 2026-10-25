@@ -207,9 +207,20 @@ hyprstack scheme set -n dynamic -m dark
 Посторонние настройки и сделанные в них изменения сохраняются.
 
 Для Qt установите `qt5ct` и `qt6ct` (NixOS: `libsForQt5.qt5ct` и
-`qt6Packages.qt6ct`). Для системного предпочтения нужны `gsettings`, схема
-`org.gnome.desktop.interface` и backend desktop portal, который её читает,
-например `xdg-desktop-portal-gtk`. Java требует включённой синхронизации GTK.
+`qt6Packages.qt6ct`). Системное предпочтение Hyprstack сообщает сам: шелл
+отвечает на `org.freedesktop.appearance` своим backend desktop portal
+(`hyprstack`), передавая светлый или тёмный режим и акцентный цвет.
+Приложениям, читающим вместо этого схему `org.gnome.desktop.interface`,
+по-прежнему нужны `gsettings` и `xdg-desktop-portal-gtk`. Если в системе уже
+задан предпочитаемый backend, добавьте Hyprstack в
+`~/.config/xdg-desktop-portal/hyprland-portals.conf`:
+
+```ini
+[preferred]
+org.freedesktop.impl.portal.Settings=hyprstack;gtk
+```
+
+Java требует включённой синхронизации GTK.
 Для KDE-приложений выбирается общая схема Hyprstack, чтобы Dolphin и другие
 программы не заменяли её стандартной Breeze. Для обновления открытых KDE-приложений
 используйте `qt6ct-kde`: он передаёт схему в KColorScheme. Обычный `qt6ct` применяет
