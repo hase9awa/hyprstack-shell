@@ -1837,7 +1837,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-#: modules/nexus/pages/network/AddVpnPage.qml
+#: modules/nexus/pages/network/AddVpnPage.qml modules/areapicker/ScreenshotPreview.qml
 msgctxt "button"
 msgid "Save"
 msgstr ""
@@ -4745,4 +4745,22 @@ msgstr ""
 #: modules/portals/WallpaperDialog.qml
 msgctxt "button"
 msgid "Set wallpaper"
+msgstr ""
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgid "Copied to the clipboard"
+msgstr ""
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgid "Save the screenshot"
+msgstr ""
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Copy"
+msgstr ""
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Save as"
 msgstr ""

@@ -1875,7 +1875,7 @@ msgstr "Команда отключения"
 msgid "Delete"
 msgstr "Удалить"
 
-#: modules/nexus/pages/network/AddVpnPage.qml
+#: modules/nexus/pages/network/AddVpnPage.qml modules/areapicker/ScreenshotPreview.qml
 msgctxt "button"
 msgid "Save"
 msgstr "Сохранить"
@@ -5901,3 +5901,21 @@ msgstr "Поставить это изображение обоями?"
 msgctxt "button"
 msgid "Set wallpaper"
 msgstr "Поставить"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgid "Copied to the clipboard"
+msgstr "Скопировано в буфер обмена"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgid "Save the screenshot"
+msgstr "Сохранить снимок"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Copy"
+msgstr "Копировать"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Save as"
+msgstr "Сохранить как"

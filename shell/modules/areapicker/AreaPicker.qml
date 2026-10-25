@@ -37,11 +37,30 @@ Scope {
                 }
                 return;
             }
-            if (!clipboardOnly)
-                ThemeSync.exec(["env", "GDK_BACKEND=wayland", "swappy", "-f", imagePath]);
-            Quickshell.execDetached(["notify-send", "-a", "hyprstack", "-i", "image-x-generic-symbolic",
-                "-h", "string:image-path:" + imagePath, "-h", "boolean:x-hyprstack-screenshot:true",
-                Tr.tr("Screenshot taken"), Tr.tr("Screenshot copied to clipboard")]);
+            if (clipboardOnly) {
+                Quickshell.execDetached(["notify-send", "-a", "hyprstack", "-i", "image-x-generic-symbolic",
+                    "-h", "string:image-path:" + imagePath, "-h", "boolean:x-hyprstack-screenshot:true",
+                    Tr.tr("Screenshot taken"), Tr.tr("Screenshot copied to clipboard")]);
+                return;
+            }
+            // The capture lives in a temporary file until it is kept, so
+            // the preview is where that decision is made.
+            preview.path = imagePath;
+            preview.active = true;
+        }
+    }
+
+    LazyLoader {
+        id: preview
+
+        property string path
+
+        active: false
+
+        ScreenshotPreview {
+            path: preview.path
+            screen: Quickshell.screens.find(s => s.name === Hypr.focusedMonitor?.name) ?? Quickshell.screens[0]
+            onDismissed: preview.active = false
         }
     }
 

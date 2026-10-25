@@ -21,6 +21,7 @@ Singleton {
     readonly property string notifimagecache: `${imagecache}/notifs`
     readonly property string wallsdir: Quickshell.env("HYPRSTACK_WALLPAPERS_DIR") || absolutePath(GlobalConfig.paths.wallpaperDir)
     readonly property string recsdir: Quickshell.env("HYPRSTACK_RECORDINGS_DIR") || `${videos}/Recordings`
+    readonly property string shotsdir: Quickshell.env("HYPRSTACK_SCREENSHOTS_DIR") || `${pictures}/Screenshots`
     readonly property string libdir: Quickshell.env("HYPRSTACK_LIB_DIR") || "/usr/lib/hyprstack"
 
     function toLocalFile(path: url): string {
