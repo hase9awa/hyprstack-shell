@@ -5761,3 +5761,23 @@ msgid_plural "%n files selected"
 msgstr[0] "Выбран %n файл"
 msgstr[1] "Выбрано %n файла"
 msgstr[2] "Выбрано %n файлов"
+
+#: modules/portals/AccessDialog.qml
+msgid "Permission request"
+msgstr "Запрос разрешения"
+
+#. TRANSLATORS: %1 = name of the application asking for the permission
+#: modules/portals/AccessDialog.qml
+#, qt-format
+msgid "Requested by %1"
+msgstr "Запрашивает %1"
+
+#: modules/portals/AccessDialog.qml
+msgctxt "button"
+msgid "Deny"
+msgstr "Запретить"
+
+#: modules/portals/AccessDialog.qml
+msgctxt "button"
+msgid "Allow"
+msgstr "Разрешить"

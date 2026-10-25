@@ -4606,3 +4606,23 @@ msgid "%n file selected"
 msgid_plural "%n files selected"
 msgstr[0] ""
 msgstr[1] ""
+
+#: modules/portals/AccessDialog.qml
+msgid "Permission request"
+msgstr ""
+
+#. TRANSLATORS: %1 = name of the application asking for the permission
+#: modules/portals/AccessDialog.qml
+#, qt-format
+msgid "Requested by %1"
+msgstr ""
+
+#: modules/portals/AccessDialog.qml
+msgctxt "button"
+msgid "Deny"
+msgstr ""
+
+#: modules/portals/AccessDialog.qml
+msgctxt "button"
+msgid "Allow"
+msgstr ""

@@ -23,14 +23,16 @@ in {
     programs.hyprlock.enable = true;
     environment.systemPackages = [ package ];
 
-    # The shell answers appearance settings and file dialogs itself, so
-    # applications follow its theme without gsettings and open its chooser.
-    # Every other interface keeps the backend the session already uses.
+    # The shell answers appearance settings, file dialogs and permission
+    # prompts itself, so applications follow its theme without gsettings and
+    # ask through its own dialogs. Every other interface, screen sharing
+    # included, keeps the backend the session already uses.
     xdg.portal.enable = lib.mkDefault true;
     xdg.portal.extraPortals = [ package ];
     xdg.portal.config.hyprland = {
       "org.freedesktop.impl.portal.Settings" = lib.mkDefault [ "hyprstack" "gtk" ];
       "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault [ "hyprstack" "gtk" ];
+      "org.freedesktop.impl.portal.Access" = lib.mkDefault [ "hyprstack" "gtk" ];
     };
 
     environment.sessionVariables = {

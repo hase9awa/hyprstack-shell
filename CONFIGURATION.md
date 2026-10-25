@@ -288,6 +288,20 @@ Hyprland и через D-Bus. Уже запущенные Java-программ�
 Оболочка содержит агент Polkit. Отключите сторонний агент, чтобы избежать
 конфликта регистрации.
 
+Разрешения, которые запрашивает desktop portal — камера, микрофон, геопозиция,
+работа в фоне — спрашивает сама оболочка. Тот же backend отвечает за диалоги
+выбора файлов для приложений, которые не рисуют их сами, изолированных в первую
+очередь. Демонстрация экрана идёт через отдельный интерфейс `ScreenCast` и
+остаётся за `xdg-desktop-portal-hyprland`. Если в системе задан предпочитаемый
+backend, добавьте Hyprstack в
+`~/.config/xdg-desktop-portal/hyprland-portals.conf`:
+
+```ini
+[preferred]
+org.freedesktop.impl.portal.Access=hyprstack;gtk
+org.freedesktop.impl.portal.FileChooser=hyprstack;gtk
+```
+
 ## Блокировка
 
 Используется системный PAM-сервис `hyprlock`. Другой сервис можно задать через

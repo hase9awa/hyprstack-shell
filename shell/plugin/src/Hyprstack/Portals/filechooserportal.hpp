@@ -14,6 +14,7 @@
 #include <qvariant.h>
 
 #include "portal.hpp"
+#include "portalrequest.hpp"
 
 namespace hyprstack::portals {
 
@@ -36,16 +37,13 @@ QDBusArgument& operator<<(QDBusArgument& argument, const FileFilter& filter);
 const QDBusArgument& operator>>(const QDBusArgument& argument, FileFilter& filter);
 
 // One chooser an application is waiting on. The shell shows a dialog for it
-// and answers through accept() or reject(); the request then replies to the
-// pending call and retires itself.
-class FileChooserRequest : public QObject {
+// and answers through accept() or reject().
+class FileChooserRequest : public PortalRequest {
     Q_OBJECT
     QML_ELEMENT
     QML_UNCREATABLE("Requests are created by the file chooser portal")
 
     Q_PROPERTY(Action action READ action CONSTANT)
-    Q_PROPERTY(QString appId READ appId CONSTANT)
-    Q_PROPERTY(QString title READ title CONSTANT)
     Q_PROPERTY(QString acceptLabel READ acceptLabel CONSTANT)
     Q_PROPERTY(bool multiple READ multiple CONSTANT)
     Q_PROPERTY(bool directory READ directory CONSTANT)
@@ -56,7 +54,6 @@ class FileChooserRequest : public QObject {
     // Each entry is {label, patterns, mimeTypes}; -1 selects no filter.
     Q_PROPERTY(QVariantList filters READ filters CONSTANT)
     Q_PROPERTY(int currentFilter READ currentFilter CONSTANT)
-    Q_PROPERTY(bool answered READ answered NOTIFY answeredChanged)
 
 public:
     enum class Action : quint8 {
@@ -70,8 +67,6 @@ public:
         QDBusObjectPath handle, QObject* parent = nullptr);
 
     [[nodiscard]] Action action() const;
-    [[nodiscard]] QString appId() const;
-    [[nodiscard]] QString title() const;
     [[nodiscard]] QString acceptLabel() const;
     [[nodiscard]] bool multiple() const;
     [[nodiscard]] bool directory() const;
@@ -80,31 +75,14 @@ public:
     [[nodiscard]] QStringList fileNames() const;
     [[nodiscard]] QVariantList filters() const;
     [[nodiscard]] int currentFilter() const;
-    [[nodiscard]] bool answered() const;
-    [[nodiscard]] QDBusObjectPath handle() const;
 
     // Paths are local file names; the portal turns them into file:// URIs.
     Q_INVOKABLE void accept(const QStringList& paths, int filter = -1);
     Q_INVOKABLE void reject();
 
-    // The application withdrew the request before the user answered.
-    void close();
-
-signals:
-    void answeredChanged();
-    void finished();
-
 private:
-    void respond(uint response, const QVariantMap& results);
-
     Action m_action;
-    QString m_appId;
-    QString m_title;
-    QVariantMap m_options;
-    QDBusMessage m_call;
-    QDBusObjectPath m_handle;
     QList<FileFilter> m_filters;
-    bool m_answered = false;
 };
 
 // org.freedesktop.impl.portal.FileChooser. The shell answers file dialogs for
@@ -134,27 +112,6 @@ private:
     static FileChooserRequest* requestAt(QQmlListProperty<FileChooserRequest>* list, qsizetype index);
 
     QList<FileChooserRequest*> m_requests;
-};
-
-// org.freedesktop.impl.portal.Request, exported on the handle the caller
-// chose so it can withdraw a dialog it no longer needs.
-class RequestAdaptor : public QDBusAbstractAdaptor {
-    Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.freedesktop.impl.portal.Request")
-    Q_CLASSINFO("D-Bus Introspection",
-        "  <interface name=\"org.freedesktop.impl.portal.Request\">\n"
-        "    <method name=\"Close\"/>\n"
-        "  </interface>\n")
-
-public:
-    explicit RequestAdaptor(FileChooserRequest* request);
-
-    // NOLINTNEXTLINE(readability-identifier-naming) D-Bus spells it this way
-public slots:
-    void Close();
-
-private:
-    FileChooserRequest* m_request;
 };
 
 class FileChooserAdaptor : public QDBusAbstractAdaptor {
