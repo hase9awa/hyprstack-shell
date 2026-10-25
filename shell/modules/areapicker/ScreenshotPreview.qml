@@ -18,7 +18,7 @@ import qs.utils
 
 // What a picked screenshot lands in. The capture itself is written to a
 // temporary file, so this is where it is kept, copied again or left behind.
-StyledWindow {
+DialogWindow {
     id: root
 
     required property string path
@@ -50,13 +50,9 @@ StyledWindow {
     }
 
     name: "screenshot"
-    Config.screen: screen?.name ?? ""
-    Tokens.screen: screen?.name ?? ""
     implicitWidth: viewWidth + Tokens.padding.large * 2
     implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 96 * Tokens.scale)
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     Image {

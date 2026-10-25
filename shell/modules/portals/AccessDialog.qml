@@ -14,7 +14,7 @@ import qs.components.controls
 import qs.components.images
 import qs.services
 
-StyledWindow {
+DialogWindow {
     id: root
 
     required property AccessRequest request
@@ -34,14 +34,10 @@ StyledWindow {
     }
 
     name: "access"
-    Config.screen: screen?.name ?? ""
-    Tokens.screen: screen?.name ?? ""
     visible: !request.answered
     implicitWidth: Math.min(440 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
     implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 48 * Tokens.scale)
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
     // A prompt the application asked to be modeless leaves the keyboard where
     // it is; the user can still answer it with the pointer.
     WlrLayershell.keyboardFocus: visible && request.modal ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None

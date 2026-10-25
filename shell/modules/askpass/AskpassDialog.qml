@@ -11,7 +11,7 @@ import qs.components.containers
 import qs.components.controls
 import qs.services
 
-StyledWindow {
+DialogWindow {
     id: root
 
     required property var askpass
@@ -35,13 +35,9 @@ StyledWindow {
     }
 
     name: "askpass"
-    Config.screen: screen?.name ?? ""
-    Tokens.screen: screen?.name ?? ""
     implicitWidth: Math.min(480 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
     implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 48 * Tokens.scale)
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     // A newly loaded layer acquires its backing window after completion, so

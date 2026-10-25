@@ -14,7 +14,7 @@ import qs.components.images
 import qs.services
 import qs.utils
 
-StyledWindow {
+DialogWindow {
     id: root
 
     required property AppChooserRequest request
@@ -87,14 +87,10 @@ StyledWindow {
     }
 
     name: "appchooser"
-    Config.screen: screen?.name ?? ""
-    Tokens.screen: screen?.name ?? ""
     visible: !request.answered
     implicitWidth: Math.min(440 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
     implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 48 * Tokens.scale)
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: visible && request.modal ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     Component.onCompleted: selectDefault()
