@@ -20,8 +20,9 @@ Item {
     required property int rounding
 
     readonly property bool showWallpapers: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}wallpaper `)
-    readonly property var currentList: showWallpapers ? wallpaperList.item : appList.item // Can be either ListView or PathView, so can't type properly
-    property string animState: showWallpapers ? "wallpapers" : "apps"
+    readonly property bool showClipboard: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}clipboard `)
+    readonly property var currentList: showWallpapers ? wallpaperList.item : showClipboard ? clipList.item : appList.item // Can be either ListView or PathView, so can't type properly
+    property string animState: showWallpapers ? "wallpapers" : showClipboard ? "clipboard" : "apps"
 
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
@@ -51,6 +52,20 @@ Item {
                 root.implicitWidth: Math.max(root.Tokens.sizes.launcher.itemWidth * 1.2, wallpaperList.implicitWidth)
                 root.implicitHeight: root.Tokens.sizes.launcher.wallpaperHeight
                 wallpaperList.active: true
+            }
+        },
+        State {
+            name: "clipboard"
+
+            PropertyChanges {
+                root.implicitWidth: root.Tokens.sizes.launcher.itemWidth
+                root.implicitHeight: Math.min(root.maxHeight, clipList.implicitHeight > 0 ? clipList.implicitHeight : empty.implicitHeight)
+                clipList.active: true
+            }
+
+            AnchorChanges {
+                anchors.left: root.parent.left
+                anchors.right: root.parent.right
             }
         }
     ]
@@ -110,6 +125,22 @@ Item {
         }
     }
 
+    Loader {
+        id: clipList
+
+        asynchronous: true
+        active: false
+
+        anchors.fill: parent
+
+        sourceComponent: ClipboardList {
+            objectName: "launcherClipboardList"
+
+            search: root.search
+            screenState: root.screenState
+        }
+    }
+
     Row {
         id: empty
 
@@ -125,7 +156,11 @@ Item {
 
         MaterialIcon {
             id: emptyIcon
-            text: root.state === "wallpapers" ? "wallpaper_slideshow" : "manage_search"
+            text: {
+                if (root.state === "wallpapers")
+                    return "wallpaper_slideshow";
+                return root.state === "clipboard" ? "content_paste_off" : "manage_search";
+            }
             color: Colours.palette.m3onSurfaceVariant
             fontStyle: Tokens.font.icon.extraLarge
 
@@ -139,7 +174,11 @@ Item {
             StyledText {
                 width: parent.width
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                text: root.state === "wallpapers" ? Tr.tr("No wallpapers found") : Tr.tr("No results")
+                text: {
+                    if (root.state === "wallpapers")
+                        return Tr.tr("No wallpapers found");
+                    return root.state === "clipboard" ? Tr.tr("Clipboard is empty") : Tr.tr("No results");
+                }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
             }
@@ -147,7 +186,13 @@ Item {
             StyledText {
                 width: parent.width
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                text: root.state === "wallpapers" && Wallpapers.list.length === 0 ? Tr.tr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir)) : Tr.tr("Try searching for something else")
+                text: {
+                    if (root.state === "wallpapers" && Wallpapers.list.length === 0)
+                        return Tr.tr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir));
+                    if (root.state === "clipboard" && Clipboard.entries.length === 0)
+                        return Tr.tr("Copy something and it will show up here");
+                    return Tr.tr("Try searching for something else");
+                }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.medium
             }

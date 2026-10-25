@@ -3325,11 +3325,11 @@ msgstr ""
 msgid "Float"
 msgstr ""
 
-#: modules/windowinfo/Buttons.qml
+#: modules/windowinfo/Buttons.qml modules/launcher/items/ClipItem.qml
 msgid "Unpin"
 msgstr ""
 
-#: modules/windowinfo/Buttons.qml
+#: modules/windowinfo/Buttons.qml modules/launcher/items/ClipItem.qml
 msgid "Pin"
 msgstr ""
 
@@ -4646,4 +4646,40 @@ msgstr ""
 
 #: modules/portals/AppChooserDialog.qml
 msgid "Make it the default for this type"
+msgstr ""
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgctxt "launcher action"
+msgid "Clipboard"
+msgstr ""
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgid "Paste something copied earlier"
+msgstr ""
+
+#: modules/launcher/ClipboardList.qml
+msgid "Clear history"
+msgstr ""
+
+#: modules/launcher/ContentList.qml
+msgid "Clipboard is empty"
+msgstr ""
+
+#: modules/launcher/ContentList.qml
+msgid "Copy something and it will show up here"
+msgstr ""
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Pinned"
+msgstr ""
+
+
+
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Delete entry"
+msgstr ""
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Image"
 msgstr ""

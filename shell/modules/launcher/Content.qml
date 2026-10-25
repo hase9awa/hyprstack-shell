@@ -70,6 +70,9 @@ Item {
                         Wallpapers.previewColourLock = true;
                     Wallpapers.setWallpaper(currentItem.modelData.path);
                     root.screenState.launcher = false;
+                } else if (list.showClipboard) {
+                    Clipboard.activate(currentItem.modelData);
+                    root.screenState.launcher = false;
                 } else if (text.startsWith(GlobalConfig.launcher.actionPrefix)) {
                     if (text.startsWith(`${GlobalConfig.launcher.actionPrefix}calc `))
                         currentItem.onClicked();

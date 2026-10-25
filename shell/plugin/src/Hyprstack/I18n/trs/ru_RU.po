@@ -3334,11 +3334,11 @@ msgstr "Вернуть в тайлинг"
 msgid "Float"
 msgstr "Сделать плавающим"
 
-#: modules/windowinfo/Buttons.qml
+#: modules/windowinfo/Buttons.qml modules/launcher/items/ClipItem.qml
 msgid "Unpin"
 msgstr "Открепить"
 
-#: modules/windowinfo/Buttons.qml
+#: modules/windowinfo/Buttons.qml modules/launcher/items/ClipItem.qml
 msgid "Pin"
 msgstr "Закрепить"
 
@@ -5802,3 +5802,39 @@ msgstr "Все приложения"
 #: modules/portals/AppChooserDialog.qml
 msgid "Make it the default for this type"
 msgstr "Сделать приложением по умолчанию"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgctxt "launcher action"
+msgid "Clipboard"
+msgstr "Буфер обмена"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgid "Paste something copied earlier"
+msgstr "Вставить скопированное ранее"
+
+#: modules/launcher/ClipboardList.qml
+msgid "Clear history"
+msgstr "Очистить историю"
+
+#: modules/launcher/ContentList.qml
+msgid "Clipboard is empty"
+msgstr "Буфер обмена пуст"
+
+#: modules/launcher/ContentList.qml
+msgid "Copy something and it will show up here"
+msgstr "Скопируйте что-нибудь, и оно появится здесь"
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Pinned"
+msgstr "Закреплено"
+
+
+
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Delete entry"
+msgstr "Удалить запись"
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Image"
+msgstr "Изображение"
