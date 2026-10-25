@@ -44,8 +44,9 @@ public:
 
     void setChoices(const QStringList& choices);
 
-    // The id has to be one of the offered choices, spelled the way it
-    // arrived: the portal hands the same spelling back as last_choice.
+    // Any desktop entry id, not just an offered one, spelled the way the
+    // choices arrived: the portal hands the same spelling back later as
+    // last_choice.
     Q_INVOKABLE void choose(const QString& id);
     Q_INVOKABLE void reject();
 

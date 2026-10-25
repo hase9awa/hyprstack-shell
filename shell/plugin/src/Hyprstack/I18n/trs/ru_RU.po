@@ -5794,3 +5794,7 @@ msgstr "Подходящих приложений нет"
 msgctxt "button"
 msgid "Open"
 msgstr "Открыть"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "All applications"
+msgstr "Все приложения"

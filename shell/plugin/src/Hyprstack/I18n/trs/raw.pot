@@ -4639,3 +4639,7 @@ msgstr ""
 msgctxt "button"
 msgid "Open"
 msgstr ""
+
+#: modules/portals/AppChooserDialog.qml
+msgid "All applications"
+msgstr ""

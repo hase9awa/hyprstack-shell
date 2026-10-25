@@ -12,23 +12,62 @@ import qs.components.containers
 import qs.components.controls
 import qs.components.images
 import qs.services
+import qs.utils
 
 StyledWindow {
     id: root
 
     required property AppChooserRequest request
-    readonly property string selected: request.choices[list.currentIndex] ?? ""
+    // Offering only the handlers the portal found is the better default, but
+    // it does miss applications that simply never claimed the type.
+    property bool showAll
+    readonly property var candidates: {
+        if (!root.showAll)
+            return root.request.choices;
+        return [...DesktopEntries.applications.values].filter(e => !e.noDisplay)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(e => root.idFor(e.id));
+    }
+    readonly property string selected: candidates[list.currentIndex] ?? ""
+    // Desktop entry ids reach the portal with their suffix, while the entries
+    // themselves are named without it.
+    readonly property bool suffixed: request.choices.length > 0 && request.choices[0].endsWith(".desktop")
     // What the application is about to be opened with, most telling first.
     readonly property string subject: request.fileName || request.uri || request.contentType
     readonly property url subjectIcon: {
         const type = root.request.contentType;
-        return type ? Quickshell.iconPath(type.replace("/", "-"), true) : "";
+        if (!type)
+            return "";
+        // Themes carry an icon for the exact type only for a handful of them,
+        // so fall back to the family and then to a plain document.
+        return Quickshell.iconPath(type.replace("/", "-"), true)
+            || Quickshell.iconPath(`${type.split("/")[0]}-x-generic`, true)
+            || Quickshell.iconPath("application-x-zerosize");
+    }
+
+    function entryFor(id: string): var {
+        // Walking the model rather than calling byId keeps the lookup bound
+        // to it: entries are scanned asynchronously and can land after the
+        // dialog has already been built. An entry is named after its file
+        // without the suffix, but a file called "a.desktop.desktop" leaves
+        // one behind, so an exact match wins over a stripped one.
+        const entries = DesktopEntries.applications.values;
+        return entries.find(e => e.id === id)
+            ?? entries.find(e => `${e.id}.desktop` === id)
+            ?? null;
+    }
+
+    // Spell a pick of the shell's own the way the portal spells the ones it
+    // offered: the same spelling comes back later as last_choice. The portal
+    // names an application by its file, which is the entry id plus the
+    // suffix, so the suffix is added rather than swapped in.
+    function idFor(id: string): string {
+        return root.suffixed ? `${id}.desktop` : id;
     }
 
     function selectDefault(): void {
-        const choices = root.request.choices;
-        const at = choices.indexOf(root.request.lastChoice);
-        list.currentIndex = at >= 0 ? at : (choices.length > 0 ? 0 : -1);
+        const at = root.candidates.indexOf(root.request.lastChoice);
+        list.currentIndex = at >= 0 ? at : (root.candidates.length > 0 ? 0 : -1);
     }
 
     function submit(): void {
@@ -40,7 +79,7 @@ StyledWindow {
     Config.screen: screen?.name ?? ""
     Tokens.screen: screen?.name ?? ""
     visible: !request.answered
-    implicitWidth: Math.min(420 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
+    implicitWidth: Math.min(440 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
     implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 48 * Tokens.scale)
     WlrLayershell.layer: WlrLayer.Overlay
@@ -132,7 +171,7 @@ StyledWindow {
                 clip: true
                 focus: true
                 spacing: Tokens.spacing.extraSmall
-                model: root.request.choices
+                model: root.candidates
 
                 StyledScrollBar.vertical: StyledScrollBar {
                     flickable: list
@@ -151,10 +190,11 @@ StyledWindow {
                     required property int index
                     required property string modelData
                     readonly property bool selected: app.index === list.currentIndex
-                    // Portals name applications by desktop entry id, which
-                    // may or may not carry the suffix.
-                    readonly property var entry: DesktopEntries.applications.values.find(e => e.id === app.modelData
-                        || e.id === `${app.modelData}.desktop`) ?? null
+                    readonly property var entry: root.entryFor(app.modelData)
+                    readonly property url appIcon: {
+                        const icon = app.entry?.icon ? Quickshell.iconPath(app.entry.icon, true) : "";
+                        return icon || Icons.getAppIcon(app.modelData, "application-x-executable");
+                    }
 
                     width: list.width
                     implicitHeight: appInner.implicitHeight + Tokens.padding.medium * 2
@@ -182,13 +222,15 @@ StyledWindow {
 
                         CachingIconImage {
                             implicitSize: 24 * Tokens.scale
-                            source: Quickshell.iconPath(app.entry?.icon ?? "", true) // qmllint disable missing-property
+                            source: app.appIcon
                         }
 
                         StyledText {
                             Layout.fillWidth: true
                             Layout.minimumWidth: 0
-                            text: app.entry?.name ?? app.modelData // qmllint disable missing-property
+                            // The entry model fills in a moment after start, so
+                            // name the application by its id until it does.
+                            text: app.entry?.name || app.modelData
                             color: app.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                             elide: Text.ElideRight
                         }
@@ -216,6 +258,29 @@ StyledWindow {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.spacing.small
+
+                IconTextButton {
+                    objectName: "appChooserAll"
+                    type: root.showAll ? IconTextButton.Filled : IconTextButton.Tonal
+                    verticalPadding: Tokens.padding.extraSmall
+                    text: Tr.tr("All applications")
+                    icon: "apps"
+                    activeFocusOnTab: true
+                    onClicked: {
+                        // Hold on to the pick across the swap, since the same
+                        // application is usually in both lists.
+                        const keep = root.selected;
+                        root.showAll = !root.showAll;
+                        const at = root.candidates.indexOf(keep);
+                        if (at >= 0)
+                            list.currentIndex = at;
+                        else
+                            root.selectDefault();
+                        list.positionViewAtIndex(list.currentIndex, ListView.Contain);
+                    }
+                    Keys.onReturnPressed: clicked()
+                    Keys.onSpacePressed: clicked()
+                }
 
                 Item { Layout.fillWidth: true }
 
