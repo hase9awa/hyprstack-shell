@@ -109,38 +109,91 @@ StyledWindow {
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             }
 
-            RowLayout {
+            StyledRect {
+                objectName: "askpassField"
                 Layout.fillWidth: true
-                spacing: Tokens.spacing.small
+                implicitHeight: field.implicitHeight + Tokens.padding.small * 2
 
-                StyledTextField {
-                    id: secret
+                radius: Tokens.rounding.full
+                color: Colours.tPalette.m3surfaceContainerHigh
 
-                    objectName: "askpassSecret"
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: 0
-                    placeholderText: Tr.tr("Passphrase")
-                    leadingIcon: "lock"
-                    echoMode: root.revealSecret ? TextInput.Normal : TextInput.Password
-                    inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
-                    activeFocusOnTab: true
-                    focus: true
-                    onAccepted: root.submit()
-                    Keys.onEscapePressed: root.cancel()
+                StateLayer {
+                    hoverEnabled: false
+                    cursorShape: Qt.IBeamCursor
+                    onClicked: secret.forceActiveFocus()
                 }
 
-                IconButton {
-                    objectName: "askpassReveal"
-                    type: IconButton.Text
-                    icon: root.revealSecret ? "visibility_off" : "visibility"
-                    activeFocusOnTab: true
-                    Accessible.name: root.revealSecret ? Tr.tr("Hide passphrase") : Tr.tr("Show passphrase")
-                    onClicked: {
-                        root.revealSecret = !root.revealSecret;
-                        secret.forceActiveFocus();
+                RowLayout {
+                    id: field
+
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.extraSmall
+                    anchors.leftMargin: Tokens.padding.medium
+                    spacing: Tokens.spacing.medium
+
+                    MaterialIcon {
+                        text: "lock"
+                        color: Colours.palette.m3onSurfaceVariant
                     }
-                    Keys.onReturnPressed: clicked()
-                    Keys.onSpacePressed: clicked()
+
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.minimumWidth: 0
+
+                        clip: true
+
+                        StyledText {
+                            anchors.centerIn: parent
+                            text: Tr.tr("Passphrase")
+                            color: Colours.palette.m3outline
+                            opacity: secret.text ? 0 : 1
+
+                            Behavior on opacity {
+                                Anim {
+                                    type: Anim.DefaultEffects
+                                }
+                            }
+                        }
+
+                        PasswordCharacters {
+                            anchors.centerIn: parent
+                            anchors.horizontalCenterOffset: implicitWidth > parent.width ? -(implicitWidth - parent.width) / 2 : 0
+
+                            buffer: secret.text
+                            revealed: root.revealSecret
+                        }
+
+                        // The characters are drawn as shapes, so the field
+                        // itself only has to collect them.
+                        TextInput {
+                            id: secret
+
+                            objectName: "askpassSecret"
+                            anchors.fill: parent
+
+                            opacity: 0
+                            focus: true
+                            activeFocusOnTab: true
+                            inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
+                            onAccepted: root.submit()
+                            Keys.onEscapePressed: root.cancel()
+                        }
+                    }
+
+                    IconButton {
+                        objectName: "askpassReveal"
+                        type: IconButton.Text
+                        icon: root.revealSecret ? "visibility_off" : "visibility"
+                        activeFocusOnTab: true
+                        Accessible.name: root.revealSecret ? Tr.tr("Hide passphrase") : Tr.tr("Show passphrase")
+                        onClicked: {
+                            root.revealSecret = !root.revealSecret;
+                            secret.forceActiveFocus();
+                        }
+                        Keys.onReturnPressed: clicked()
+                        Keys.onSpacePressed: clicked()
+                    }
                 }
             }
 
