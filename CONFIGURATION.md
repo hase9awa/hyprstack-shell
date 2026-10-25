@@ -63,9 +63,10 @@ programs.hyprstack.extraConfig = ''
 | Super + J / K | Следующий / предыдущий рабочий стол |
 | Super + Ctrl + F | Половина / полная ширина колонки |
 | Super + Shift + стрелка | Перенос окна на соседний монитор |
-| Super + Enter | Терминал kitty |
-| Super + W | Браузер firefox |
-| Super + E | Файловый менеджер через xdg-open |
+| Super + Enter | Терминал · kitty |
+| Super + W | Браузер · Firefox |
+| Super + E | Системный файловый менеджер · домашняя папка через xdg-open |
+| Ctrl + Alt + V | Настройки звука · pavucontrol |
 | Super + Q | Закрыть окно |
 | Super + F | Полный экран |
 | Super + Alt + Space | Плавающее состояние окна |
