@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import "items"
 import QtQuick
-import Quickshell
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
@@ -15,6 +14,8 @@ Item {
 
     required property SearchBar search
     required property ScreenState screenState
+
+    property bool addHovered
 
     // The launcher drives whichever list is showing through these.
     readonly property alias count: grid.count
@@ -42,10 +43,11 @@ Item {
         cellWidth: 48 * Tokens.scale
         cellHeight: 48 * Tokens.scale
 
-        model: ScriptModel {
-            values: Emoji.query(root.query)
-            onValuesChanged: grid.currentIndex = 0
-        }
+        // A plain array rather than a ScriptModel: picking a group replaces
+        // every entry, and reconciling the old list against the new one
+        // costs more than rebuilding the view outright.
+        model: Emoji.query(root.query)
+        onModelChanged: currentIndex = 0
 
         highlightFollowsCurrentItem: false
         highlight: StyledRect {
@@ -77,6 +79,31 @@ Item {
     }
 
     StyledRect {
+        id: hint
+
+        anchors.right: sidebar.left
+        anchors.verticalCenter: sidebar.bottom
+        anchors.verticalCenterOffset: -(sidebar.width / 2)
+        anchors.rightMargin: Tokens.spacing.small
+
+        visible: root.addHovered
+        implicitWidth: hintText.implicitWidth + Tokens.padding.medium * 2
+        implicitHeight: hintText.implicitHeight + Tokens.padding.small * 2
+        radius: Tokens.rounding.small
+        color: Colours.palette.m3inverseSurface
+        z: 1
+
+        StyledText {
+            id: hintText
+
+            anchors.centerIn: parent
+            text: root.query.trim() ? Tr.tr("Add \"%1\"").arg(root.query.trim()) : Tr.tr("Type something to add it")
+            color: Colours.palette.m3inverseOnSurface
+            font: Tokens.font.body.small
+        }
+    }
+
+    StyledRect {
         id: sidebar
 
         anchors.right: parent.right
@@ -90,8 +117,12 @@ Item {
         StyledListView {
             id: groupList
 
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: addButton.top
             anchors.margins: Tokens.padding.extraSmall
+            anchors.bottomMargin: Tokens.spacing.small
 
             clip: true
             spacing: Tokens.spacing.extraSmall
@@ -125,25 +156,37 @@ Item {
                     fill: groupEntry.selected ? 1 : 0
                 }
             }
+        }
 
-            // Anything typed can be kept as a character of its own.
-            footer: Item {
-                implicitWidth: groupList.width
-                implicitHeight: implicitWidth + Tokens.spacing.extraSmall
+        // Anything typed can be kept as a character of its own. It stays
+        // below the strip so eighteen groups cannot push it out of reach.
+        IconButton {
+            id: addButton
 
-                IconButton {
-                    anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    type: IconButton.Tonal
-                    icon: "add"
-                    disabled: !root.query.trim()
-                    Accessible.name: Tr.tr("Add what was typed")
-                    onClicked: {
-                        Emoji.addCustom(root.query);
-                        root.search.text = `${GlobalConfig.launcher.actionPrefix}emoji `;
-                    }
-                }
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottomMargin: Tokens.padding.extraSmall
+
+            implicitWidth: sidebar.width - Tokens.padding.extraSmall * 2
+            implicitHeight: implicitWidth
+            type: IconButton.Tonal
+            icon: "add"
+            disabled: !root.query.trim()
+            Accessible.name: Tr.tr("Add what was typed")
+            onHoveredChanged: root.addHovered = hovered
+            onClicked: {
+                Emoji.addCustom(root.query);
+                root.search.text = `${GlobalConfig.launcher.actionPrefix}emoji `;
             }
+        }
+
+        // A disabled button takes no hover of its own, and the hint is
+        // wanted exactly while it is disabled.
+        MouseArea {
+            anchors.fill: addButton
+            hoverEnabled: true
+            acceptedButtons: Qt.NoButton
+            onContainsMouseChanged: root.addHovered = containsMouse
         }
     }
 }

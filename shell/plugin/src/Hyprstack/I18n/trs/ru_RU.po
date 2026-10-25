@@ -5855,3 +5855,13 @@ msgstr "Мои"
 #: modules/launcher/EmojiList.qml
 msgid "Add what was typed"
 msgstr "Добавить введённое"
+
+#: modules/launcher/EmojiList.qml
+msgid "Type something to add it"
+msgstr "Введите что-нибудь, чтобы добавить"
+
+#. TRANSLATORS: %1 = what the user typed, which becomes a character of their own
+#: modules/launcher/EmojiList.qml
+#, qt-format
+msgid "Add \"%1\""
+msgstr "Добавить «%1»"
