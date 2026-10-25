@@ -101,6 +101,19 @@ Item {
         Keys.onEscapePressed: root.screenState.launcher = false
 
         Keys.onPressed: event => {
+            // While a command is still being typed, Tab finishes it rather
+            // than moving the selection.
+            if (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier)
+                && text.startsWith(GlobalConfig.launcher.actionPrefix)
+                && !text.slice(GlobalConfig.launcher.actionPrefix.length).includes(" ")) {
+                const action = list.currentList?.currentItem?.modelData;
+                if (action?.keyword) {
+                    action.onClicked(list.currentList);
+                    event.accepted = true;
+                    return;
+                }
+            }
+
             if (!GlobalConfig.launcher.vimKeybinds)
                 return;
 
