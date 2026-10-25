@@ -59,11 +59,10 @@ StyledListView {
     // Emptying the history is a sweeping action, so it stays in view rather
     // than waiting at the end of a long list.
     footerPositioning: ListView.OverlayFooter
-    footer: StyledRect {
+    footer: Item {
         z: 2
         implicitWidth: root.width
         implicitHeight: clearRow.implicitHeight + Tokens.padding.small * 2
-        color: Colours.palette.m3surfaceContainer
 
         Row {
             id: clearRow

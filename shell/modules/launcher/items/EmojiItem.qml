@@ -17,22 +17,20 @@ Item {
     implicitWidth: GridView.view.cellWidth
     implicitHeight: GridView.view.cellHeight
 
-    StateLayer {
-        id: layer
-
+    // The grid holds a hundred cells at once and swaps all of them when a
+    // group is picked, so the hover state is a plain rectangle: a ripple
+    // builds a shape per cell and that is what made switching stutter.
+    StyledRect {
+        anchors.fill: parent
         anchors.margins: Tokens.padding.extraSmall / 2
         radius: Tokens.rounding.medium
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        color: Colours.palette.m3onSurface
+        opacity: layer.pressed ? 0.12 : layer.containsMouse ? 0.08 : 0
 
-        // Copying is what the picker is for; keeping a character around is
-        // the second thing anyone wants from it.
-        onClicked: event => {
-            if (event.button === Qt.RightButton) {
-                Emoji.togglePin(root.modelData);
-                return;
+        Behavior on opacity {
+            Anim {
+                type: Anim.DefaultEffects
             }
-            Emoji.activate(root.modelData);
-            root.screenState.launcher = false;
         }
     }
 
@@ -76,6 +74,26 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: Emoji.removeCustom(root.modelData)
+        }
+    }
+
+    MouseArea {
+        id: layer
+
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+        // Copying is what the picker is for; keeping a character around is
+        // the second thing anyone wants from it.
+        onClicked: event => {
+            if (event.button === Qt.RightButton) {
+                Emoji.togglePin(root.modelData);
+                return;
+            }
+            Emoji.activate(root.modelData);
+            root.screenState.launcher = false;
         }
     }
 }

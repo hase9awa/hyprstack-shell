@@ -13,7 +13,9 @@ Singleton {
     // so a keybind can land directly in one of its modes.
     property string launcherPrefill
 
-    function setLauncher(state: ScreenState, open: bool, prefill: string): void {
+    // prefill is deliberately untyped: a declared string turns a missing
+    // argument into the word "undefined" rather than leaving it empty.
+    function setLauncher(state: ScreenState, open: bool, prefill): void {
         if (!state)
             return;
         launcherPrefill = open ? (prefill ?? "") : "";

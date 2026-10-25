@@ -98,6 +98,8 @@ Item {
     ]
 
     Behavior on animState {
+        enabled: root.screenState.launcher
+
         SequentialAnimation {
             Anim {
                 target: root

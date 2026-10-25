@@ -20,6 +20,13 @@ Item {
     readonly property int rounding: Tokens.rounding.extraLarge
     function focusSearch(): void { search.forceActiveFocus(); }
 
+    function applyPrefill(): void {
+        if (!ShellState.launcherPrefill)
+            return;
+        search.text = ShellState.launcherPrefill;
+        ShellState.launcherPrefill = "";
+    }
+
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight: search.height + listWrapper.height + padding + search.anchors.bottomMargin
 
@@ -114,16 +121,23 @@ Item {
             }
         }
 
-        Component.onCompleted: forceActiveFocus()
+        Component.onCompleted: {
+            root.applyPrefill();
+            forceActiveFocus();
+        }
+
+        Connections {
+            // The prefill lands before the drawer is told to open, so the
+            // mode is already chosen by the time anything is drawn.
+            function onLauncherPrefillChanged(): void { root.applyPrefill(); }
+
+            target: ShellState
+        }
 
         Connections {
             function onLauncherChanged(): void {
-                if (!root.screenState.launcher) {
+                if (!root.screenState.launcher)
                     search.text = "";
-                } else if (ShellState.launcherPrefill) {
-                    search.text = ShellState.launcherPrefill;
-                    ShellState.launcherPrefill = "";
-                }
             }
 
             function onSessionChanged(): void {

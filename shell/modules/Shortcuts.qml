@@ -74,7 +74,7 @@ Scope {
             if (!root.hasFullscreen) {
                 const screenState = ShellState.forActive();
                 if (screenState)
-                    ShellState.setLauncher(screenState, !screenState.launcher);
+                    ShellState.setLauncher(screenState, !screenState.launcher, "");
             }
         }
     }
@@ -120,7 +120,7 @@ Scope {
                     return;
                 const screenState = ShellState.forActive();
                 if (drawer === "launcher")
-                    ShellState.setLauncher(screenState, !screenState.launcher);
+                    ShellState.setLauncher(screenState, !screenState.launcher, "");
                 else
                     screenState[drawer] = !screenState[drawer];
             } else {
