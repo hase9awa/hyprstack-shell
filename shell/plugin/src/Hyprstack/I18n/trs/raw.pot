@@ -4731,3 +4731,18 @@ msgstr ""
 msgctxt "button"
 msgid "Unlock"
 msgstr ""
+
+#. TRANSLATORS: %1 = name of the application offering the picture
+#: modules/portals/WallpaperDialog.qml
+#, qt-format
+msgid "Set %1 as the wallpaper?"
+msgstr ""
+
+#: modules/portals/WallpaperDialog.qml
+msgid "Set this picture as the wallpaper?"
+msgstr ""
+
+#: modules/portals/WallpaperDialog.qml
+msgctxt "button"
+msgid "Set wallpaper"
+msgstr ""

@@ -57,8 +57,13 @@ protected:
     [[nodiscard]] QString label(const QString& name) const;
 
     void respond(Response response, const QVariantMap& results = {});
+    // Wallpaper answers with a code and nothing beside it, unlike every
+    // other interface here.
+    void respondBare(Response response);
 
 private:
+    void send(const QVariantList& arguments);
+
     QString m_appId;
     QString m_title;
     QVariantMap m_options;

@@ -8,6 +8,7 @@ qml_module(hyprstack-portals
         filechooserportal.cpp
         accessportal.cpp
         appchooserportal.cpp
+        wallpaperportal.cpp
     LIBRARIES
         Qt::DBus
         Qt::Gui

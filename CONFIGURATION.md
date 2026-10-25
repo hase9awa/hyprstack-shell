@@ -297,9 +297,9 @@ Hyprland и через D-Bus. Уже запущенные Java-программ�
 
 Разрешения, которые запрашивает desktop portal — камера, геопозиция, работа в
 фоне, установка обоев и снимок экрана — спрашивает сама оболочка. Тот же
-backend отвечает за выбор файлов и за выбор приложения («Открыть с помощью»)
-для программ, которые не рисуют такие диалоги сами, изолированных в первую
-очередь. Демонстрация экрана идёт через отдельный интерфейс `ScreenCast` и
+backend отвечает за выбор файлов, за выбор приложения («Открыть с помощью») и
+за предложение поставить картинку обоями — для программ, которые не рисуют
+такие диалоги сами, изолированных в первую очередь. Демонстрация экрана идёт через отдельный интерфейс `ScreenCast` и
 остаётся за `xdg-desktop-portal-hyprland`. Если в системе задан предпочитаемый
 backend, добавьте Hyprstack в
 `~/.config/xdg-desktop-portal/hyprland-portals.conf`:
@@ -309,6 +309,7 @@ backend, добавьте Hyprstack в
 org.freedesktop.impl.portal.Access=hyprstack;gtk
 org.freedesktop.impl.portal.AppChooser=hyprstack;gtk
 org.freedesktop.impl.portal.FileChooser=hyprstack;gtk
+org.freedesktop.impl.portal.Wallpaper=hyprstack;gtk
 ```
 
 ## Блокировка

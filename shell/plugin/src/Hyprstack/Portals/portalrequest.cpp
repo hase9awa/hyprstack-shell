@@ -1,6 +1,7 @@
 #include "portalrequest.hpp"
 
 #include <qdbusconnection.h>
+#include <qvariant.h>
 #include <qloggingcategory.h>
 
 #include <utility>
@@ -68,6 +69,14 @@ QString PortalRequest::label(const QString& name) const {
 }
 
 void PortalRequest::respond(Response response, const QVariantMap& results) {
+    send({ QVariant::fromValue(static_cast<uint>(response)), QVariant::fromValue(results) });
+}
+
+void PortalRequest::respondBare(Response response) {
+    send({ QVariant::fromValue(static_cast<uint>(response)) });
+}
+
+void PortalRequest::send(const QVariantList& arguments) {
     if (m_answered)
         return;
 
@@ -75,7 +84,7 @@ void PortalRequest::respond(Response response, const QVariantMap& results) {
     emit answeredChanged();
 
     auto bus = QDBusConnection::sessionBus();
-    bus.send(m_call.createReply({ QVariant::fromValue(static_cast<uint>(response)), QVariant::fromValue(results) }));
+    bus.send(m_call.createReply(arguments));
     bus.unregisterObject(m_handle.path());
 
     // The dialog that answered is the one listening for this: retire the

@@ -49,6 +49,10 @@ Scope {
                 AppChooserPortal {
                     id: appChooser
                 }
+
+                WallpaperPortal {
+                    id: wallpaper
+                }
             }
 
             FileChooser {
@@ -61,6 +65,10 @@ Scope {
 
             AppChooser {
                 portal: appChooser
+            }
+
+            Wallpaper {
+                portal: wallpaper
             }
         }
     }

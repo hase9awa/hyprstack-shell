@@ -34,6 +34,7 @@ in {
       "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault [ "hyprstack" "gtk" ];
       "org.freedesktop.impl.portal.Access" = lib.mkDefault [ "hyprstack" "gtk" ];
       "org.freedesktop.impl.portal.AppChooser" = lib.mkDefault [ "hyprstack" "gtk" ];
+      "org.freedesktop.impl.portal.Wallpaper" = lib.mkDefault [ "hyprstack" "gtk" ];
     };
 
     environment.sessionVariables = {
