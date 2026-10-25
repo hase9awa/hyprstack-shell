@@ -129,6 +129,7 @@ Item {
 
     Utilities.Wrapper {
         id: utilities
+        z: 1
 
         screenState: root.screenState
         sidebar: sidebar
@@ -136,7 +137,7 @@ Item {
         atBottom: screenState.sidebar || sidebar.visible || !root.bar.atBottom
 
         y: atBottom ? parent.height - height
-            + (root.bar.atBottom && sidebar.visible ? sidebar.slideDistance : height + 5) * offsetScale
+            + (movesWithSidebar ? (sidebar.atBottom ? sidebar.slideDistance : 0) : height + 5) * offsetScale
             : -(height + 5) * offsetScale
         anchors.right: parent.right
     }

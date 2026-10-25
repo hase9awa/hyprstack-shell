@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Bluetooth
 import Hyprstack.Components
@@ -33,10 +34,11 @@ StyledRect {
             return true;
         });
     }
-    readonly property int splitIndex: Math.ceil(quickToggles.length / 2)
-    readonly property bool needExtraRow: quickToggles.length > 6
+    readonly property int columns: Math.max(1, Math.min(4, quickToggles.length,
+        Math.floor((width - Tokens.padding.large * 2 + Tokens.spacing.small) / (64 * Tokens.scale + Tokens.spacing.small))))
+    readonly property real tileWidth: Math.max(0, Math.floor((width - Tokens.padding.large * 2 - Tokens.spacing.small * (columns - 1)) / columns))
 
-    implicitHeight: layout.implicitHeight + Tokens.padding.extraLargeIncreased
+    implicitHeight: layout.implicitHeight + layout.anchors.margins * 2
 
     radius: Tokens.rounding.large
     color: Colours.tPalette.m3surfaceContainer
@@ -49,25 +51,28 @@ StyledRect {
         spacing: Tokens.spacing.medium
 
         StyledText {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
             text: Tr.tr("Quick toggles")
             font: Tokens.font.body.medium
+            wrapMode: Text.WordWrap
         }
 
-        QuickToggleRow {
-            model: root.needExtraRow ? root.quickToggles.slice(0, root.splitIndex) : root.quickToggles
-        }
+        Repeater {
+            model: Math.ceil(root.quickToggles.length / root.columns)
 
-        QuickToggleRow {
-            visible: root.needExtraRow
-            model: root.needExtraRow ? root.quickToggles.slice(root.splitIndex) : []
-        }
+            QuickToggleRow {
+                required property int index
 
+                model: root.quickToggles.slice(index * root.columns, (index + 1) * root.columns)
+            }
+        }
     }
 
     component QuickToggleRow: ButtonRow {
         property alias model: repeater.model
 
-        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignHCenter
         spacing: Tokens.spacing.small
 
         Repeater {
@@ -80,6 +85,7 @@ StyledRect {
                     roleValue: "wifi"
                     delegate: Toggle {
                         icon: "wifi"
+                        caption: Tr.tr("Wi-Fi")
                         checked: Nmcli.wifiEnabled
                         onClicked: Nmcli.toggleWifi()
                     }
@@ -88,6 +94,7 @@ StyledRect {
                     roleValue: "bluetooth"
                     delegate: Toggle {
                         icon: "bluetooth"
+                        caption: Tr.tr("Bluetooth")
                         checked: Bluetooth.defaultAdapter?.enabled ?? false // qmllint disable unresolved-type
                         onClicked: {
                             const adapter = Bluetooth.defaultAdapter; // qmllint disable unresolved-type
@@ -100,6 +107,7 @@ StyledRect {
                     roleValue: "mic"
                     delegate: Toggle {
                         icon: "mic"
+                        caption: Tr.tr("Microphone")
                         checked: !Audio.sourceMuted
                         onClicked: {
                             const audio = Audio.source?.audio;
@@ -112,6 +120,7 @@ StyledRect {
                     roleValue: "settings"
                     delegate: Toggle {
                         icon: "settings"
+                        caption: Tr.tr("Settings")
                         inactiveOnColour: Colours.palette.m3onSurfaceVariant
                         isToggle: false
                         onClicked: {
@@ -124,6 +133,7 @@ StyledRect {
                     roleValue: "gameMode"
                     delegate: Toggle {
                         icon: "gamepad"
+                        caption: Tr.tr("Game mode")
                         checked: GameMode.enabled
                         onClicked: GameMode.enabled = !GameMode.enabled
                     }
@@ -132,6 +142,7 @@ StyledRect {
                     roleValue: "dnd"
                     delegate: Toggle {
                         icon: "notifications_off"
+                        caption: Tr.tr("Do not disturb")
                         checked: Notifs.dnd
                         onClicked: Notifs.dnd = !Notifs.dnd
                     }
@@ -139,11 +150,10 @@ StyledRect {
                 DelegateChoice {
                     roleValue: "vpn"
                     delegate: Toggle {
-                        id: vpnToggle
                         objectName: "utilitiesVpnToggle"
                         icon: "shield_lock"
-                        label.visible: false
-                        implicitHeight: vpnLabel.implicitHeight + Tokens.padding.small * 2
+                        caption: Tr.tr("VPN")
+                        showCaption: true
                         checked: VPN.connected && VPN.status.state !== "needs-auth" && VPN.status.state !== "error"
                         disabled: VPN.connecting || VPN.disconnecting || (VPN.active.name === "native" && ManagedVPN.busy)
                         isToggle: VPN.status.state !== "needs-auth" && VPN.status.state !== "error"
@@ -154,27 +164,6 @@ StyledRect {
                             else
                                 VPN.toggle();
                         }
-
-                        ColumnLayout {
-                            id: vpnLabel
-                            anchors.centerIn: parent
-                            spacing: Tokens.spacing.extraSmall / 2
-
-                            MaterialIcon {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: "shield_lock"
-                                fontStyle: Tokens.font.icon.small
-                                color: vpnToggle.onColour
-                                fill: vpnToggle.internalChecked ? 1 : 0
-                            }
-
-                            StyledText {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: Tr.tr("VPN")
-                                font: Tokens.font.label.builders.small.weight(Font.DemiBold).build()
-                                color: vpnToggle.onColour
-                            }
-                        }
                     }
                 }
             }
@@ -182,10 +171,43 @@ StyledRect {
     }
 
     component Toggle: IconButton {
+        id: button
+
+        required property string caption
+        property bool showCaption: false
+
+        objectName: `quickToggle_${icon}`
+        implicitWidth: root.tileWidth
+        label.visible: !showCaption
         inactiveColour: Colours.layer(Colours.palette.m3surfaceContainerHighest, 2)
-        fillWidth: true
+        fillWidth: false
         isToggle: true
         isRound: true
-        shapeMorph: true
+
+        ToolTip.visible: hovered
+        ToolTip.text: caption
+        ToolTip.delay: 400
+
+        Row {
+            visible: button.showCaption
+
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: 1
+            spacing: Tokens.spacing.extraSmall
+
+            MaterialIcon {
+                text: button.icon
+                fontStyle: button.font
+                color: button.onColour
+                fill: !button.isToggle || button.internalChecked ? 1 : 0
+            }
+
+            StyledText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: button.caption
+                font: Tokens.font.label.builders.small.weight(Font.DemiBold).build()
+                color: button.onColour
+            }
+        }
     }
 }

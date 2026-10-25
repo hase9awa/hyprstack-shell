@@ -20,8 +20,6 @@ Switch modes with a single shortcut; each mode remembers your window layout.
 Russian is the default language; English and the system language are available
 in settings.
 
-Current version: **1.2.0**. [Release notes](CHANGELOG.md).
-
 <a id="demo"></a>
 
 ## See it in action
@@ -36,6 +34,10 @@ Current version: **1.2.0**. [Release notes](CHANGELOG.md).
   <tr>
     <td align="center"><img src="docs/media/customization.gif" width="100%" alt="Adjusting interface transparency, shadows and scale with visible results"><br>Settings · transparency, shadows and scale</td>
     <td align="center"><img src="docs/media/overview.gif" width="100%" alt="Window overview in the light Catppuccin Latte theme"><br>Overview · every window in sight</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/media/app-colours.gif" width="100%" alt="A shared palette in Qt, GTK, Java Swing and terminal applications"><br>Application colours · GTK, Qt, Java and terminals</td>
+    <td align="center"><img src="docs/media/vpn.gif" width="100%" alt="VPN settings, profile selection and controls in the menu and taskbar"><br>VPN · menu and taskbar</td>
   </tr>
   <tr>
     <td align="center"><img src="docs/media/trackpad-swipes.gif" width="100%" alt="Scrolling columns and workspaces and navigating overview with touchpad gestures"><br>Touchpad gestures</td>
@@ -89,7 +91,10 @@ See [configuration (Russian)](CONFIGURATION.md).
 | `Super` | Open the dashboard |
 | `Super+D` | Application launcher |
 | `Super+O` | Window and workspace overview |
-| `Super+Return` | Terminal |
+| `Super+Return` | Terminal · kitty |
+| `Super+W` | Browser · Firefox |
+| `Super+E` | System file manager · home folder |
+| `Ctrl+Alt+V` | Audio settings · pavucontrol |
 | `Super+H` / `Super+L` | Adjacent window in scrolling |
 | `Super+J` / `Super+K` | Adjacent workspace |
 | `Super+Alt+Space` | Toggle a floating window |
@@ -108,7 +113,6 @@ swipe down to activate the selection and close it.
 ## Documentation
 
 - [Configuration, shortcuts, themes and weather (Russian)](CONFIGURATION.md)
-- [Release notes](CHANGELOG.md)
 - [Updates, diagnostics and manual removal (Russian)](MAINTENANCE.md)
 - [Third-party components and licences](THIRD_PARTY.md)
 

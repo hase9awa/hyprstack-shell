@@ -10,7 +10,6 @@
 !/INSTALL.en.md
 !/CONFIGURATION.md
 !/MAINTENANCE.md
-!/CHANGELOG.md
 !/update.sh
 !/THIRD_PARTY.md
 !/flake.nix
@@ -20,10 +19,6 @@
 !/nix/package.nix
 !/nix/nixos-module.nix
 !/nix/home-manager.nix
-
-!/tests/
-/tests/*
-!/tests/test_vpn.py
 
 !/distribution/
 /distribution/*
@@ -98,6 +93,8 @@
 !/docs/media/customization.gif
 !/docs/media/overview.gif
 !/docs/media/trackpad-swipes.gif
+!/docs/media/app-colours.gif
+!/docs/media/vpn.gif
 
 # Generated files and machine-local overrides are never source files.
 **/.*

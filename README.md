@@ -19,8 +19,6 @@ Hyprstack — оболочка для Hyprland с прокручиваемым �
 Режимы переключаются одним сочетанием клавиш и сохраняют расположение окон.
 Русский язык включён по умолчанию; английский и язык системы доступны в настройках.
 
-Текущая версия — **1.2.0**. [Изменения](CHANGELOG.md).
-
 <a id="demo"></a>
 
 ## Как это выглядит
@@ -35,6 +33,10 @@ Hyprstack — оболочка для Hyprland с прокручиваемым �
   <tr>
     <td align="center"><img src="docs/media/customization.gif" width="100%" alt="Настройка прозрачности, теней и масштаба интерфейса с видимым результатом"><br>Настройки · прозрачность, тени и масштаб</td>
     <td align="center"><img src="docs/media/overview.gif" width="100%" alt="Обзор открытых окон в светлой теме Catppuccin Latte"><br>Обзор пространства · все окна перед глазами</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/media/app-colours.gif" width="100%" alt="Единая палитра в приложениях Qt, GTK, Java Swing и терминале"><br>Цвета приложений · GTK, Qt, Java и терминалы</td>
+    <td align="center"><img src="docs/media/vpn.gif" width="100%" alt="Настройки VPN, выбор профилей и кнопки в меню и на панели задач"><br>VPN · меню и панель задач</td>
   </tr>
   <tr>
     <td align="center"><img src="docs/media/trackpad-swipes.gif" width="100%" alt="Прокрутка колонок и рабочих столов, навигация в обзоре жестами тачпада"><br>Жесты тачпада</td>
@@ -87,7 +89,10 @@ Hyprstack — оболочка для Hyprland с прокручиваемым �
 | `Super` | Открыть дашборд |
 | `Super+D` | Запуск приложений |
 | `Super+O` | Обзор окон и рабочих столов |
-| `Super+Return` | Терминал |
+| `Super+Return` | Терминал · kitty |
+| `Super+W` | Браузер · Firefox |
+| `Super+E` | Системный файловый менеджер · домашняя папка |
+| `Ctrl+Alt+V` | Настройки звука · pavucontrol |
 | `Super+H` / `Super+L` | Соседнее окно в scrolling |
 | `Super+J` / `Super+K` | Соседний рабочий стол |
 | `Super+Alt+Space` | Переключить плавающее состояние окна |
@@ -104,7 +109,6 @@ Hyprstack — оболочка для Hyprland с прокручиваемым �
 ## Документация
 
 - [Настройки, горячие клавиши, темы и погода](CONFIGURATION.md)
-- [Изменения версий](CHANGELOG.md)
 - [Обновление, диагностика и ручное удаление](MAINTENANCE.md)
 - [Сторонние компоненты и лицензии](THIRD_PARTY.md)
 

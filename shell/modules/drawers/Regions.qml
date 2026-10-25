@@ -83,8 +83,9 @@ Region {
 
     R {
         panel: root.panels.utilities
-        y: root.panels.utilities.atBottom ? root.win.height - height : 0
-        height: panel.height * (1 - root.panels.utilities.offsetScale)
+        y: root.panels.utilities.followSidebar ? root.panels.y + panel.y
+            : root.panels.utilities.atBottom ? root.win.height - height : 0
+        height: panel.height * (root.panels.utilities.followSidebar ? 1 : (1 - root.panels.utilities.offsetScale))
             + (root.panels.utilities.atBottom ? root.bar.bottomInset : root.bar.topInset)
     }
 

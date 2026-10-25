@@ -217,12 +217,14 @@ StyledWindow {
 
         PanelBg {
             id: sidebarBg
+            objectName: "notificationCenterBackground"
 
             panel: panels.sidebar
-            deformAmount: 0.03
-            implicitHeight: panel.height * (1 / rawDeformMatrix.m22) + 2
-            exclude: panels.sidebar.offsetScale > 0.08 ? [] : [utilsBg]
-            bottomLeftRadius: Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius
+            // A single surface keeps the notification list and controls joined.
+            deformAmount: panels.utilities.followSidebar ? 0 : 0.03
+            implicitHeight: panels.utilities.followSidebar
+                ? panel.height + panels.utilities.height
+                : panel.height * (1 / rawDeformMatrix.m22) + 2
         }
 
         PanelBg {
@@ -244,9 +246,9 @@ StyledWindow {
             id: utilsBg
 
             panel: panels.utilities
-            deformAmount: panels.sidebar.visible ? 0.1 : 0.15
-            exclude: panels.sidebar.offsetScale > 0.08 ? [] : [sidebarBg]
-            topLeftRadius: Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius
+            visible: (!panels.utilities.followSidebar || panels.utilities.keepStandaloneOpen)
+                && panel.visible && panel.width > 0 && panel.height > 0
+            deformAmount: panels.utilities.followSidebar ? 0 : 0.15
         }
 
         PanelBg {
@@ -296,8 +298,7 @@ StyledWindow {
             bar: bar
             borderThickness: root.borderThickness
 
-            utilities.horizontalStretch: (sidebarBg.rawDeformMatrix.m11 - 1) / 2 + 1
-            utilities.deformMatrix: utilsBg.rawDeformMatrix
+            utilities.deformMatrix: utilities.followSidebar ? sidebarBg.rawDeformMatrix : utilsBg.rawDeformMatrix
 
             dashboard.transform: Matrix4x4 {
                 matrix: dashBg.deformMatrix
@@ -318,7 +319,7 @@ StyledWindow {
                 matrix: notifsBg.deformMatrix
             }
             utilities.transform: Matrix4x4 {
-                matrix: utilsBg.deformMatrix
+                matrix: panels.utilities.followSidebar ? sidebarBg.deformMatrix : utilsBg.deformMatrix
             }
             popouts.transform: Matrix4x4 {
                 matrix: popoutBg.deformMatrix
