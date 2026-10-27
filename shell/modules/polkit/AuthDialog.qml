@@ -27,6 +27,14 @@ StyledWindow {
         return message;
     }
 
+    // The key that closes a window cannot close a layer surface, so the
+    // shell is asked to, and this answers it the way Escape does.
+    signal closeRequested
+
+    Component.onCompleted: Dialogs.register(root)
+    Component.onDestruction: Dialogs.unregister(root)
+    onCloseRequested: root.cancel()
+
     name: "polkit"
     Config.screen: screen?.name ?? ""
     Tokens.screen: screen?.name ?? ""

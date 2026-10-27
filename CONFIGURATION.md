@@ -68,7 +68,7 @@ programs.hyprstack.extraConfig = ''
 | Super + W | Браузер · Firefox |
 | Super + E | Системный файловый менеджер · домашняя папка через xdg-open |
 | Ctrl + Alt + V | Настройки звука · pavucontrol |
-| Super + Q | Закрыть окно |
+| Super + Q | Закрыть окно; при открытом диалоге оболочки — закрыть диалог |
 | Super + F | Полный экран |
 | Super + Alt + Space | Плавающее состояние окна |
 | Alt + Tab / Alt + Shift + Tab | Переключение окон в stacking |

@@ -3,6 +3,8 @@ import Quickshell
 import Quickshell.Wayland
 import Hyprstack
 import Hyprstack.Config
+import qs.components
+import qs.services
 
 // A dialog the shell puts up on its own: it floats above everything, starts
 // in the middle of the screen and can be dragged anywhere from there.
@@ -21,6 +23,14 @@ StyledWindow {
     property real dialogWidth
     property real dialogHeight
     default property alias contents: frame.data
+
+    // What the key that closes windows means here, since the compositor
+    // cannot close a layer surface itself. Each dialog answers it the way it
+    // answers Escape.
+    signal closeRequested
+
+    Component.onCompleted: Dialogs.register(root)
+    Component.onDestruction: Dialogs.unregister(root)
 
     Config.screen: screen?.name ?? ""
     Tokens.screen: screen?.name ?? ""
@@ -44,11 +54,30 @@ StyledWindow {
     Item {
         id: frame
 
+        // The size that arrives while the dialog is still being built is the
+        // one it opens at; growing into it from nothing would only look like
+        // the dialog crawling out of a corner.
+        property bool settled
+
         // Centred until it is dragged, which replaces these outright.
         x: (root.width - width) / 2
         y: (root.height - height) / 2
         width: root.dialogWidth
         height: root.dialogHeight
+
+        Component.onCompleted: settled = true
+
+        Behavior on width {
+            enabled: frame.settled
+
+            Anim {}
+        }
+
+        Behavior on height {
+            enabled: frame.settled
+
+            Anim {}
+        }
 
         // Underneath whatever the dialog holds, so a press lands on a
         // button when there is one and starts a drag when there is not.

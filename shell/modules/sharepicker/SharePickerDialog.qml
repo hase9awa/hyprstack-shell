@@ -43,6 +43,7 @@ DialogWindow {
     }
 
     name: "sharepicker"
+    onCloseRequested: root.cancel()
     visible: !request.picking
     dialogWidth: Math.min(440 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
     dialogHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,

@@ -24,6 +24,8 @@ DialogWindow {
     required property string path
     signal dismissed
 
+    onCloseRequested: root.dismissed()
+
     readonly property string fileName: path.split("/").pop()
     // Only the proportions are wanted, so the picture is decoded small for
     // them and drawn at size by the view below.

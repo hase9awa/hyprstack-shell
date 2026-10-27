@@ -35,6 +35,7 @@ DialogWindow {
     }
 
     name: "askpass"
+    onCloseRequested: root.cancel()
     dialogWidth: Math.min(480 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
     dialogHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 48 * Tokens.scale)
