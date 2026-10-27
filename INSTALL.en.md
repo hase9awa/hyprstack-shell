@@ -1,44 +1,17 @@
-[Русский](INSTALL.md) · [Home](README.en.md) · [NixOS installation](INSTALL.nixos.en.md)
+[Русский](INSTALL.md) · [Home](README.en.md) · [NixOS](INSTALL.nixos.en.md)
 
-# Installing Hyprstack on Arch Linux and derivatives
+# Installing on Arch Linux and derivatives
 
 <a id="arch"></a>
 
-For Arch Linux, CachyOS, EndeavourOS and Manjaro with systemd.
-Hyprstack installs the shell and Hyprland configuration for your user.
-Choose your own terminal, browser and file manager.
+Arch Linux, CachyOS, EndeavourOS and Manjaro with systemd.
+Requires **Hyprland 0.56.2** with matching headers, **Quickshell ≥ 0.3.1**
+with Hyprland/PAM/Polkit, and **Qt ≥ 6.9**. CMake checks the ABI during the build.
 
-Run the installation in your current desktop's terminal, keeping this guide open
-in your browser. Log out after configuration, before starting Hyprstack.
-If Hyprland is already running, the setup script prepares a separate command
-to apply the configuration after logout; see step 4.
-
-**All commands in this guide assume Bash.** If you use Fish, Zsh or another shell,
-start Bash in your current terminal first:
-
-```sh
-bash
-```
-
-Your login shell stays the same. Run commands **without `sudo`**, except package
-installation and enabling the system network service.
+**Commands assume Bash** — run `bash` first if you use Fish/Zsh.
+For an existing installation, use the [update procedure](MAINTENANCE.md#обновление).
 
 ## 1. Dependencies
-
-Requires **Hyprland 0.56.2**, **Quickshell ≥ 0.3.1** with Hyprland, PAM and
-Polkit modules, and **Qt ≥ 6.9**. Build requirements: C++23, CMake ≥ 3.22,
-Python ≥ 3.10. Hyprland headers must match the installed compositor's ABI.
-Check the repository versions:
-
-```bash
-pacman -Si hyprland quickshell qt6-base
-```
-
-Continue only if Hyprland **0.56.2** is available and the requirements above
-are met. If your distribution branch provides other versions, prepare a
-compatible package set first. Do not bypass the ABI check.
-
-Update the system and install build and desktop feature dependencies:
 
 ```bash
 sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
@@ -52,26 +25,11 @@ sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
 ```
 
-`fuzzel` provides emoji and clipboard selection, `grim`/`slurp`/`swappy` handle
-screenshots, and `wf-recorder` records the screen. `qt5ct`/`qt6ct` and desktop
-portals provide application appearance and desktop integration.
-To change colours in running KDE applications, you can use
-[qt6ct-kde](https://aur.archlinux.org/packages/qt6ct-kde) instead of `qt6ct`.
+Install your preferred terminal and browser; Kitty and Firefox are optional.
+The panel uses NetworkManager and PipeWire/WirePlumber —
+[service checks](MAINTENANCE.md#сеть-и-звук).
 
-**Install personal applications separately, according to your preferences.**
-Use your existing terminal and browser if they are already installed.
-For example, to install Foot and Chromium:
-
-```bash
-sudo pacman -S --needed foot chromium
-```
-
-Kitty and Firefox also work, but Hyprstack does not require them.
-The file manager uses your system's `xdg-open` association.
-`pavucontrol` is only needed for **Ctrl+Alt+V**, and `btop` for
-**Ctrl+Shift+Escape**; install them if you want those actions.
-
-## 2. Build
+## 2. Build and install
 
 ```bash
 git clone https://github.com/hase9awa/hyprstack-shell.git
@@ -82,158 +40,63 @@ cmake -S . -B build -G Ninja \
   -DCMAKE_INSTALL_DATADIR="${XDG_DATA_HOME:-$HOME/.local/share}"
 cmake --build build --parallel 2
 cmake --install build
-export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Use `--parallel 1` if memory is limited. Programs go into `~/.local/bin`,
-and data into your user's XDG data directory.
-
-Add `~/.local/bin` to your login profile's `PATH` if it is not there already:
-
-| Login shell | Setting |
-| --- | --- |
-| Bash | Add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bash_profile` |
-| Zsh | Add the same line to `~/.zprofile` |
-| Fish | Run from the current Bash shell: `fish -c 'fish_add_path "$HOME/.local/bin"'` |
-
-## 3. Network and audio
-
-The network panel uses **NetworkManager**; audio uses **PipeWire/WirePlumber**.
-Check your existing setup first:
-
-```bash
-systemctl is-active NetworkManager.service
-wpctl status
-```
-
-If these components already provide working network and audio, proceed to step 4.
-On a fresh system without a configured network manager, enable NetworkManager:
-
-```bash
-sudo systemctl enable --now NetworkManager.service
-```
-
-If another manager controls your network interface, follow the
-[NetworkManager migration instructions](https://wiki.archlinux.org/title/NetworkManager#Enable_NetworkManager)
-first. Two managers must not control the same interface.
-
-PipeWire uses user services and socket activation. If you have just installed
-its packages, retry `wpctl status` after the first login in step 5. If it still
-cannot connect, run as your regular user:
-
-```bash
-systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service
-```
-
-See [PipeWire](https://wiki.archlinux.org/title/PipeWire#Installation) and
-[running WirePlumber](https://pipewire.pages.freedesktop.org/wireplumber/daemon/running.html).
+Use `--parallel 1` if memory is limited.
 
 <a id="config"></a>
 
-## 4. First configuration
+## 3. Configuration
 
-While still in your current desktop, run from the source directory:
+<details>
+<summary>If you are installing from a running Hyprland session</summary>
 
-```bash
-bash configure.sh
-```
-
-The script asks for the commands of your **installed** terminal and browser.
-Press Enter to accept a suggestion, or enter your own choice. The terminal choice
-applies to **Super+Enter**, terminal applications launched from the menu and
-the system monitor. You can also provide your choices directly; for Foot and Chromium:
+Disable automatic configuration reload before copying files.
+For a Lua configuration:
 
 ```bash
-bash configure.sh --terminal foot --browser chromium
+hyprctl eval 'hl.config({misc={disable_autoreload=true}})'
 ```
 
-The script installs `hypr/`, `hyprstack/`, initial colours and two user services.
-Existing configurations are saved under `~/.config/hyprstack-backup.*`; the script
-prints the exact path. If you use a custom `XDG_CONFIG_HOME`, the backup goes
-there instead. **A clean installation does not create a backup.**
-Use [update.sh](MAINTENANCE.md#обновление) for later updates: repeating first setup
-replaces the entire configuration.
-
-**If Hyprland is already running**, the script saves your application choices
-and XDG paths for use after logout. End your session, log into a TTY
-(**Ctrl+Alt+F3**) and run just this command:
+For a previous `.conf` configuration:
 
 ```bash
-bash ~/.local/state/hyprstack-setup/apply.sh
+hyprctl keyword misc:disable_autoreload true
 ```
 
-No source-directory navigation, remembered variables or copied command blocks
-are needed. Switching to a TTY while leaving Hyprland running is insufficient:
-the script does not replace a running compositor's configuration.
-You can also prepare this command explicitly with `bash configure.sh --prepare`.
+Log out after configuration and log in again. No configuration commands need to be entered in a TTY.
 
-## 5. First launch and checks
+</details>
 
-After the configuration is ready, log out of your current desktop and choose
-**Hyprland** in your display manager. Without a display manager, log into a TTY
-and run `start-hyprland`.
+From the source directory:
 
-Rebooting does not change the selected desktop: logging into KDE, GNOME or Niri
-does not start Hyprstack automatically. The project uses
-`~/.config/hypr/hyprland.lua` (respecting `XDG_CONFIG_HOME`);
-you do not need to create `hyprland.conf` for this installation.
+```bash
+config_dir=${XDG_CONFIG_HOME:-$HOME/.config}
+mkdir -p "$config_dir"/{hypr,hyprstack,systemd/user}
+cp -a --backup=numbered shell/assets/hyprland/config/. "$config_dir/hypr/"
+cp -a --backup=numbered distribution/defaults/hyprstack/. "$config_dir/hyprstack/"
+cp -a --backup=numbered distribution/systemd/user/*.service "$config_dir/systemd/user/"
+```
 
-In the new session, **Super+Enter** opens your selected terminal, **Super+W**
-opens the browser and **Super+D** opens the application menu. Run:
+Backups named `.~1~` are created only when replacing existing files.
+Set your installed applications in the copied configuration:
+
+- `hyprstack/hypr-vars.lua`: the `terminal` and `browser` commands.
+- `hyprstack/shell.json`: `general.apps.terminal`, for example `["foot"]`.
+
+[Examples and terminal arguments](CONFIGURATION.md#приложения-по-умолчанию).
+
+## 4. Launch
+
+Log out and select **Hyprland** in your display manager.
+From a TTY, run `start-hyprland`. The main configuration is `~/.config/hypr/hyprland.lua`.
 
 ```bash
 ~/.local/bin/hyprstack-doctor
 hyprctl configerrors
 ```
 
-Diagnostics should finish without `FAIL`, and `hyprctl configerrors` should
-report no errors. If the panel does not appear:
+`hyprstack-session.service` starts the shell automatically; do not enable it manually.
+If the shell does not appear, see [startup diagnostics](MAINTENANCE.md#если-оболочка-не-запустилась).
 
-```bash
-hyprctl version
-hyprctl configerrors
-systemctl --user status hyprstack-session.service --no-pager
-journalctl --user -u hyprstack-session.service -b --no-pager
-```
-
-If `hyprctl version` cannot connect to the compositor, check your selected session.
-Run `~/.local/bin/hyprstack-session start` to check the complete startup chain.
-The `hyprstack shell` command starts only the interface and does not verify
-the user service or automatic startup.
-
-### What starts automatically
-
-| Component | Started by | Manual enable needed? |
-| --- | --- | --- |
-| NetworkManager | System systemd | Once, if networking is not configured; step 3 |
-| PipeWire and WirePlumber | User systemd | Usually ready after installation; check in step 3 |
-| `hyprstack-session.service` | Hyprland configuration at login | No; no `enable` or extra autostart entry |
-| `hyprstack-vpn.service` | VPN connect button | No; an inactive service is normal when VPN is off |
-| Panel, notifications, lock screen, Polkit agent | Hyprstack session | No separate services to install |
-
-If separate user services start your previous panel, notification daemon or
-Polkit agent, disable their autostart in the Hyprland session. Do not add second
-instances of these components to the new configuration.
-
-## Optional features
-
-| Package | Purpose |
-| --- | --- |
-| `bluez` | Bluetooth; after installation run `sudo systemctl enable --now bluetooth.service` |
-| `upower` | Battery information |
-| `power-profiles-daemon` | Power profiles; `sudo systemctl enable --now power-profiles-daemon.service` |
-| `ddcutil` | External monitor brightness over DDC/CI |
-| `wtype` | Type emoji into the active application |
-
-Theme synchronization supports terminals including Kitty and Foot.
-**Fish is a command shell running inside a terminal**: the terminal supplies
-its background and ANSI palette, while Fish syntax highlighting and prompt
-themes are configured separately.
-[Supported applications and limitations (Russian)](CONFIGURATION.md#цвета-терминала-и-командная-оболочка).
-
-Configure VPN under **Settings → Network → VPN settings**. sing-box/Xray cores
-are downloaded when needed; TUN requires a one-time Polkit authorization.
-[Protocols, imports and routing (Russian)](CONFIGURATION.md#vpn-и-прокси).
-
-[Configuration and shortcuts (Russian)](CONFIGURATION.md) ·
-[Updates and diagnostics (Russian)](MAINTENANCE.md)
+[Configuration and shortcuts](CONFIGURATION.md) · [Updates](MAINTENANCE.md#обновление)

@@ -57,8 +57,9 @@ sudo nixos-rebuild switch --flake .#YOUR_HOST
 `home-manager switch --flake .#YOUR_USER`. `update.sh` на NixOS не используется.
 
 Без Home Manager обновите пользовательскую конфигурацию по
-[отдельной инструкции NixOS](INSTALL.nixos.md#без-home-manager), затем верните
-личные Lua/JSON-файлы из копии. Сборка CMake и копирование служб не нужны.
+[отдельной инструкции NixOS](INSTALL.nixos.md#без-home-manager), указав
+`data_dir=/run/current-system/sw/share/hyprstack` вместо каталога `result`.
+Личные Lua/JSON-файлы сохраняются. Сборка CMake и копирование служб не нужны.
 
 ## Диагностика
 
@@ -96,17 +97,54 @@ hyprstack-shell
 
 Перезапуск оболочки: `hyprstack-session restart`.
 
+### Если оболочка не запустилась
+
+```bash
+hyprctl version
+hyprctl configerrors
+systemctl --user status hyprstack-session.service --no-pager
+journalctl --user -u hyprstack-session.service -b --no-pager
+```
+
+Если `hyprctl version` не подключается к композитору, проверьте выбор сеанса
+Hyprland в менеджере входа. Конфигурация проекта — `hypr/hyprland.lua`,
+создавать `hyprland.conf` не нужно.
+
+`hyprstack-session start` проверяет всю цепочку запуска службы.
+Команда `hyprstack shell` запускает только интерфейс.
+
+## Сеть и звук
+
+Панель сети использует NetworkManager, звук — PipeWire/WirePlumber:
+
+```bash
+systemctl is-active NetworkManager.service
+wpctl status
+```
+
+Если эти компоненты ещё не настроены, включите их:
+
+```bash
+sudo systemctl enable --now NetworkManager.service
+systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service
+```
+
+При переходе с другого менеджера сети используйте
+[инструкцию NetworkManager](https://wiki.archlinux.org/title/NetworkManager#Enable_NetworkManager).
+
 ## Восстановление прежнего окружения
 
 На NixOS верните предыдущую ревизию конфигурации и примените её либо загрузите
 прежнее поколение системы. Восстановите также конфигурацию Home Manager.
 Изменяемые настройки пользователя возвращаются из резервной копии отдельно.
 
-Без Home Manager завершите Hyprland и перейдите в TTY:
+При ручном копировании заменённые файлы сохраняются рядом как `имя.~1~`,
+`имя.~2~` и так далее. Завершите Hyprland и верните нужные версии файлов.
+
+Для старых установок с каталогом `hyprstack-backup.*`:
 
 1. Найдите копию `hyprstack-backup.*`, путь которой выведен при установке.
-   Новый `configure.sh` сохраняет её в `${XDG_CONFIG_HOME:-$HOME/.config}`;
-   при старой ручной установке копия могла находиться в домашнем каталоге.
+   Она находится в `${XDG_CONFIG_HOME:-$HOME/.config}` или домашнем каталоге.
    Если прежних конфигов не было, копия не создавалась и восстанавливать их не нужно.
 2. Перенесите нынешние `hypr` и `hyprstack` из `${XDG_CONFIG_HOME:-$HOME/.config}`
    в отдельный каталог и верните туда прежние каталоги или ссылки из копии.

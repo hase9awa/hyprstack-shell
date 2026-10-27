@@ -93,34 +93,6 @@ manager first.
 
 </details>
 
-### Without Home Manager
-
-After applying the system in step 3, obtain the sources and run setup as your
-regular user in your current desktop:
-
-```bash
-git clone https://github.com/hase9awa/hyprstack-shell.git
-cd hyprstack-shell
-bash configure.sh --no-services
-```
-
-The script asks for your installed terminal and browser, installs configuration
-and initial colours, and preserves existing configuration in
-`${XDG_CONFIG_HOME:-$HOME/.config}/hyprstack-backup.*`. No backup is created if
-there is no previous configuration. The system module provides the services.
-
-If Hyprland is running, the script prepares setup for later. End your session,
-log into a TTY (**Ctrl+Alt+F3**) and run the single saved command:
-
-```bash
-bash ~/.local/state/hyprstack-setup/apply.sh
-```
-
-Your application choices and XDG paths are preserved automatically.
-For later updates without Home Manager, keep your Lua/JSON preferences, run this
-setup command after updating the system and restore your personal files from
-the printed backup directory.
-
 ## 3. Apply and launch
 
 From your NixOS configuration directory:
@@ -129,6 +101,30 @@ From your NixOS configuration directory:
 sudo nixos-rebuild build --flake .#YOUR_HOST
 ```
 
+### Without Home Manager
+
+In a running Hyprland session, disable automatic reload before copying:
+`hyprctl eval 'hl.config({misc={disable_autoreload=true}})'` for Lua,
+or `hyprctl keyword misc:disable_autoreload true` for `.conf`.
+
+After building, copy configuration from `result` before activating the system:
+
+```bash
+data_dir="$PWD/result/sw/share/hyprstack"
+config_dir=${XDG_CONFIG_HOME:-$HOME/.config}
+mkdir -p "$config_dir"/{hypr,hyprstack}
+cp -rL --no-preserve=mode --backup=numbered "$data_dir/shell/assets/hyprland/config/." "$config_dir/hypr/"
+cp -rL --no-preserve=mode --update=none "$data_dir/defaults/hyprstack/." "$config_dir/hyprstack/"
+cp -L --no-preserve=mode "$data_dir/defaults/hyprstack/hypr-user.lua" "$config_dir/hyprstack/"
+```
+
+Copied preferences stay writable. Existing Lua/JSON preferences in `hyprstack/`
+are preserved, except for the managed `hypr-user.lua` entry.
+[Choose your terminal and browser](CONFIGURATION.md#приложения-по-умолчанию).
+The system module provides the services.
+
+### Activation
+
 If you currently use Hyprland, end the session before activation and run the next
 command in a TTY from the same directory. In another desktop, you can run it immediately:
 
@@ -136,8 +132,7 @@ command in a TTY from the same directory. In another desktop, you can run it imm
 sudo nixos-rebuild switch --flake .#YOUR_HOST
 ```
 
-With Home Manager, user configuration is applied with the system. Without it,
-complete step 2 first. Check your terminal and browser choices, then start a new
+With Home Manager, user configuration is applied with the system. Start a new
 **Hyprland** session through your display manager or `start-hyprland` in a TTY.
 
 Run in a terminal in the new session:

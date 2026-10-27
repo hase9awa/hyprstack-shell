@@ -67,8 +67,8 @@ in settings.
 
 ## Installation
 
-- [Arch Linux / CachyOS / EndeavourOS / Manjaro](INSTALL.en.md#arch) — dependencies,
-  build and first setup with your choice of applications.
+- [Arch Linux / CachyOS / EndeavourOS / Manjaro](INSTALL.en.md#arch) — packages,
+  build and configuration.
 - [NixOS](INSTALL.nixos.en.md) — package and NixOS/Home Manager modules.
 
 Requires **Hyprland 0.56.2**, **Quickshell ≥ 0.3.1**, **Qt ≥ 6.9**.

@@ -65,8 +65,8 @@ Hyprstack — оболочка для Hyprland с прокручиваемым �
 
 ## Установка
 
-- [Arch Linux / CachyOS / EndeavourOS / Manjaro](INSTALL.md#arch) — зависимости,
-  сборка и первоначальная настройка с выбором приложений.
+- [Arch Linux / CachyOS / EndeavourOS / Manjaro](INSTALL.md#arch) — пакеты,
+  сборка и конфигурация.
 - [NixOS](INSTALL.nixos.md) — пакет и модули NixOS/Home Manager.
 
 Требуются **Hyprland 0.56.2**, **Quickshell ≥ 0.3.1**, **Qt ≥ 6.9**.
