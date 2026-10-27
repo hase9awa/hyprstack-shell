@@ -173,6 +173,11 @@ After the configuration is ready, log out of your current desktop and choose
 **Hyprland** in your display manager. Without a display manager, log into a TTY
 and run `start-hyprland`.
 
+Rebooting does not change the selected desktop: logging into KDE, GNOME or Niri
+does not start Hyprstack automatically. The project uses
+`~/.config/hypr/hyprland.lua` (respecting `XDG_CONFIG_HOME`);
+you do not need to create `hyprland.conf` for this installation.
+
 In the new session, **Super+Enter** opens your selected terminal, **Super+W**
 opens the browser and **Super+D** opens the application menu. Run:
 
@@ -185,9 +190,16 @@ Diagnostics should finish without `FAIL`, and `hyprctl configerrors` should
 report no errors. If the panel does not appear:
 
 ```bash
-systemctl --user status hyprstack-session.service
-journalctl --user -u hyprstack-session.service -b
+hyprctl version
+hyprctl configerrors
+systemctl --user status hyprstack-session.service --no-pager
+journalctl --user -u hyprstack-session.service -b --no-pager
 ```
+
+If `hyprctl version` cannot connect to the compositor, check your selected session.
+Run `~/.local/bin/hyprstack-session start` to check the complete startup chain.
+The `hyprstack shell` command starts only the interface and does not verify
+the user service or automatic startup.
 
 ### What starts automatically
 

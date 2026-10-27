@@ -172,6 +172,11 @@ bash ~/.local/state/hyprstack-setup/apply.sh
 и выберите **Hyprland** в менеджере входа. Если менеджера входа нет, войдите
 в TTY и выполните `start-hyprland`.
 
+Перезагрузка сама по себе не переключает рабочий стол: при входе в KDE, GNOME
+или Niri автозапуск Hyprstack не выполняется. Проект использует
+`~/.config/hypr/hyprland.lua` (с учётом `XDG_CONFIG_HOME`);
+создавать `hyprland.conf` для этой установки не нужно.
+
 В новом сеансе **Super+Enter** открывает выбранный терминал, **Super+W** — браузер,
 **Super+D** — меню приложений. Выполните:
 
@@ -184,9 +189,16 @@ hyprctl configerrors
 Если панель не появилась:
 
 ```bash
-systemctl --user status hyprstack-session.service
-journalctl --user -u hyprstack-session.service -b
+hyprctl version
+hyprctl configerrors
+systemctl --user status hyprstack-session.service --no-pager
+journalctl --user -u hyprstack-session.service -b --no-pager
 ```
+
+Если `hyprctl version` не подключается к композитору, проверьте выбранный сеанс.
+Для проверки всей цепочки запуска выполните `~/.local/bin/hyprstack-session start`.
+Команда `hyprstack shell` запускает только интерфейс и сама по себе
+не проверяет пользовательскую службу и автозапуск.
 
 ### Что запускается автоматически
 

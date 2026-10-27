@@ -21,7 +21,12 @@ if command -v systemctl >/dev/null && systemctl --user show-environment >/dev/nu
         done
         systemctl --user import-environment "${defined_vars[@]}"
         if command -v dbus-update-activation-environment >/dev/null; then
-            dbus-update-activation-environment --systemd "${defined_vars[@]}"
+            # The systemd manager already has the session environment. Updating
+            # D-Bus activation is optional and must not prevent the desktop unit
+            # from starting when that separate request fails.
+            if ! dbus-update-activation-environment --systemd "${defined_vars[@]}"; then
+                printf 'hyprstack-session: D-Bus activation environment update failed; continuing with the imported systemd environment.\n' >&2
+            fi
         fi
         systemctl --user daemon-reload
     fi
