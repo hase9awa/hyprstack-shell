@@ -20,26 +20,17 @@ DialogWindow {
     // The portal hands over whole outputs and the windows it can capture; a
     // rectangle is drawn on the screen itself rather than picked from a list.
     property bool showWindows
-    readonly property var entries: {
-        if (root.showWindows)
-            return root.request.windows.map(window => ({
-                        selection: `window:${window.handle}`,
-                        // The class names the application and the title the
-                        // document, which is the order they are read in.
-                        name: window.class || window.title,
-                        detail: window.class ? window.title : "",
-                        icon: Icons.getAppIcon(window.class, "application-x-executable"),
-                        symbol: "web_asset"
-                    }));
-        return Screens.screens.map(screen => ({
-                    selection: `screen:${screen.name}`,
-                    name: screen.name,
-                    detail: `${screen.width}×${screen.height}`,
-                    icon: "",
-                    symbol: "monitor"
-                }));
-    }
-    readonly property string selected: entries[list.currentIndex]?.selection ?? ""
+    readonly property var windows: root.request.windows.map(window => ({
+                selection: `window:${window.handle}`,
+                // The class names the application and the title the document,
+                // which is the order they are read in.
+                name: window.class || window.title,
+                detail: window.class ? window.title : "",
+                icon: Icons.getAppIcon(window.class, "application-x-executable")
+            }))
+    // Each view keeps its own place, so switching between them and back does
+    // not lose what was chosen there.
+    readonly property string selected: root.showWindows ? (root.windows[list.currentIndex]?.selection ?? "") : (map.selectedName ? `screen:${map.selectedName}` : "")
 
     function submit(): void {
         if (!root.selected)
@@ -58,7 +49,8 @@ DialogWindow {
         (screen?.height ?? 720) - 48 * Tokens.scale)
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    onEntriesChanged: if (list.currentIndex >= entries.length) list.currentIndex = entries.length - 1
+    // The screen the pointer is on is the one most likely meant.
+    Component.onCompleted: map.selectedName = (Screens.screens.find(s => s.name === Hypr.focusedMonitor?.name) ?? Screens.screens[0])?.name ?? ""
 
     StyledRect {
         objectName: "sharePickerSurface"
@@ -128,9 +120,11 @@ DialogWindow {
                     text: Tr.trCtx("Screens", "share source")
                     icon: "monitor"
                     activeFocusOnTab: true
+                    // The view that was switched to is the one being used,
+                    // so the keys go back to it.
                     onClicked: {
                         root.showWindows = false;
-                        list.currentIndex = 0;
+                        map.forceActiveFocus();
                     }
                     Keys.onReturnPressed: clicked()
                     Keys.onSpacePressed: clicked()
@@ -148,7 +142,7 @@ DialogWindow {
                     activeFocusOnTab: true
                     onClicked: {
                         root.showWindows = true;
-                        list.currentIndex = 0;
+                        list.forceActiveFocus();
                     }
                     Keys.onReturnPressed: clicked()
                     Keys.onSpacePressed: clicked()
@@ -173,6 +167,30 @@ DialogWindow {
                 }
             }
 
+            ScreenMap {
+                id: map
+
+                objectName: "sharePickerMap"
+                Layout.fillWidth: true
+                // Taken from the width the dialog already has rather than from
+                // its own, which the layout is still deciding.
+                Layout.preferredHeight: Math.min((root.dialogWidth - Tokens.padding.large * 2) * layoutHeight / layoutWidth,
+                    200 * Tokens.scale)
+                visible: !root.showWindows && screens.length > 0
+                focus: !root.showWindows
+                screens: Screens.screens
+
+                Keys.onReturnPressed: root.submit()
+                Keys.onEnterPressed: root.submit()
+                Keys.onEscapePressed: event => {
+                    root.cancel();
+                    event.accepted = true;
+                }
+
+                onPicked: name => map.selectedName = name
+                onActivated: root.submit()
+            }
+
             VerticalFadeListView {
                 id: list
 
@@ -180,11 +198,11 @@ DialogWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.preferredHeight: Math.min(contentHeight, 320 * Tokens.scale)
-                visible: count > 0
+                visible: root.showWindows && count > 0
                 clip: true
-                focus: true
+                focus: root.showWindows
                 spacing: Tokens.spacing.extraSmall
-                model: root.entries
+                model: root.windows
 
                 StyledScrollBar.vertical: StyledScrollBar {
                     flickable: list
@@ -228,14 +246,7 @@ DialogWindow {
                         anchors.rightMargin: Tokens.padding.large
                         spacing: Tokens.spacing.medium
 
-                        MaterialIcon {
-                            visible: !entry.modelData.icon
-                            text: entry.modelData.symbol
-                            color: entry.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurfaceVariant
-                        }
-
                         CachingIconImage {
-                            visible: entry.modelData.icon
                             implicitSize: 24 * Tokens.scale
                             source: entry.modelData.icon
                         }
@@ -271,7 +282,7 @@ DialogWindow {
                 Layout.fillWidth: true
                 Layout.topMargin: Tokens.spacing.medium
                 Layout.bottomMargin: Tokens.spacing.medium
-                visible: list.count === 0
+                visible: root.showWindows ? list.count === 0 : map.screens.length === 0
                 horizontalAlignment: Text.AlignHCenter
                 text: root.showWindows ? Tr.tr("No windows to share") : Tr.tr("No screens to share")
                 color: Colours.palette.m3onSurfaceVariant
