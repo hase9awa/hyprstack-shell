@@ -71,6 +71,7 @@
 !/shell/assets/i18n.py
 !/shell/assets/notification_tools.py
 !/shell/assets/session_runner.py
+!/shell/assets/share_picker.py
 !/shell/assets/theme_manager.py
 !/shell/assets/theme_sync.py
 !/shell/assets/vpn.py

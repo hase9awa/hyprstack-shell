@@ -40,7 +40,7 @@ assert lib.assertMsg (lib.versionAtLeast qt6.qtbase.version "6.9") "Hyprstack re
   '';
 
   postInstall = ''
-    for program in hyprstack hyprstack-shell hyprstack-session hyprstack-session-runner hyprstack-doctor hyprstack-vpn; do
+    for program in hyprstack hyprstack-shell hyprstack-session hyprstack-session-runner hyprstack-doctor hyprstack-vpn hyprstack-share-picker; do
       wrapProgram "$out/bin/$program" \
         --set HYPRSTACK_DATA_DIR "$out/share/hyprstack" \
         --set HYPRSTACK_TITLEBAR_PLUGIN "$out/share/hyprstack/native/hyprstack-bars.so" \

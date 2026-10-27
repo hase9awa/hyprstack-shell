@@ -37,7 +37,10 @@ class Update(Installer):
         yield from self.tree(self.staging / "bin", self.bin)
         yield from self.tree(self.staging / "share", self.data)
         for file in self.tree(ROOT / "shell/assets/hyprland/config", self.config / "hypr"):
-            file.preserve = file.path == self.config / "hypr/scheme/current.lua"
+            # The screen sharing portal reads xdph.conf, which is its own file
+            # rather than ours: it is seeded once and left alone afterwards.
+            file.preserve = file.path in (self.config / "hypr/scheme/current.lua",
+                                          self.config / "hypr/xdph.conf")
             yield file
         for file in self.tree(ROOT / "distribution/defaults/hyprstack", self.config / "hyprstack"):
             file.preserve = file.path.name != "hypr-user.lua"

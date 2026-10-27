@@ -5919,3 +5919,43 @@ msgstr "Копировать"
 msgctxt "button"
 msgid "Save as"
 msgstr "Сохранить как"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Share your screen"
+msgstr "Показ экрана"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Choose what an application may capture"
+msgstr "Выберите, что приложение сможет захватывать"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Screens"
+msgstr "Экраны"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Windows"
+msgstr "Окна"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Region"
+msgstr "Область"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "No windows to share"
+msgstr "Нет окон для показа"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "No screens to share"
+msgstr "Нет экранов для показа"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Let it share this again without asking"
+msgstr "Показывать это впредь без вопроса"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "button"
+msgid "Share"
+msgstr "Показать"

@@ -11,13 +11,32 @@ import qs.services
 Scope {
     id: pickerScope
 
+    // A region to share is a geometry and nothing else, so the picker hands
+    // one over instead of taking a capture of it.
+    signal regionPicked(output: string, region: rect)
+    signal regionAbandoned
+
     function openPicker(frozen: bool, clipboardOnly: bool): void {
         if (root.active || clipboardCopy.running)
             return;
         root.freeze = frozen;
         root.closing = false;
         root.clipboardOnly = clipboardOnly;
+        root.regionOnly = false;
         root.activeAsync = true;
+    }
+
+    function pickRegion(): bool {
+        // A picker already busy with a screenshot keeps it: the caller is
+        // told so rather than left waiting for a region.
+        if (root.active || clipboardCopy.running)
+            return false;
+        root.freeze = false;
+        root.closing = false;
+        root.clipboardOnly = false;
+        root.regionOnly = true;
+        root.activeAsync = true;
+        return true;
     }
 
     // This process outlives the picker windows and finishes copying before
@@ -70,12 +89,30 @@ Scope {
         property bool freeze
         property bool closing
         property bool clipboardOnly
+        property bool regionOnly
+        property bool regionReported
+
+        function completeRegion(output: string, region: rect): void {
+            regionReported = true;
+            pickerScope.regionPicked(output, region);
+        }
 
         function completeCapture(path: string): void {
             clipboardCopy.imagePath = path;
             clipboardCopy.clipboardOnly = clipboardOnly;
             clipboardCopy.command = ["python3", Notifs.imageHelper, "action", "copy", path, path];
             clipboardCopy.running = true;
+        }
+
+        // Whoever asked for a region is waiting for an answer, so a picker
+        // dismissed without one says so rather than leaving it waiting.
+        onActiveChanged: {
+            if (active || !regionOnly)
+                return;
+            regionOnly = false;
+            if (!regionReported)
+                pickerScope.regionAbandoned();
+            regionReported = false;
         }
 
         Variants {

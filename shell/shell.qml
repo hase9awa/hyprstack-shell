@@ -14,6 +14,7 @@ import "modules/switcher" as SwitcherModule
 import "modules/askpass" as AskpassModule
 import "modules/polkit" as PolkitModule
 import "modules/portals" as PortalsModule
+import "modules/sharepicker" as SharePickerModule
 import QtQuick
 import Quickshell
 import Hyprstack
@@ -36,11 +37,16 @@ ShellRoot {
     ServiceLoader {}
     PolkitModule.Polkit {}
     AskpassModule.Askpass {}
+    SharePickerModule.SharePicker {
+        areaPicker: areaPicker
+    }
     PortalsModule.Portals {}
 
     Background {}
     Drawers {}
-    AreaPicker {}
+    AreaPicker {
+        id: areaPicker
+    }
     Lock {
         id: lock
     }

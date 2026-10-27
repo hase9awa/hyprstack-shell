@@ -4764,3 +4764,43 @@ msgstr ""
 msgctxt "button"
 msgid "Save as"
 msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Share your screen"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Choose what an application may capture"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Screens"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Windows"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Region"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "No windows to share"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "No screens to share"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Let it share this again without asking"
+msgstr ""
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "button"
+msgid "Share"
+msgstr ""

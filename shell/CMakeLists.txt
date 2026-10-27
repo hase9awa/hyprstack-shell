@@ -86,7 +86,7 @@ if("shell" IN_LIST ENABLE_MODULES)
         assets/logo.svg assets/bongocat.gif assets/kurukuru.gif assets/dino.png
         assets/emoji.json
         DESTINATION "${INSTALL_QSCONFDIR}/assets")
-    install(PROGRAMS assets/wrap_term_launch.sh assets/askpass.py DESTINATION "${INSTALL_QSCONFDIR}/assets")
+    install(PROGRAMS assets/wrap_term_launch.sh assets/askpass.py assets/share_picker.py DESTINATION "${INSTALL_QSCONFDIR}/assets")
 
     file(READ shell.qml SHELL_QML)
     string(REPLACE "settings.watchFiles: true" "settings.watchFiles: false" SHELL_QML "${SHELL_QML}")
