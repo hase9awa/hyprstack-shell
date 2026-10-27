@@ -50,8 +50,8 @@ DialogWindow {
     }
 
     name: "screenshot"
-    implicitWidth: viewWidth + Tokens.padding.large * 2
-    implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
+    dialogWidth: viewWidth + Tokens.padding.large * 2
+    dialogHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 96 * Tokens.scale)
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 

@@ -88,8 +88,8 @@ DialogWindow {
 
     name: "appchooser"
     visible: !request.answered
-    implicitWidth: Math.min(440 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
-    implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
+    dialogWidth: Math.min(440 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
+    dialogHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 48 * Tokens.scale)
     WlrLayershell.keyboardFocus: visible && request.modal ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 

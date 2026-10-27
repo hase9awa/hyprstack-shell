@@ -7,57 +7,69 @@ import Hyprstack.Config
 // A dialog the shell puts up on its own: it floats above everything, starts
 // in the middle of the screen and can be dragged anywhere from there.
 //
-// The compositor cannot move a layer surface the way it moves an ordinary
-// window, so the dialog moves itself. The area doing it sits underneath
-// whatever the dialog puts inside, which means a press lands on a button
-// when there is one and starts a drag when there is not.
+// The compositor does not move a layer surface the way it moves an ordinary
+// window, and moving one from here means feeding its new position back
+// through pointer coordinates that moved with it, which shakes. So the
+// surface covers the screen and stays put, and the dialog is an item inside
+// it that drags like any other. Input is masked to the dialog, so a press
+// anywhere else reaches whatever is underneath.
 StyledWindow {
     id: root
 
-    readonly property real centredX: Math.max(0, ((screen?.width ?? 0) - width) / 2)
-    readonly property real centredY: Math.max(0, ((screen?.height ?? 0) - height) / 2)
-    // Where the dialog has been dragged to, or less than zero while it has
-    // not been dragged and belongs in the middle.
-    property real placedX: -1
-    property real placedY: -1
+    // The dialog's own size. The window no longer carries it, since the
+    // window is the whole screen.
+    property real dialogWidth
+    property real dialogHeight
+    default property alias contents: frame.data
 
     Config.screen: screen?.name ?? ""
     Tokens.screen: screen?.name ?? ""
 
+    color: "transparent"
     anchors.top: true
+    anchors.bottom: true
     anchors.left: true
-    // qmllint disable unqualified unresolved-type
-    margins.left: placedX < 0 ? centredX : placedX
-    margins.top: placedY < 0 ? centredY : placedY
-    // qmllint enable unqualified unresolved-type
+    anchors.right: true
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
 
-    MouseArea {
-        id: drag
+    mask: Region {
+        x: frame.x
+        y: frame.y
+        width: frame.width
+        height: frame.height
+    }
 
-        property real grabX
-        property real grabY
+    Item {
+        id: frame
 
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton
-        cursorShape: pressed ? Qt.ClosedHandCursor : Qt.ArrowCursor
+        // Centred until it is dragged, which replaces these outright.
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        width: root.dialogWidth
+        height: root.dialogHeight
 
-        onPressed: event => {
-            grabX = event.x;
-            grabY = event.y;
-        }
+        // Underneath whatever the dialog holds, so a press lands on a
+        // button when there is one and starts a drag when there is not.
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+            cursorShape: pressed ? Qt.ClosedHandCursor : Qt.ArrowCursor
 
-        onPositionChanged: event => {
-            if (!pressed)
-                return;
-            // Keeping it on the screen matters more here than anywhere
-            // else: a layer surface has no title bar to grab it back by.
-            root.placedX = CUtils.clamp(root.margins.left + event.x - grabX, 0, // qmllint disable unresolved-type
-                Math.max(0, (root.screen?.width ?? 0) - root.width));
-            root.placedY = CUtils.clamp(root.margins.top + event.y - grabY, 0, // qmllint disable unresolved-type
-                Math.max(0, (root.screen?.height ?? 0) - root.height));
+            drag.target: frame
+            drag.axis: Drag.XAndYAxis
+            drag.threshold: 0
+
+            // Held on screen here rather than through the drag's own limits:
+            // those clamp the moment they are set, which would throw the
+            // dialog into a corner before it has been touched.
+            onPositionChanged: {
+                if (!drag.active)
+                    return;
+                frame.x = CUtils.clamp(frame.x, 0, Math.max(0, root.width - frame.width));
+                frame.y = CUtils.clamp(frame.y, 0, Math.max(0, root.height - frame.height));
+            }
         }
     }
 }
