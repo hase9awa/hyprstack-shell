@@ -38,6 +38,7 @@ local overview_active = false
 local overview_watchdog
 local tiling_preferences = read(config_dir .. "/tiling.json")
 tiling_preferences.focusOnHover = tiling_preferences.focusOnHover ~= false
+tiling_preferences.edgeScroll = tiling_preferences.edgeScroll ~= false
 local theme_palette = {}
 local border_color_roles = { primary = true, secondary = true, tertiary = true,
     error = true, success = true, onSurface = true, outline = true }
@@ -72,6 +73,7 @@ if tiled_focus == nil or preferences.mode == "scrolling" then
         focus_on_activate = hl.get_config("misc.focus_on_activate") }
 end
 if tiled_focus.focus_on_activate == nil then tiled_focus.focus_on_activate = hl.get_config("misc.focus_on_activate") end
+if tiled_focus.follow_min_visible == nil then tiled_focus.follow_min_visible = hl.get_config("scrolling.follow_min_visible") end
 local last_rounding, last_border, last_tiling_gaps
 local last_gaps_in, last_gaps_out
 local touching_tiles_rule
@@ -720,7 +722,11 @@ local function pointer_focus()
     hl.config({ input = { follow_mouse = hover and 1 or 2,
         float_switch_override_focus = hover and tiled_focus.float_switch_override_focus or 0 },
         misc = { mouse_move_focuses_monitor = hover and tiled_focus.mouse_move_focuses_monitor or false,
-            focus_on_activate = scrolling and tiled_focus.focus_on_activate or false } })
+            focus_on_activate = scrolling and tiled_focus.focus_on_activate or false },
+        -- Soft pointer focus may select an exposed tile without moving the
+        -- tape. Native click and keyboard focus still bring it fully into view.
+        scrolling = { follow_min_visible = tiling_preferences.edgeScroll == false and 1
+            or tiled_focus.follow_min_visible } })
     if hl.plugin.hyprbars and hl.plugin.hyprbars.tiling_hover then
         hl.plugin.hyprbars.tiling_hover("focus_on_hover", tiling_preferences.focusOnHover == true)
     end
@@ -745,6 +751,7 @@ function layouts.tiling(options)
     end
     if appearance_changed then appearance() end
     if options.focusOnHover ~= nil then tiling_preferences.focusOnHover = options.focusOnHover == true end
+    if options.edgeScroll ~= nil then tiling_preferences.edgeScroll = options.edgeScroll ~= false end
     pointer_focus()
     if options.gaps ~= nil then tiling_preferences.gaps = options.gaps ~= false end
     if options.gapsIn ~= nil then

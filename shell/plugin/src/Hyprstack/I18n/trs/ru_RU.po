@@ -3089,6 +3089,14 @@ msgid "When disabled, hover a partly hidden window or the screen edge, then clic
 msgstr "Если выключено, наведите указатель на частично скрытое окно или край экрана, затем нажмите стрелку для переключения."
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Scroll columns at screen edges on hover"
+msgstr "Листать окна при наведении на край экрана"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Disable to keep hover focus without moving the tape. Click a window or use shortcuts to reveal it."
+msgstr "Выключите, чтобы сохранить фокус по наведению без прокрутки ленты. Для показа скрытого окна нажмите на него или используйте сочетания клавиш."
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Middle-click autoscroll"
 msgstr "Прокрутка средней кнопкой мыши"
 

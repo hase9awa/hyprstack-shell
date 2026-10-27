@@ -8,9 +8,12 @@
 !/README.en.md
 !/INSTALL.md
 !/INSTALL.en.md
+!/INSTALL.nixos.md
+!/INSTALL.nixos.en.md
 !/CONFIGURATION.md
 !/MAINTENANCE.md
 !/update.sh
+!/configure.sh
 !/THIRD_PARTY.md
 !/flake.nix
 !/flake.lock
@@ -24,6 +27,7 @@
 /distribution/*
 !/distribution/bin/
 !/distribution/check_headers.py
+!/distribution/configure.py
 !/distribution/update.py
 !/distribution/update_transaction.py
 !/distribution/defaults/

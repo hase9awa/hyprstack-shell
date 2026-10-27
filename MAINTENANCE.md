@@ -57,8 +57,8 @@ sudo nixos-rebuild switch --flake .#YOUR_HOST
 `home-manager switch --flake .#YOUR_USER`. `update.sh` на NixOS не используется.
 
 Без Home Manager обновите пользовательскую конфигурацию по
-[инструкции](INSTALL.md#config), затем верните личные Lua/JSON-файлы из копии.
-Сборку CMake и копирование службы пропустите.
+[отдельной инструкции NixOS](INSTALL.nixos.md#без-home-manager), затем верните
+личные Lua/JSON-файлы из копии. Сборка CMake и копирование служб не нужны.
 
 ## Диагностика
 
@@ -68,6 +68,10 @@ hyprctl configerrors
 hyprstack-doctor --json
 journalctl --user -u hyprstack-session.service -b
 ```
+
+`hyprstack-session.service` должна работать внутри сеанса Hyprland; её запускает
+его конфигурация. `hyprstack-vpn.service` работает только при подключённом VPN.
+Включать эти службы через `systemctl --user enable` не нужно.
 
 Для запуска оболочки с выводом ошибок в терминал:
 
@@ -100,11 +104,15 @@ hyprstack-shell
 
 Без Home Manager завершите Hyprland и перейдите в TTY:
 
-1. Найдите `hyprstack-backup.*`, выведенный при установке.
+1. Найдите копию `hyprstack-backup.*`, путь которой выведен при установке.
+   Новый `configure.sh` сохраняет её в `${XDG_CONFIG_HOME:-$HOME/.config}`;
+   при старой ручной установке копия могла находиться в домашнем каталоге.
+   Если прежних конфигов не было, копия не создавалась и восстанавливать их не нужно.
 2. Перенесите нынешние `hypr` и `hyprstack` из `${XDG_CONFIG_HOME:-$HOME/.config}`
    в отдельный каталог и верните туда прежние каталоги или ссылки из копии.
-3. Верните сохранённые `hyprstack-session.service` и `hyprstack-vpn.service`
-   в `systemd/user/`. Если прежних служб не было, удалите установленные службы
+3. Верните сохранённые `systemd/user/hyprstack-session.service` и
+   `systemd/user/hyprstack-vpn.service` в `systemd/user/`. В старых копиях они
+   могли лежать в корне каталога копии. Если прежних служб не было, удалите установленные службы
    Hyprstack.
 4. При наличии пользовательского systemd выполните `systemctl --user daemon-reload`
    и войдите в прежнее окружение.

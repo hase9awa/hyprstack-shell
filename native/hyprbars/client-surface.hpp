@@ -10,11 +10,13 @@
 #include <hyprland/src/desktop/view/Window.hpp>
 #include <hyprland/src/desktop/view/WLSurface.hpp>
 #include <hyprland/src/desktop/view/Popup.hpp>
+#include <hyprland/src/desktop/view/Subsurface.hpp>
 #include <hyprland/src/desktop/state/ViewHitTester.hpp>
 #include <hyprland/src/managers/SeatManager.hpp>
 #include <hyprland/src/managers/input/InputManager.hpp>
 #include <hyprland/src/protocols/XDGShell.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
+#include <hyprland/src/protocols/core/Subcompositor.hpp>
 #include <hyprland/src/xwayland/XSurface.hpp>
 #include "globals.hpp"
 #include <algorithm>
@@ -28,6 +30,8 @@ static CFunctionHook* clientStateHook = nullptr;
 static CFunctionHook* clientTextureBoxHook = nullptr;
 static CFunctionHook* clientMinSizeHook = nullptr;
 static CFunctionHook* clientMaxSizeHook = nullptr;
+static CFunctionHook* clientDamageHook = nullptr;
+static CFunctionHook* clientSubsurfacePositionHook = nullptr;
 
 // xdg_toplevel size limits already use window-geometry coordinates. Adding
 // geometry.pos() (the client's shadow offset) makes fixed-size Qt windows
@@ -45,6 +49,60 @@ static CBox clientGeometry(PHLWINDOW window, SP<CWLSurfaceResource> surface) {
     // xdg_surface.set_window_geometry is optional. Its default is the whole
     // surface; an unset rectangle must not disable fitting a delayed buffer.
     return geometry.w > 0 && geometry.h > 0 ? geometry : CBox{{}, surface->m_current.size};
+}
+
+using ClientDamageFunction = CRegion (*)(const Desktop::View::CWLSurface*);
+static CRegion clientSurfaceDamage(const Desktop::View::CWLSurface* wlSurface) {
+    const auto original = reinterpret_cast<ClientDamageFunction>(clientDamageHook->m_original);
+    const auto window = Desktop::View::CWindow::fromView(wlSurface->view());
+    const auto surface = wlSurface->resource();
+    if (!window || !surface || window->m_isX11 || !window->m_xdgSurface || !surface->m_current.texture)
+        return original(wlSurface);
+    auto& state = surface->m_current;
+    const auto geometry = clientGeometry(window, surface);
+    const auto target = window->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT);
+    if (state.size.x <= 0 || state.size.y <= 0 || state.bufferSize.x <= 0 || state.bufferSize.y <= 0 ||
+        geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0 || target.x <= 0 || target.y <= 0)
+        return original(wlSurface);
+    const bool fitted = !window->m_isFloating && !g_pGlobalState->config.enabled->value() && geometry.size() != target;
+    if (geometry.pos() == Vector2D{} && geometry.size() == state.size && !fitted && !window->sizeAnimation()->isBeingAnimated())
+        return original(wlSurface);
+
+    // Invert the same UV crop used by clientSurfaceUV. Translating an already
+    // clipped computeDamage() loses the right/bottom strips; leaving it alone
+    // misses the left/top strips on every partial video frame with CSD margins.
+    const auto crop = geometry.intersection(CBox{{}, state.size});
+    const auto source = state.viewport.hasSource ? state.viewport.source : CBox{{}, state.bufferSize};
+    if (crop.empty() || source.empty()) return original(wlSurface);
+    auto damage = state.accumulateBufferDamage();
+    damage.transform(Math::wlTransformToHyprutils(state.transform), state.bufferSize.x, state.bufferSize.y);
+    damage.intersect(source).translate(-source.pos()).scale(state.size / source.size());
+    damage.intersect(crop).translate(-crop.pos()).scale(target / crop.size());
+    // Outward rounding covers bilinear samples at fractional output scales.
+    return damage.expand(1).intersect(CBox{{}, target});
+}
+
+using SubsurfacePositionFunction = Vector2D (*)(const Desktop::View::CSubsurface*);
+static Vector2D clientSubsurfacePosition(const Desktop::View::CSubsurface* subsurface) {
+    const auto position = reinterpret_cast<SubsurfacePositionFunction>(clientSubsurfacePositionHook->m_original)(subsurface);
+    const auto surface = subsurface->resource();
+    const auto role = surface ? dynamicPointerCast<CSubsurfaceRole>(surface->m_role) : nullptr;
+    const auto resource = role ? role->m_subsurface.lock() : nullptr;
+    const auto parent = resource ? resource->t1Parent() : nullptr;
+    const auto owner = Desktop::View::CWLSurface::fromResource(parent);
+    const auto window = owner ? Desktop::View::CWindow::fromView(owner->view()) : nullptr;
+    if (!window || window->m_isX11 || !window->m_xdgSurface) return position;
+    const auto geometry = clientGeometry(window, parent);
+    if (geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0) return position;
+    // Video subsurfaces must publish damage and old/new bounds at the same
+    // cropped origin used by clientSurfacePass, including nested subsurfaces.
+    auto local = position - window->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT) - geometry.pos();
+    if (window->sizeAnimation()->isBeingAnimated()) {
+        const auto reported = window->getReportedSize();
+        if (reported.x > 0 && reported.y > 0)
+            local = local * (window->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT) / reported);
+    }
+    return window->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT) + local;
 }
 
 using PointerMotionFunction = void (*)(CSeatManager*, uint32_t, const Vector2D&);
@@ -190,6 +248,10 @@ static void clientSurfaceUV(Render::IElementRenderer* renderer, PHLWINDOW window
 }
 
 static void removeClientSurfacePolicy(HANDLE handle) {
+    if (clientSubsurfacePositionHook) HyprlandAPI::removeFunctionHook(handle, clientSubsurfacePositionHook);
+    clientSubsurfacePositionHook = nullptr;
+    if (clientDamageHook) HyprlandAPI::removeFunctionHook(handle, clientDamageHook);
+    clientDamageHook = nullptr;
     if (clientPointerMotionHook) HyprlandAPI::removeFunctionHook(handle, clientPointerMotionHook);
     clientPointerMotionHook = nullptr;
     if (clientMaxSizeHook) HyprlandAPI::removeFunctionHook(handle, clientMaxSizeHook);
@@ -223,6 +285,8 @@ static void installClientSurfacePolicy(HANDLE handle) {
         return hook;
     };
     try {
+        clientDamageHook = install("computeDamage", "Desktop::View::CWLSurface::computeDamage(", reinterpret_cast<void*>(&clientSurfaceDamage));
+        clientSubsurfacePositionHook = install("coordsGlobal", "Desktop::View::CSubsurface::coordsGlobal(", reinterpret_cast<void*>(&clientSubsurfacePosition));
         clientMinSizeHook = install("layoutMinSize", "CXDGToplevelResource::layoutMinSize(", reinterpret_cast<void*>(&clientMinSize));
         clientMaxSizeHook = install("layoutMaxSize", "CXDGToplevelResource::layoutMaxSize(", reinterpret_cast<void*>(&clientMaxSize));
         clientTextureBoxHook = install("getTexBox", "CSurfacePassElement::getTexBox(", reinterpret_cast<void*>(&clientTextureBox));

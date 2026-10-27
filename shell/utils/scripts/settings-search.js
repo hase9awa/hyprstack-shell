@@ -122,6 +122,18 @@ var catalogue = [
     "path": [
       "Wallpaper & style"
     ],
+    "label": "Scroll columns at screen edges on hover",
+    "context": "",
+    "target": "appearanceTilingEdgeScroll",
+    "match": "Scroll columns at screen edges on hover",
+    "keywords": "Disable to keep hover focus without moving the tape. Click a window or use shortcuts to reveal it. прокрутка край экрана наведение лента"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
     "label": "Middle-click autoscroll",
     "context": "",
     "target": "appearanceAutoscroll",

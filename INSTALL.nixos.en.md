@@ -1,0 +1,159 @@
+[Русский](INSTALL.nixos.md) · [Home](README.en.md) · [Arch Linux installation](INSTALL.en.md)
+
+# Installing Hyprstack on NixOS
+
+Requires a NixOS configuration using flakes. Hyprstack uses matching
+**Hyprland 0.56.2**, **Quickshell ≥ 0.3.1** and **Qt ≥ 6.9** from the project's
+inputs. No manual CMake build or copying user service files is needed.
+
+Prepare your configuration in your current desktop while this guide is available.
+Shell commands below assume **Bash**: run `bash` first if you use Fish or Zsh.
+Merge the flake entries into your existing configuration, keeping other inputs
+and modules.
+
+## 1. System module
+
+Add the `hyprstack` input and module. Replace `YOUR_HOST` with your configuration name:
+
+```nix
+{
+  inputs.hyprstack.url = "github:hase9awa/hyprstack-shell";
+
+  outputs = { nixpkgs, hyprstack, ... }: {
+    nixosConfigurations.YOUR_HOST = nixpkgs.lib.nixosSystem {
+      modules = [
+        ./configuration.nix
+        hyprstack.nixosModules.default
+        { programs.hyprstack.enable = true; }
+      ];
+    };
+  };
+}
+```
+
+The module provides Hyprland, Quickshell, Qt, PAM and the Hyprstack services.
+Do not override `programs.hyprland.package` with another package: the native
+extension must match the compositor's ABI.
+
+The network panel uses NetworkManager, and audio uses PipeWire/WirePlumber.
+If they are not configured yet, add to your system module:
+
+```nix
+{
+  networking.networkmanager.enable = true;
+  services.pipewire = {
+    enable = true;
+    pulse.enable = true;
+    wireplumber.enable = true;
+  };
+}
+```
+
+When switching from another network manager or audio server, reconcile their
+existing configuration. Do not configure two managers for the same interface.
+
+Install your preferred terminal, browser and file manager separately.
+The default configuration launches Kitty and Firefox; to use them, add
+`pkgs.kitty` and `pkgs.firefox` to your system `environment.systemPackages` or
+user `home.packages`. For other applications, edit `hyprstack/hypr-vars.lua`
+and `general.apps.terminal` in `shell.json` before the first login, as described
+in [application settings (Russian)](CONFIGURATION.md#приложения-по-умолчанию).
+
+## 2. User configuration
+
+### With Home Manager
+
+If Home Manager is already integrated into NixOS, add this to the same
+`modules` list, replacing `YOUR_USER` with your username:
+
+```nix
+{
+  home-manager.users.YOUR_USER = {
+    imports = [ hyprstack.homeManagerModules.default ];
+    programs.hyprstack.enable = true;
+  };
+}
+```
+
+Both modules must use the same `hyprstack` input. Home Manager manages the
+standard Hyprland configuration, while interface preferences and user Lua files
+remain editable. You can also supply custom Lua using
+[`programs.hyprstack.extraConfig`](CONFIGURATION.md#экраны-и-клавиатура).
+
+<details>
+<summary>If you already have Hyprland or Hyprstack configuration</summary>
+
+To preserve conflicting files during first activation, you can set
+[`home-manager.backupFileExtension`](https://nix-community.github.io/home-manager/usage/dotfiles.html)
+to `"before-hyprstack"` in your NixOS module.
+Home Manager appends this suffix to the saved files. If a backup with that name
+already exists, move it elsewhere first. A clean installation does not need this.
+If another dotfiles manager controls your configuration, remove it from that
+manager first.
+
+</details>
+
+### Without Home Manager
+
+After applying the system in step 3, obtain the sources and run setup as your
+regular user in your current desktop:
+
+```bash
+git clone https://github.com/hase9awa/hyprstack-shell.git
+cd hyprstack-shell
+bash configure.sh --no-services
+```
+
+The script asks for your installed terminal and browser, installs configuration
+and initial colours, and preserves existing configuration in
+`${XDG_CONFIG_HOME:-$HOME/.config}/hyprstack-backup.*`. No backup is created if
+there is no previous configuration. The system module provides the services.
+
+If Hyprland is running, the script prepares setup for later. End your session,
+log into a TTY (**Ctrl+Alt+F3**) and run the single saved command:
+
+```bash
+bash ~/.local/state/hyprstack-setup/apply.sh
+```
+
+Your application choices and XDG paths are preserved automatically.
+For later updates without Home Manager, keep your Lua/JSON preferences, run this
+setup command after updating the system and restore your personal files from
+the printed backup directory.
+
+## 3. Apply and launch
+
+From your NixOS configuration directory:
+
+```bash
+sudo nixos-rebuild build --flake .#YOUR_HOST
+```
+
+If you currently use Hyprland, end the session before activation and run the next
+command in a TTY from the same directory. In another desktop, you can run it immediately:
+
+```bash
+sudo nixos-rebuild switch --flake .#YOUR_HOST
+```
+
+With Home Manager, user configuration is applied with the system. Without it,
+complete step 2 first. Check your terminal and browser choices, then start a new
+**Hyprland** session through your display manager or `start-hyprland` in a TTY.
+
+Run in a terminal in the new session:
+
+```bash
+hyprstack-doctor
+hyprctl configerrors
+wpctl status
+nmcli general status
+```
+
+The Hyprland configuration starts `hyprstack-session.service`; do not enable it
+manually. The VPN connect button starts `hyprstack-vpn.service`, which stays
+inactive when VPN is off. The panel, notifications, lock screen and Polkit agent
+are part of the Hyprstack session. Disable any separately configured autostart
+of previous equivalents in Hyprland.
+
+[Configuration and shortcuts (Russian)](CONFIGURATION.md) ·
+[Updates and recovery (Russian)](MAINTENANCE.md#nixos-и-home-manager)

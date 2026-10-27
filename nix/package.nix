@@ -1,14 +1,14 @@
 { lib, stdenv, cmake, ninja, pkg-config, gettext, makeWrapper, qt6
 , hyprland, quickshell, python3, libqalculate, lm_sensors, pixman, libdrm
 , libinput, systemd, wayland, libxkbcommon, pango, cairo, nlohmann_json
-, kitty, firefox, fuzzel, btop, pavucontrol, wl-clipboard, cliphist
+, fuzzel, btop, pavucontrol, wl-clipboard, cliphist
 , grim, slurp, wf-recorder, swappy, libnotify, brightnessctl, networkmanager
 , pipewire, wireplumber, polkit, hyprlock, hyprpicker, xdg-utils, xdg-user-dirs
 , libxml2, adwaita-icon-theme, xkeyboard_config, src
 }:
 let
   python = python3.withPackages (packages: [ packages.pillow ]);
-  runtime = [ quickshell hyprland python kitty firefox fuzzel btop pavucontrol
+  runtime = [ quickshell hyprland python fuzzel btop pavucontrol
     wl-clipboard cliphist grim slurp wf-recorder swappy libnotify brightnessctl
     networkmanager pipewire wireplumber polkit hyprlock hyprpicker xdg-utils
     xdg-user-dirs libxml2 systemd libqalculate ];

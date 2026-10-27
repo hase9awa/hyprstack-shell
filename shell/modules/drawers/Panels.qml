@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Hyprstack.Config
 import qs.components
+import qs.services
 import qs.modules.bar as Bar
 import qs.modules.dashboard as Dashboard
 import qs.modules.launcher as Launcher
@@ -35,6 +36,13 @@ Item {
     readonly property alias sidebar: sidebar
     readonly property real sidebarTop: bar.atBottom ? 0
         : notifications.y + notifications.height - notifications.anchors.topMargin
+
+    function overlaps(a: Item, b: Item): bool {
+        return a !== b && a.visible && b.visible && a.width > 0 && a.height > 0
+            && b.width > 0 && b.height > 0
+            && a.x < b.x + b.width && b.x < a.x + a.width
+            && a.y < b.y + b.height && b.y < a.y + a.height;
+    }
 
     anchors.fill: parent
     anchors.margins: borderThickness
@@ -101,6 +109,7 @@ Item {
 
     Launcher.Wrapper {
         id: launcher
+        z: 2
 
         screen: root.screen
         screenState: root.screenState
@@ -112,6 +121,7 @@ Item {
 
     Dashboard.Wrapper {
         id: dashboard
+        z: 2
 
         screenState: root.screenState
         atBottom: !root.bar.atBottom
@@ -121,6 +131,7 @@ Item {
 
     BarPopouts.ClipWrapper {
         id: popoutsWrapper
+        z: 3
 
         screen: root.screen
         borderThickness: root.borderThickness
@@ -178,5 +189,28 @@ Item {
                 sidebar.height: Math.max(0, root.height - root.sidebarTop - utilities.height)
             }
         }
+    }
+
+    // The joined SDF backgrounds are below all panel contents. A raised hover
+    // panel also needs a backing surface where it covers notification text;
+    // changing z alone would still let that text show through the shared fill.
+    HoverSurface { panel: popoutsWrapper.content; bounds: popoutsWrapper }
+    HoverSurface { panel: dashboard; bounds: dashboard }
+    HoverSurface { panel: launcher; bounds: launcher }
+    HoverSurface { panel: utilities; bounds: utilities; visible: !utilities.followSidebar && occluding }
+
+    component HoverSurface: StyledRect {
+        required property Item panel
+        required property Item bounds
+        readonly property bool occluding: [notifications, sidebar, utilities, dashboard, launcher]
+            .some(other => bounds.z > other.z && root.overlaps(bounds, other))
+
+        parent: panel
+        anchors.fill: parent
+        z: -1
+        visible: occluding
+        // Text from a lower panel must not bleed through translucent themes.
+        color: Colours.palette.m3surface
+        radius: Tokens.rounding.extraLarge
     }
 }

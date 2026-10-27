@@ -1,45 +1,77 @@
-[Русский](INSTALL.md) · [Home](README.en.md)
+[Русский](INSTALL.md) · [Home](README.en.md) · [NixOS installation](INSTALL.nixos.en.md)
 
-# Installation
+# Installing Hyprstack on Arch Linux and derivatives
 
-[Arch Linux and derivatives](#arch) · [NixOS](#nixos)
+<a id="arch"></a>
+
+For Arch Linux, CachyOS, EndeavourOS and Manjaro with systemd.
+Hyprstack installs the shell and Hyprland configuration for your user.
+Choose your own terminal, browser and file manager.
+
+Run the installation in your current desktop's terminal, keeping this guide open
+in your browser. Log out after configuration, before starting Hyprstack.
+If Hyprland is already running, the setup script prepares a separate command
+to apply the configuration after logout; see step 4.
+
+**All commands in this guide assume Bash.** If you use Fish, Zsh or another shell,
+start Bash in your current terminal first:
+
+```sh
+bash
+```
+
+Your login shell stays the same. Run commands **without `sudo`**, except package
+installation and enabling the system network service.
+
+## 1. Dependencies
 
 Requires **Hyprland 0.56.2**, **Quickshell ≥ 0.3.1** with Hyprland, PAM and
 Polkit modules, and **Qt ≥ 6.9**. Build requirements: C++23, CMake ≥ 3.22,
 Python ≥ 3.10. Hyprland headers must match the installed compositor's ABI.
-
-<a id="arch"></a>
-
-## Arch Linux / CachyOS / EndeavourOS / Manjaro
-
-### 1. Dependencies
-
-Check repository versions. Continue only if Hyprland **0.56.2** is available
-and the requirements above are met:
+Check the repository versions:
 
 ```bash
 pacman -Si hyprland quickshell qt6-base
 ```
+
+Continue only if Hyprland **0.56.2** is available and the requirements above
+are met. If your distribution branch provides other versions, prepare a
+compatible package set first. Do not bypass the ABI check.
+
+Update the system and install build and desktop feature dependencies:
 
 ```bash
 sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   hyprland quickshell nlohmann-json qt6-base qt6-declarative qt6-shadertools \
   qt6-svg qt6-imageformats qt6-wayland qt5ct qt6ct libqalculate lm_sensors \
   pixman libdrm libinput systemd-libs wayland libxkbcommon pango cairo \
-  python python-pillow kitty firefox fuzzel btop pavucontrol \
-  wl-clipboard cliphist grim slurp wf-recorder swappy libnotify \
-  brightnessctl networkmanager pipewire pipewire-pulse wireplumber \
-  polkit libcap hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \
-  glib2 gsettings-desktop-schemas xdg-desktop-portal-gtk
+  python python-pillow fuzzel wl-clipboard cliphist grim slurp wf-recorder \
+  swappy libnotify brightnessctl networkmanager pipewire pipewire-audio \
+  pipewire-pulse wireplumber polkit libcap hyprlock hyprpicker xdg-utils \
+  xdg-user-dirs libxml2 adwaita-icon-theme dbus glib2 gsettings-desktop-schemas \
+  xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
 ```
 
-To update colours in running Dolphin and other KDE applications, use
-[qt6ct-kde](https://aur.archlinux.org/packages/qt6ct-kde) in place of `qt6ct`.
-Plain `qt6ct` applies the KDE colour scheme when the application is reopened.
+`fuzzel` provides emoji and clipboard selection, `grim`/`slurp`/`swappy` handle
+screenshots, and `wf-recorder` records the screen. `qt5ct`/`qt6ct` and desktop
+portals provide application appearance and desktop integration.
+To change colours in running KDE applications, you can use
+[qt6ct-kde](https://aur.archlinux.org/packages/qt6ct-kde) instead of `qt6ct`.
 
-### 2. Build
+**Install personal applications separately, according to your preferences.**
+Use your existing terminal and browser if they are already installed.
+For example, to install Foot and Chromium:
 
-Run without `sudo`:
+```bash
+sudo pacman -S --needed foot chromium
+```
+
+Kitty and Firefox also work, but Hyprstack does not require them.
+The file manager uses your system's `xdg-open` association.
+`pavucontrol` is only needed for **Ctrl+Alt+V**, and `btop` for
+**Ctrl+Shift+Escape**; install them if you want those actions.
+
+## 2. Build
 
 ```bash
 git clone https://github.com/hase9awa/hyprstack-shell.git
@@ -50,155 +82,146 @@ cmake -S . -B build -G Ninja \
   -DCMAKE_INSTALL_DATADIR="${XDG_DATA_HOME:-$HOME/.local/share}"
 cmake --build build --parallel 2
 cmake --install build
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Use `--parallel 1` instead of `--parallel 2` if memory is limited.
+Use `--parallel 1` if memory is limited. Programs go into `~/.local/bin`,
+and data into your user's XDG data directory.
+
+Add `~/.local/bin` to your login profile's `PATH` if it is not there already:
+
+| Login shell | Setting |
+| --- | --- |
+| Bash | Add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bash_profile` |
+| Zsh | Add the same line to `~/.zprofile` |
+| Fish | Run from the current Bash shell: `fish -c 'fish_add_path "$HOME/.local/bin"'` |
+
+## 3. Network and audio
+
+The network panel uses **NetworkManager**; audio uses **PipeWire/WirePlumber**.
+Check your existing setup first:
+
+```bash
+systemctl is-active NetworkManager.service
+wpctl status
+```
+
+If these components already provide working network and audio, proceed to step 4.
+On a fresh system without a configured network manager, enable NetworkManager:
+
+```bash
+sudo systemctl enable --now NetworkManager.service
+```
+
+If another manager controls your network interface, follow the
+[NetworkManager migration instructions](https://wiki.archlinux.org/title/NetworkManager#Enable_NetworkManager)
+first. Two managers must not control the same interface.
+
+PipeWire uses user services and socket activation. If you have just installed
+its packages, retry `wpctl status` after the first login in step 5. If it still
+cannot connect, run as your regular user:
+
+```bash
+systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service
+```
+
+See [PipeWire](https://wiki.archlinux.org/title/PipeWire#Installation) and
+[running WirePlumber](https://pipewire.pages.freedesktop.org/wireplumber/daemon/running.html).
 
 <a id="config"></a>
 
-### 3. Configuration
+## 4. First configuration
 
-Log out of the graphical session, open a TTY (**Ctrl+Alt+F3**) and return
-to the source directory. Commands assume Bash; XDG paths must match those
-in your graphical session.
-
-<a id="backup"></a>
-
-Move the previous configuration to a backup:
+While still in your current desktop, run from the source directory:
 
 ```bash
-config_dir=${XDG_CONFIG_HOME:-$HOME/.config}
-backup_dir=$(mktemp -d "$HOME/hyprstack-backup.XXXXXXXX")
-for name in hypr hyprstack systemd/user/hyprstack-session.service systemd/user/hyprstack-vpn.service; do
-    if [ -e "$config_dir/$name" ] || [ -L "$config_dir/$name" ]; then
-        mv "$config_dir/$name" "$backup_dir/"
-    fi
-done
-printf 'Backup: %s\n' "$backup_dir"
+bash configure.sh
 ```
 
-Save the printed path. Then copy the new configuration:
+The script asks for the commands of your **installed** terminal and browser.
+Press Enter to accept a suggestion, or enter your own choice. The terminal choice
+applies to **Super+Enter**, terminal applications launched from the menu and
+the system monitor. You can also provide your choices directly; for Foot and Chromium:
 
 ```bash
-mkdir -p "$config_dir/hypr" "$config_dir/hyprstack"
-cp -R shell/assets/hyprland/config/. "$config_dir/hypr/"
-cp -R distribution/defaults/hyprstack/. "$config_dir/hyprstack/"
-export PATH="$HOME/.local/bin:$PATH"
-hyprstack scheme set -n hyprstack-catppuccin -m dark
+bash configure.sh --terminal foot --browser chromium
 ```
 
-**Arch-based systems only:** install the user services.
-On NixOS, the module provides them; skip this block.
+The script installs `hypr/`, `hyprstack/`, initial colours and two user services.
+Existing configurations are saved under `~/.config/hyprstack-backup.*`; the script
+prints the exact path. If you use a custom `XDG_CONFIG_HOME`, the backup goes
+there instead. **A clean installation does not create a backup.**
+Use [update.sh](MAINTENANCE.md#обновление) for later updates: repeating first setup
+replaces the entire configuration.
+
+**If Hyprland is already running**, the script saves your application choices
+and XDG paths for use after logout. End your session, log into a TTY
+(**Ctrl+Alt+F3**) and run just this command:
 
 ```bash
-mkdir -p "$config_dir/systemd/user"
-cp distribution/systemd/user/hyprstack-{session,vpn}.service "$config_dir/systemd/user/"
-systemctl --user daemon-reload
+bash ~/.local/state/hyprstack-setup/apply.sh
 ```
 
-Without user systemd, skip this block; the shell uses its built-in session
-manager. Add `~/.local/bin` to your login profile's `PATH`.
-The built-in VPN requires a user systemd service. It starts when you connect;
-do not enable it at login.
+No source-directory navigation, remembered variables or copied command blocks
+are needed. Switching to a TTY while leaving Hyprland running is insufficient:
+the script does not replace a running compositor's configuration.
+You can also prepare this command explicitly with `bash configure.sh --prepare`.
 
-### 4. Launch
+## 5. First launch and checks
 
-Log into Hyprland through your display manager or run `start-hyprland` in a TTY.
-In a terminal, run:
+After the configuration is ready, log out of your current desktop and choose
+**Hyprland** in your display manager. Without a display manager, log into a TTY
+and run `start-hyprland`.
+
+In the new session, **Super+Enter** opens your selected terminal, **Super+W**
+opens the browser and **Super+D** opens the application menu. Run:
 
 ```bash
-hyprstack-doctor
+~/.local/bin/hyprstack-doctor
 hyprctl configerrors
 ```
 
-<a id="nixos"></a>
-
-## NixOS
-
-### 1. System module
-
-Add these entries to your existing `flake.nix`, keeping your other inputs
-and modules. Replace `YOUR_HOST` with your configuration name:
-
-```nix
-{
-  inputs.hyprstack.url = "github:hase9awa/hyprstack-shell";
-
-  outputs = { nixpkgs, hyprstack, ... }: {
-    nixosConfigurations.YOUR_HOST = nixpkgs.lib.nixosSystem {
-      modules = [
-        ./configuration.nix
-        hyprstack.nixosModules.default
-        { programs.hyprstack.enable = true; }
-      ];
-    };
-  };
-}
-```
-
-The module installs matching Hyprland, Quickshell, Qt, PAM and the shell service.
-Do not override `programs.hyprland.package` with a different package.
-
-### 2. User configuration
-
-If Home Manager is already set up, log out of the graphical session and run
-**only the [backup block](#backup)**. Add this to the same `modules` list,
-replacing `YOUR_USER` with your username:
-
-```nix
-{
-  home-manager.users.YOUR_USER = {
-    imports = [ hyprstack.homeManagerModules.default ];
-    programs.hyprstack.enable = true;
-  };
-}
-```
-
-Both modules must use the same `hyprstack` input. Shell preferences remain
-editable through the interface.
-Custom Lua: [`programs.hyprstack.extraConfig`](CONFIGURATION.md#экраны-и-клавиатура)
-or `~/.config/hyprstack/local.lua`.
-
-**Without Home Manager:** skip this step; copy user configuration after
-applying the system configuration, as described below.
-
-### 3. Apply
-
-From your NixOS configuration directory:
+Diagnostics should finish without `FAIL`, and `hyprctl configerrors` should
+report no errors. If the panel does not appear:
 
 ```bash
-sudo nixos-rebuild switch --flake .#YOUR_HOST
+systemctl --user status hyprstack-session.service
+journalctl --user -u hyprstack-session.service -b
 ```
 
-<details>
-<summary>Copying configuration without Home Manager</summary>
+### What starts automatically
 
-In a TTY, get the files and follow [Arch step 3](#config),
-**skipping the user service block**. No CMake build is needed.
+| Component | Started by | Manual enable needed? |
+| --- | --- | --- |
+| NetworkManager | System systemd | Once, if networking is not configured; step 3 |
+| PipeWire and WirePlumber | User systemd | Usually ready after installation; check in step 3 |
+| `hyprstack-session.service` | Hyprland configuration at login | No; no `enable` or extra autostart entry |
+| `hyprstack-vpn.service` | VPN connect button | No; an inactive service is normal when VPN is off |
+| Panel, notifications, lock screen, Polkit agent | Hyprstack session | No separate services to install |
 
-```bash
-git clone https://github.com/hase9awa/hyprstack-shell.git
-cd hyprstack-shell
-```
+If separate user services start your previous panel, notification daemon or
+Polkit agent, disable their autostart in the Hyprland session. Do not add second
+instances of these components to the new configuration.
 
-</details>
+## Optional features
 
-Start a new Hyprland session and run `hyprstack-doctor`
-and `hyprctl configerrors`.
+| Package | Purpose |
+| --- | --- |
+| `bluez` | Bluetooth; after installation run `sudo systemctl enable --now bluetooth.service` |
+| `upower` | Battery information |
+| `power-profiles-daemon` | Power profiles; `sudo systemctl enable --now power-profiles-daemon.service` |
+| `ddcutil` | External monitor brightness over DDC/CI |
+| `wtype` | Type emoji into the active application |
 
-## Services and optional packages
-
-Networking requires NetworkManager; audio requires PipeWire/WirePlumber.
-Enable these services in your system. Disable autostart for your previous
-panel, notification daemon and external Polkit agent.
-
-Optional packages: `bluez` for Bluetooth, `upower` for battery information,
-`power-profiles-daemon` for power profiles, `ddcutil` for external display
-brightness and `wtype` for emoji typing. Install a file manager of your choice.
+Theme synchronization supports terminals including Kitty and Foot.
+**Fish is a command shell running inside a terminal**: the terminal supplies
+its background and ANSI palette, while Fish syntax highlighting and prompt
+themes are configured separately.
+[Supported applications and limitations (Russian)](CONFIGURATION.md#цвета-терминала-и-командная-оболочка).
 
 Configure VPN under **Settings → Network → VPN settings**. sing-box/Xray cores
-are downloaded when needed; TUN on Arch-based systems requires a one-time
-Polkit authorization. [Protocols, imports and routing (Russian)](CONFIGURATION.md#vpn-и-прокси).
+are downloaded when needed; TUN requires a one-time Polkit authorization.
+[Protocols, imports and routing (Russian)](CONFIGURATION.md#vpn-и-прокси).
 
 [Configuration and shortcuts (Russian)](CONFIGURATION.md) ·
 [Updates and diagnostics (Russian)](MAINTENANCE.md)

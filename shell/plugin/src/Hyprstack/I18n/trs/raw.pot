@@ -3050,6 +3050,14 @@ msgid "When disabled, hover a partly hidden window or the screen edge, then clic
 msgstr ""
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Scroll columns at screen edges on hover"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Disable to keep hover focus without moving the tape. Click a window or use shortcuts to reveal it."
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Middle-click autoscroll"
 msgstr ""
 

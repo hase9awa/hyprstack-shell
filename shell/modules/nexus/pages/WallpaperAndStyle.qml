@@ -246,6 +246,15 @@ PageBase {
 
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceTilingEdgeScroll"
+            text: Tr.tr("Scroll columns at screen edges on hover")
+            subtext: Tr.tr("Disable to keep hover focus without moving the tape. Click a window or use shortcuts to reveal it.")
+            checked: Tiling.edgeScroll
+            onToggled: Tiling.set("edgeScroll", checked)
+        }
+
+        ToggleRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             objectName: "appearanceAutoscroll"
             text: Tr.tr("Middle-click autoscroll")
             subtext: Tr.tr("Hold the wheel briefly, then move. Short clicks keep tab and link actions; Esc stops.")

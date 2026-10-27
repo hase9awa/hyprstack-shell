@@ -68,8 +68,8 @@ in settings.
 ## Installation
 
 - [Arch Linux / CachyOS / EndeavourOS / Manjaro](INSTALL.en.md#arch) — dependencies,
-  build and configuration files.
-- [NixOS](INSTALL.en.md#nixos) — package and NixOS/Home Manager modules.
+  build and first setup with your choice of applications.
+- [NixOS](INSTALL.nixos.en.md) — package and NixOS/Home Manager modules.
 
 Requires **Hyprland 0.56.2**, **Quickshell ≥ 0.3.1**, **Qt ≥ 6.9**.
 Rebuild the native extension after a Hyprland ABI change.
@@ -91,8 +91,8 @@ See [configuration (Russian)](CONFIGURATION.md).
 | `Super` | Open the dashboard |
 | `Super+D` | Application launcher |
 | `Super+O` | Window and workspace overview |
-| `Super+Return` | Terminal · kitty |
-| `Super+W` | Browser · Firefox |
+| `Super+Return` | Terminal selected during setup |
+| `Super+W` | Browser selected during setup |
 | `Super+E` | System file manager · home folder |
 | `Ctrl+Alt+V` | Audio settings · pavucontrol |
 | `Super+H` / `Super+L` | Adjacent window in scrolling |
