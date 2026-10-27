@@ -31,7 +31,6 @@ StyledWindow {
     // shell is asked to, and this answers it the way Escape does.
     signal closeRequested
 
-    Component.onCompleted: Dialogs.register(root)
     Component.onDestruction: Dialogs.unregister(root)
     onCloseRequested: root.cancel()
 
@@ -89,7 +88,10 @@ StyledWindow {
     onFlowChanged: resetInput()
     onAwaitingResponseChanged: focusInput()
     onBackingWindowVisibleChanged: if (backingWindowVisible) focusInput()
-    Component.onCompleted: resetInput()
+    Component.onCompleted: {
+        resetInput();
+        Dialogs.register(root);
+    }
 
     Connections {
         target: root.flow
