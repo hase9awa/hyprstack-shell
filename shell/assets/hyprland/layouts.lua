@@ -251,6 +251,9 @@ function layouts.focus_column(direction)
 end
 
 local function save()
+    -- Config verification has no live desktop and must not replace session
+    -- records or preferences with the verifier's empty workspace state.
+    if not hl.get_active_monitor() then return end
     write(config_dir .. "/layouts.json", preferences)
     write(runtime_path, { windows = records, tiled_views = tiled_views, tiled_no_warps = tiled_no_warps,
         tiled_resize_on_border = tiled_resize_on_border, tiled_border_grab = tiled_border_grab, tiled_focus = tiled_focus,
