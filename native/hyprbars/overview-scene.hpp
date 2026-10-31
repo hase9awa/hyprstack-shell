@@ -1,9 +1,10 @@
 // Hyprstack's overview is a compositor scene, not a layer-shell application.
-// Pinned to the same Hyprland 0.56 renderer ABI as the titlebar adaptation.
+// Pinned to the same Hyprland 0.57 renderer ABI as the titlebar adaptation.
 #pragma once
 #include "tile-frame.hpp"
 
 #include <hyprland/src/render/Renderer.hpp>
+#include <hyprland/src/render/scene/SceneSelection.hpp>
 #include <hyprland/src/render/ElementRenderer.hpp>
 #include <hyprland/src/render/OpenGL.hpp>
 #include <hyprland/src/render/Framebuffer.hpp>
@@ -12,15 +13,15 @@
 #include <hyprland/src/render/pass/RendererHintsPassElement.hpp>
 #include <hyprland/src/render/pass/SurfacePassElement.hpp>
 #include <hyprland/protocols/wlr-layer-shell-unstable-v1.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/view/LayerSurface.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
-#include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/workspace/HLWorkspace.hpp>
 #include <hyprland/src/state/MonitorState.hpp>
 #include <hyprland/src/state/WorkspaceState.hpp>
 #include <hyprland/src/managers/SessionLockManager.hpp>
 #include <hyprland/src/managers/SeatManager.hpp>
-#include <hyprland/src/managers/KeybindManager.hpp>
+#include <hyprland/src/config/shared/actions/ConfigActions.hpp>
 #include <hyprland/src/managers/input/InputManager.hpp>
 #include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
 #include <hyprland/src/render/decorations/DecorationPositioner.hpp>
@@ -36,13 +37,14 @@
 namespace HyprstackOverview {
 using Json = nlohmann::json;
 using Clock = std::chrono::steady_clock;
-using WorkspaceRender = void (*)(Render::IHyprRenderer*, PHLMONITOR, PHLWORKSPACE,
-    const Time::steady_tp&, const Vector2D&, const float&);
-using LayerRender = void (*)(Render::IHyprRenderer*, PHLLS, PHLMONITOR, const Time::steady_tp&, bool, bool);
-using BackgroundRender = void (*)(Render::IHyprRenderer*, PHLMONITOR);
-using FadeoutRender = void (*)(Render::IHyprRenderer*, PHLMONITOR, Desktop::eFadeoutPlane, PHLWORKSPACE);
+using WorkspaceRender = void (*)(Render::IHyprRenderer*, Render::CRenderContext&, PHLMONITOR, PHLWORKSPACE,
+    const Time::steady_tp&, Render::eSceneMode, const Vector2D&, const float&);
+using LayerRender = void (*)(Render::IHyprRenderer*, Render::CRenderContext&, PHLLS, PHLMONITOR, const Time::steady_tp&, bool, bool, bool);
+using BackgroundRender = void (*)(Render::IHyprRenderer*, Render::CRenderContext&, PHLMONITOR);
+using FadeoutRender = void (*)(Render::IHyprRenderer*, Render::CRenderContext&, PHLMONITOR, Desktop::eFadeoutPlane, PHLWORKSPACE);
 
 static CFunctionHook* renderHook = nullptr;
+static CFunctionHook* scanoutHook = nullptr;
 static CFunctionHook* textureHook = nullptr;
 static CFunctionHook* rectHook = nullptr;
 static CFunctionHook* fadeoutHook = nullptr;
@@ -86,10 +88,10 @@ struct ClosedWindow {
 class BackgroundPass final : public IPassElement {
   public:
     explicit BackgroundPass(std::function<std::vector<UP<IPassElement>>()> draw) : m_draw(std::move(draw)) {}
-    std::vector<UP<IPassElement>> draw() override { return m_draw(); }
-    bool needsLiveBlur() override { return false; }
-    bool needsPrecomputeBlur() override { return false; }
-    bool disableSimplification() override { return true; }
+    std::vector<UP<IPassElement>> draw(Render::CRenderContext& ctx) override { return m_draw(); }
+    bool needsLiveBlur(Render::CRenderContext& ctx) override { return false; }
+    bool needsPrecomputeBlur(Render::CRenderContext& ctx) override { return false; }
+    bool disableSimplification(Render::CRenderContext& ctx) override { return true; }
     const char* passName() override { return "HyprstackOverviewBackground"; }
     ePassElementType type() override { return EK_CUSTOM; }
   private:
@@ -100,14 +102,15 @@ class Scene {
   public:
     Scene() {
         m_unmap = Event::bus()->m_events.window.close.listen([this](PHLWINDOW window) { captureClosingWindow(window); });
-        m_render = Event::bus()->m_events.render.stage.listen([this](eRenderStage stage) {
+        m_render = Event::bus()->m_events.render.stage.listen([this](Event::SRenderStageEvent event) {
+            const auto stage = event.stage;
             const auto monitor = m_monitor.lock();
-            if (!monitor || g_pHyprRenderer->m_renderData.pMonitor != monitor) return;
+            if (!monitor || g_pHyprRenderer->context().m_data.pMonitor != monitor) return;
             if (stage == RENDER_BEGIN && m_running) {
                 // A fullscreen client must still go through the workspace scene.
                 monitor->m_solitaryClient.reset();
-                g_pHyprRenderer->m_renderData.noSimplify = true;
-            } else if (stage == RENDER_POST) g_pHyprRenderer->m_renderData.noSimplify = false;
+                g_pHyprRenderer->context().m_data.noSimplify = true;
+            } else if (stage == RENDER_POST) g_pHyprRenderer->context().m_data.noSimplify = false;
         });
         m_key = Event::bus()->m_events.input.keyboard.key.listen([this](IKeyboard::SKeyEvent event, Event::SCallbackInfo& info) {
             if (event.state == WL_KEYBOARD_KEY_STATE_RELEASED) {
@@ -116,21 +119,21 @@ class Scene {
             }
             if (!acceptsInput()) return;
             const auto keyboard = g_pSeatManager->m_keyboard.lock();
-            const auto mods = keyboard ? keyboard->getModifiers() : 0;
+            const auto mods = keyboard ? keyboard->getModifiers() : Input::ModifierMask{Input::HL_MODIFIER_NONE};
             std::string action;
             switch (event.keycode) {
                 case 1: action = "overviewCancel"; break;
                 case 28: case 96: action = "overviewAccept"; break;
-                case 15: action = mods & HL_MODIFIER_SHIFT ? "overviewBackcycle" : "overviewCycle"; break;
+                case 15: action = mods & Input::HL_MODIFIER_SHIFT ? "overviewBackcycle" : "overviewCycle"; break;
                 case 35: case 105: action = "overviewH"; break;
                 case 36: case 108: action = "overviewJ"; break;
                 case 37: case 103: action = "overviewK"; break;
                 case 38: case 106: action = "overviewL"; break;
-                case 24: if (mods & HL_MODIFIER_META) action = "overview"; break;
-                case 16: if (mods & HL_MODIFIER_META) action = "overviewClose"; break;
-                case 32: if (mods & HL_MODIFIER_META) action = "launcher"; break;
+                case 24: if (mods & Input::HL_MODIFIER_META) action = "overview"; break;
+                case 16: if (mods & Input::HL_MODIFIER_META) action = "overviewClose"; break;
+                case 32: if (mods & Input::HL_MODIFIER_META) action = "launcher"; break;
             }
-            if (!action.empty() || !(mods & HL_MODIFIER_META)) {
+            if (!action.empty() || !(mods & Input::HL_MODIFIER_META)) {
                 m_keys.insert(event.keycode);
                 info.cancelled = true;
             }
@@ -207,7 +210,7 @@ class Scene {
 
     void reset() {
         if (const auto monitor = m_monitor.lock()) g_pHyprRenderer->damageMonitor(monitor);
-        if (m_running) g_pHyprRenderer->m_directScanoutBlocked = m_previousScanout;
+
         m_running = m_closing = false;
         m_windows.clear(); m_closed.clear(); m_rows.clear(); m_input = Json::object();
         m_backgroundDirty = true;
@@ -221,8 +224,8 @@ class Scene {
     static Json geometry() {
         Json result = Json::object();
         for (const auto& w : Desktop::windowState()->windows()) {
-            if (!w->m_isMapped) continue;
-            const auto pos = w->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT) + w->m_floatingOffset;
+            if (!w->mapped()) continue;
+            const auto pos = w->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT) + w->presentation().floatingOffset();
             const auto size = w->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT);
             auto rect = encode({pos, size});
             const auto ext = w->getWindowExtentsUnified(Desktop::View::INPUT_EXTENTS | Desktop::View::RESERVED_EXTENTS);
@@ -250,8 +253,8 @@ class Scene {
             m_cameraFrom = m_cameraTo = m_home;
             m_started = m_cameraStarted = Clock::now(); m_duration = .28;
             m_originalWorkspace = data.value("originalWorkspace", m_workspace);
-            m_previousScanout = g_pHyprRenderer->m_directScanoutBlocked;
-            g_pHyprRenderer->m_directScanoutBlocked = true;
+
+
             m_running = true; m_closing = false;
         }
         heartbeat();
@@ -267,7 +270,7 @@ class Scene {
             PHLWINDOW window;
             const auto address = entry.at("address").get<std::string>(), identity = entry.at("identity").get<std::string>();
             for (const auto& w : Desktop::windowState()->windows())
-                if (w->m_isMapped && std::format("0x{:x}", reinterpret_cast<uintptr_t>(w.get())) == address && std::format("{:x}", w->m_stableID) == identity) { window = w; break; }
+                if (w->mapped() && std::format("0x{:x}", reinterpret_cast<uintptr_t>(w.get())) == address && std::format("{:x}", w->metadata().stableID()) == identity) { window = w; break; }
             if (!window) continue;
             auto previous = std::ranges::find_if(m_windows, [&](const auto& w) { return w.address == address && w.identity == identity; });
             const CBox destination = box(entry.at("frame"));
@@ -306,7 +309,7 @@ class Scene {
                 const auto w = state.window.lock();
                 w->positionAnimation()->setValueAndWarp(w->positionAnimation()->goal());
                 w->sizeAnimation()->setValueAndWarp(w->sizeAnimation()->goal());
-                w->updateWindowDecos();
+                w->presentation().updateDecorations();
             }
             // Outgoing workspace fades/slides must also have ended at handoff.
             for (const auto& weak : State::workspaceState()->workspaces()) {
@@ -366,17 +369,17 @@ class Scene {
     }
 
     void render(Render::IHyprRenderer* renderer, PHLMONITOR monitor, const Time::steady_tp& now) {
-        renderer->m_renderData.noSimplify = true;
+        renderer->context().m_data.noSimplify = true;
         const auto renderCamera = currentCamera();
         watchBackground(monitor);
-        renderBackground(renderer, monitor);
+        renderBackground(renderer, renderer->context(), monitor);
         const auto layers = [&](int layer) {
-            for (const auto& weak : monitor->m_layerSurfaceLayers[layer]) renderLayer(renderer, weak.lock(), monitor, now, false, false);
+            for (const auto& weak : monitor->m_layerSurfaceLayers[layer]) renderLayer(renderer, renderer->context(), weak.lock(), monitor, now, false, false, false);
         };
         // One full-screen wallpaper joins every workspace seamlessly. Only the
         // windows belong to the ribbon; there are no separate wallpaper cards.
         layers(ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND);
-        renderer->addPassElement(makeUnique<BackgroundPass>([this] { return backgroundPass(); }));
+        renderer->addPassElement(g_pHyprRenderer->context(), makeUnique<BackgroundPass>([this] { return backgroundPass(); }));
         layers(ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM);
         std::erase_if(m_closed, [&](const auto& w) { return closedAlpha(w) <= 0; });
         // Preserve native stacking order during the transition. Grid windows
@@ -391,7 +394,7 @@ class Scene {
             const auto destination = frame(*state, &renderCamera), source = nativeBox(real, false);
             if (destination.x+destination.w < 0 || destination.y+destination.h < 0 || destination.x > monitor->m_size.x || destination.y > monitor->m_size.y) continue;
             const double scale = destination.w / std::max(1.0, source.w);
-            const auto wsOffset = real->m_workspace && !real->m_pinned ? real->m_workspace->m_renderOffset->value() : Vector2D{};
+            const auto wsOffset = real->m_workspace && !(real->m_state & Desktop::View::WINDOW_STATE_PINNED) ? real->m_workspace->m_renderOffset->value() : Vector2D{};
             hints(renderer, scale, destination.pos() - (source.pos()+wsOffset)*scale, monitor);
             const float opacity = m_closing && !state->original ? 1-phase() : m_stacking && !state->original ? phase() : 1;
             windowPass(renderer, real, monitor, now, opacity);
@@ -403,11 +406,11 @@ class Scene {
     }
 
   private:
-    static bool valid(const Window& state) { return state.window && state.window->m_isMapped && std::format("{:x}", state.window->m_stableID) == state.identity; }
+    static bool valid(const Window& state) { return state.window && state.window->mapped() && std::format("{:x}", state.window->metadata().stableID()) == state.identity; }
     static bool sameBox(CBox a, CBox b) { return std::abs(a.x-b.x)<.5 && std::abs(a.y-b.y)<.5 && std::abs(a.w-b.w)<.5 && std::abs(a.h-b.h)<.5; }
     bool acceptsInput() const { return m_running && !m_closing && !g_pSessionLockManager->isSessionLocked(); }
     bool contains(Vector2D point) const { const auto m=m_monitor.lock(); return m && CBox{m->m_position, m->m_size}.containsPoint(point); }
-    static void dispatch(const std::string& action) { g_pKeybindManager->m_dispatchers["global"]("hyprstack:"+action); }
+    static void dispatch(const std::string& action) { Config::Actions::global("hyprstack:"+action); }
     double phase() const { return ease(std::chrono::duration<double>(Clock::now()-m_started).count()/m_duration); }
     static double ease(double t) { t=std::clamp(t,0.0,1.0); return 1-std::pow(1-t,3); }
     Camera currentCamera() const { return mix(m_cameraFrom,m_cameraTo,ease(std::chrono::duration<double>(Clock::now()-m_cameraStarted).count()/m_duration)); }
@@ -430,11 +433,11 @@ class Scene {
     }
     void closedPass(Render::IHyprRenderer* r, const ClosedWindow& w, const Camera& cam, PHLMONITOR monitor) const {
         CTexPassElement::SRenderData data;
-        data.tex = w.snapshot->getTexture(); data.flipEndFrame = true; data.a = closedAlpha(w);
+        data.tex = w.snapshot->getTexture(); data.a = closedAlpha(w);
         const double scale = m_stacking ? 1 : cam.zoom / w.camera.zoom;
         data.box = CBox{{},monitor->m_transformedSize}.scale(scale);
         if (!m_stacking) data.box.translate(Vector2D{cam.x-w.camera.x*scale,cam.y-w.camera.y*scale}*monitor->m_scale);
-        r->addPassElement(makeUnique<CTexPassElement>(data));
+        r->addPassElement(g_pHyprRenderer->context(), makeUnique<CTexPassElement>(data));
     }
     void captureClosingWindow(PHLWINDOW window) {
         const auto monitor = m_monitor.lock();
@@ -448,18 +451,19 @@ class Scene {
         auto snapshot = r->createFB("Overview closing window");
         if (!snapshot || !snapshot->alloc(monitor->m_pixelSize.x,monitor->m_pixelSize.y,DRM_FORMAT_ABGR16161616F)) return;
         snapshot->setImageDescription(monitor->workBufferImageDescription());
+        snapshot->getTexture()->m_transform = Math::wlTransformToHyprutils(Math::invertTransform(monitor->m_transform));
         CRegion damage{CBox{{},monitor->m_transformedSize}};
         if (!r->beginFullFakeRender(monitor,damage,snapshot)) return;
-        const bool oldSnapshot = r->m_bRenderingSnapshot;
-        r->m_bRenderingSnapshot = true;
-        r->draw(CClearPassElement::SClearData{CHyprColor(0,0,0,0)});
-        r->startRenderPass();
-        const auto wsOffset = window->m_workspace && !window->m_pinned ? window->m_workspace->m_renderOffset->value() : Vector2D{};
+        const bool oldSnapshot = r->context().m_renderingSnapshot;
+        r->context().m_renderingSnapshot = true;
+        r->draw(g_pHyprRenderer->context(), CClearPassElement::SClearData{CHyprColor(0,0,0,0)});
+        r->startRenderPass(r->context());
+        const auto wsOffset = window->m_workspace && !(window->m_state & Desktop::View::WINDOW_STATE_PINNED) ? window->m_workspace->m_renderOffset->value() : Vector2D{};
         const double scale = destination.w / std::max(1.0,source.w);
         hints(r,scale,destination.pos()-(source.pos()+wsOffset)*scale,monitor);
         windowPass(r,window,monitor,Time::steadyNow(),1);
         hints(r,1,{},monitor);
-        r->endRender(); r->m_bRenderingSnapshot = oldSnapshot;
+        r->endRender(); r->context().m_renderingSnapshot = oldSnapshot;
         const auto& windows = Desktop::windowState()->windows();
         const auto position = std::ranges::find(windows,window);
         m_closed.push_back({state->address,snapshot,destination,cam,Clock::now(),static_cast<size_t>(std::distance(windows.begin(),position))});
@@ -477,20 +481,20 @@ class Scene {
     }
     CBox nativeBox(PHLWINDOW w, bool goal) const {
         const auto monitor=m_monitor.lock();
-        return { (goal ? w->positionAnimation()->goal() : w->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT)) + w->m_floatingOffset - monitor->m_position,
+        return { (goal ? w->positionAnimation()->goal() : w->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT)) + w->presentation().floatingOffset() - monitor->m_position,
             goal ? w->sizeAnimation()->goal() : w->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT) };
     }
     static void hints(Render::IHyprRenderer* r, double scale, Vector2D translation, PHLMONITOR monitor) {
         Render::SRenderModifData transform;
         if (std::abs(scale-1) > .00001) transform.modifs.emplace_back(Render::SRenderModifData::RMOD_TYPE_SCALE, static_cast<float>(scale));
         if (translation != Vector2D{}) transform.modifs.emplace_back(Render::SRenderModifData::RMOD_TYPE_TRANSLATE, translation*monitor->m_scale);
-        r->addPassElement(makeUnique<CRendererHintsPassElement>(CRendererHintsPassElement::SData{transform}));
+        r->addPassElement(g_pHyprRenderer->context(), makeUnique<CRendererHintsPassElement>(CRendererHintsPassElement::SData{transform}));
     }
     void watchBackground(PHLMONITOR monitor) {
         std::vector<SP<CWLSurfaceResource>> sources;
         for (const auto& weak : monitor->m_layerSurfaceLayers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]) {
             const auto layer = weak.lock();
-            if (!layer || !layer->m_mapped || !layer->wlSurface()) continue;
+            if (!layer || !layer->mapped() || !layer->wlSurface()) continue;
             const auto surface = layer->wlSurface()->resource();
             if (surface) sources.push_back(surface);
         }
@@ -511,7 +515,7 @@ class Scene {
         const auto monitor = m_monitor.lock();
         if (!m_running || !monitor) return elements;
         auto* r = g_pHyprRenderer.get();
-        const auto target = r->m_renderData.currentFB;
+        const auto target = r->context().m_data.currentFB;
         if (!target) return elements;
         const CBox canvas{{}, monitor->m_transformedSize};
         if (!m_background || m_background->m_size != target->m_size || m_background->imageDescription() != target->imageDescription()) m_backgroundDirty = true;
@@ -539,42 +543,44 @@ class Scene {
         border.box = b.copy().scale(monitor->m_scale);
         border.grad1 = Config::CGradientValueData(colour);
         border.borderSize = 2;
-        border.round = std::round(std::max(12.0, static_cast<double>(window->rounding())) * scale * monitor->m_scale);
-        border.roundingPower = window->roundingPower();
-        r->addPassElement(makeUnique<CBorderPassElement>(border));
+        border.round = std::round(std::max(12.0, static_cast<double>(window->presentation().rounding())) * scale * monitor->m_scale);
+        border.roundingPower = window->presentation().roundingPower();
+        r->addPassElement(g_pHyprRenderer->context(), makeUnique<CBorderPassElement>(border));
     }
     static void windowPass(Render::IHyprRenderer* r, PHLWINDOW window, PHLMONITOR monitor, const Time::steady_tp& now, float opacity) {
         const auto surface=window->wlSurface(); if (!surface || !surface->resource()) return;
-        const auto offset=window->m_workspace && !window->m_pinned ? window->m_workspace->m_renderOffset->value() : Vector2D{};
+        const auto offset=window->m_workspace && !(window->m_state & Desktop::View::WINDOW_STATE_PINNED) ? window->m_workspace->m_renderOffset->value() : Vector2D{};
         CSurfacePassElement::SRenderData data{monitor,now};
-        data.pos=window->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT)+window->m_floatingOffset+offset;
+        data.pos=window->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT)+window->presentation().floatingOffset()+offset;
         const auto size=window->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT);
         data.w=std::max(1.0,size.x); data.h=std::max(1.0,size.y); data.pWindow=window;
-        data.alpha=window->alphaValue(Desktop::View::WINDOW_ALPHA_ACTIVE); data.fadeAlpha=opacity;
-        data.dontRound=false; data.rounding=std::round(window->rounding()*monitor->m_scale); data.roundingPower=window->roundingPower();
+        data.alpha=window->presentation().alphaValue(Desktop::View::WINDOW_ALPHA_ACTIVE); data.fadeAlpha=opacity;
+        data.workspacePresentation=window->presentation().renderPresentation();
+        data.workspacePresentation.workspaceAlpha=1; data.workspacePresentation.fadeAlpha=opacity; data.workspacePresentation.alphaVisible=true;
+        data.dontRound=false; data.rounding=std::round(window->presentation().rounding()*monitor->m_scale); data.roundingPower=window->presentation().roundingPower();
         // Overview opacity is independent of hidden-workspace/fullscreen alpha.
         // Keep actual subsurfaces, native CSD geometry and compositor decorations.
-        r->m_renderData.currentWindow=window;
+        r->context().m_data.currentWindow=window;
         // Decorations read native animated geometry during this stage too.
-        Event::bus()->m_events.render.stage.emit(RENDER_PRE_WINDOW);
+        Event::bus()->m_events.render.stage.emit({RENDER_PRE_WINDOW, monitor, r->context()});
         g_pDecorationPositioner->onWindowUpdate(window);
-        const bool decorate=!window->m_X11DoesntWantBorders;
-        if (decorate) for (const auto& deco:window->m_windowDecorations)
-            if (deco->getDecorationLayer()==DECORATION_LAYER_BOTTOM || deco->getDecorationLayer()==DECORATION_LAYER_UNDER) deco->draw(monitor,opacity);
+        const bool decorate=!window->backend().traits().suggestsNoBorder;
+        if (decorate) for (const auto& deco:window->presentation().decorations())
+            if (deco->getDecorationLayer()==DECORATION_LAYER_BOTTOM || deco->getDecorationLayer()==DECORATION_LAYER_UNDER) deco->draw(r->context(),monitor,opacity,data.workspacePresentation);
         surface->resource()->breadthfirst([&](SP<CWLSurfaceResource> child,const Vector2D& local,void*) {
             if (!child->m_current.texture || child->m_current.size.x<1 || child->m_current.size.y<1) return;
             data.surface=child; data.texture=child->m_current.texture; data.localPos=local; data.mainSurface=child==surface->resource();
-            r->addPassElement(makeUnique<CSurfacePassElement>(data));
+            r->addPassElement(g_pHyprRenderer->context(), makeUnique<CSurfacePassElement>(data));
             child->frame(now);
         },nullptr);
-        if (decorate) for (const auto& deco:window->m_windowDecorations)
-            if (deco->getDecorationLayer()==DECORATION_LAYER_OVER) deco->draw(monitor,opacity);
-        Event::bus()->m_events.render.stage.emit(RENDER_POST_WINDOW);
-        r->m_renderData.currentWindow.reset();
+        if (decorate) for (const auto& deco:window->presentation().decorations())
+            if (deco->getDecorationLayer()==DECORATION_LAYER_OVER) deco->draw(r->context(),monitor,opacity,data.workspacePresentation);
+        Event::bus()->m_events.render.stage.emit({RENDER_POST_WINDOW, monitor, r->context()});
+        r->context().m_data.currentWindow.reset();
     }
 
     PHLMONITORREF m_monitor;
-    bool m_running=false,m_closing=false,m_stacking=false,m_previousScanout=false;
+    bool m_running=false,m_closing=false,m_stacking=false;
     int64_t m_workspace=1,m_originalWorkspace=1;
     std::string m_selected;
     std::vector<Window> m_windows;
@@ -598,13 +604,13 @@ class Scene {
     Vector2D m_swipeDelta;
 };
 static UP<Scene> scene;
-using RectDraw = void (*)(Render::GL::CHyprOpenGLImpl*, const CBox&, const CHyprColor&, Render::GL::CHyprOpenGLImpl::SRectRenderData);
-static void drawSceneRect(Render::GL::CHyprOpenGLImpl* renderer, const CBox& source, const CHyprColor& colour,
+using RectDraw = void (*)(Render::GL::CHyprOpenGLImpl*, Render::CRenderContext&, const CBox&, const CHyprColor&, Render::GL::CHyprOpenGLImpl::SRectRenderData);
+static void drawSceneRect(Render::GL::CHyprOpenGLImpl* renderer, Render::CRenderContext& ctx, const CBox& source, const CHyprColor& colour,
     Render::GL::CHyprOpenGLImpl::SRectRenderData data) {
-    auto& render = g_pHyprRenderer->m_renderData;
+    auto& render = g_pHyprRenderer->context().m_data;
     const auto original = reinterpret_cast<RectDraw>(rectHook->m_original);
     if (!scene || !scene->runningFor(render.pMonitor.lock()) || render.renderModif.modifs.empty()) {
-        original(renderer, source, colour, data); return;
+        original(renderer, ctx, source, colour, data); return;
     }
     // The pinned GL rectangle path transforms its geometry but leaves rounded
     // corner/stencil uniforms in source coordinates. A scaled titlebar then
@@ -618,14 +624,14 @@ static void drawSceneRect(Render::GL::CHyprOpenGLImpl* renderer, const CBox& sou
     data.round = std::round(data.round * transform.combinedScale());
     data.damage = &render.damage;
     render.renderModif = {};
-    original(renderer, destination, colour, data);
+    original(renderer, ctx, destination, colour, data);
 }
-using TextureDraw = void (*)(Render::IElementRenderer*, WP<CTexPassElement>, const CRegion&);
-static void drawSceneTexture(Render::IElementRenderer* renderer, WP<CTexPassElement> element, const CRegion& damage) {
-    auto& render = g_pHyprRenderer->m_renderData;
+using TextureDraw = void (*)(Render::IElementRenderer*, Render::CRenderContext&, WP<CTexPassElement>, const CRegion&);
+static void drawSceneTexture(Render::IElementRenderer* renderer, Render::CRenderContext& ctx, WP<CTexPassElement> element, const CRegion& damage) {
+    auto& render = g_pHyprRenderer->context().m_data;
     const auto original = reinterpret_cast<TextureDraw>(textureHook->m_original);
     if (!element || !scene || !scene->runningFor(render.pMonitor.lock()) || render.renderModif.modifs.empty()) {
-        original(renderer, element, damage); return;
+        original(renderer, ctx, element, damage); return;
     }
     // drawSurface intersects damage with its *source* box before drawTex.
     // Offscreen scrolling columns consequently get clipped even though their
@@ -645,19 +651,24 @@ static void drawSceneTexture(Render::IElementRenderer* renderer, WP<CTexPassElem
     element->m_data.damage = render.damage;
     if (!render.clipBox.empty()) render.renderModif.applyToBox(render.clipBox);
     render.renderModif = {};
-    original(renderer, element, render.damage);
+    original(renderer, ctx, element, render.damage);
 }
-static void renderScene(Render::IHyprRenderer* renderer, PHLMONITOR monitor, PHLWORKSPACE workspace,
-    const Time::steady_tp& now, const Vector2D& translate, const float& scale) {
-    if (scene && scene->runningFor(monitor)) scene->render(renderer,monitor,now);
-    else reinterpret_cast<WorkspaceRender>(renderHook->m_original)(renderer,monitor,workspace,now,translate,scale);
+static void renderScene(Render::IHyprRenderer* renderer, Render::CRenderContext& ctx, PHLMONITOR monitor, PHLWORKSPACE workspace,
+    const Time::steady_tp& now, Render::eSceneMode mode, const Vector2D& translate, const float& scale) {
+    if (mode == Render::eSceneMode::MONITOR && scene && scene->runningFor(monitor)) scene->render(renderer,monitor,now);
+    else reinterpret_cast<WorkspaceRender>(renderHook->m_original)(renderer,ctx,monitor,workspace,now,mode,translate,scale);
 }
-static void renderSceneFadeouts(Render::IHyprRenderer* renderer, PHLMONITOR monitor, Desktop::eFadeoutPlane plane, PHLWORKSPACE workspace) {
+static void renderSceneFadeouts(Render::IHyprRenderer* renderer, Render::CRenderContext& ctx, PHLMONITOR monitor, Desktop::eFadeoutPlane plane, PHLWORKSPACE workspace) {
     // Closing previews already own their last transformed frame. Rendering the
     // ordinary desktop fade too would flash a second image at native size.
     if (scene && scene->runningFor(monitor) && (plane == Desktop::FADEOUT_PLANE_WINDOW_TILED ||
         plane == Desktop::FADEOUT_PLANE_WINDOW_FLOATING || plane == Desktop::FADEOUT_PLANE_WINDOW_OVER_FULLSCREEN)) return;
-    reinterpret_cast<FadeoutRender>(fadeoutHook->m_original)(renderer,monitor,plane,workspace);
+    reinterpret_cast<FadeoutRender>(fadeoutHook->m_original)(renderer,ctx,monitor,plane,workspace);
+}
+using CanScanout = bool (*)(const Monitor::CMonitor*);
+static bool canScanout(const Monitor::CMonitor* monitor) {
+    if (scene && monitor && scene->runningFor(monitor->m_self.lock())) return false;
+    return reinterpret_cast<CanScanout>(scanoutHook->m_original)(monitor);
 }
 static int luaScene(lua_State* L) {
     const std::string action=luaL_checkstring(L,1);
@@ -675,8 +686,10 @@ static int luaScene(lua_State* L) {
 }
 static void remove(HANDLE handle) {
     HyprstackTileFrame::remove(handle);
-    g_pHyprRenderer->m_renderPass.removeAllOfType("HyprstackOverviewBackground");
+    g_pHyprRenderer->context().m_pass.removeAllOfType("HyprstackOverviewBackground");
     scene.reset();
+    if (scanoutHook) HyprlandAPI::removeFunctionHook(handle,scanoutHook);
+    scanoutHook=nullptr;
     HyprstackCamera::remove();
     if (fadeoutHook) HyprlandAPI::removeFunctionHook(handle,fadeoutHook);
     fadeoutHook=nullptr;
@@ -690,7 +703,7 @@ static void remove(HANDLE handle) {
 static void install(HANDLE handle) {
     const auto function=[&](const char* name,const char* prefix) -> void* {
         const auto matches=HyprlandAPI::findFunctionsByName(handle,name);
-        const auto found=std::ranges::find_if(matches,[&](const auto& f){return f.demangled.starts_with(prefix);});
+        const auto found=std::ranges::find_if(matches,[&](const auto& f){return f.demangled.starts_with(prefix) && (std::string(name) != "renderAllClientsForWorkspace" || f.demangled.contains("eSceneMode"));});
         if (found==matches.end()) throw std::runtime_error(std::string("[hyprstack] Missing pinned overview function ")+name);
         return found->address;
     };
@@ -705,6 +718,8 @@ static void install(HANDLE handle) {
         if (!rectHook || !rectHook->hook()) throw std::runtime_error("[hyprstack] Cannot hook overview decoration rounding");
         fadeoutHook=HyprlandAPI::createFunctionHook(handle,function("renderFadeouts","Render::IHyprRenderer::renderFadeouts("),reinterpret_cast<void*>(&renderSceneFadeouts));
         if (!fadeoutHook || !fadeoutHook->hook()) throw std::runtime_error("[hyprstack] Cannot hook overview window fadeouts");
+        scanoutHook=HyprlandAPI::createFunctionHook(handle,function("canAttemptDirectScanoutFast","Monitor::CMonitor::canAttemptDirectScanoutFast("),reinterpret_cast<void*>(&canScanout));
+        if (!scanoutHook || !scanoutHook->hook()) throw std::runtime_error("[hyprstack] Cannot block overview direct scanout");
         scene=makeUnique<Scene>();
         HyprstackCamera::install(handle);
         HyprstackTileFrame::install(handle);
@@ -716,5 +731,5 @@ static void install(HANDLE handle) {
 // The native titlebar's explicit scissor must use the same camera transform as
 // its drawing primitives. This is evaluated when the render pass is executed.
 bool hyprstackOverviewRendering() {
-    return HyprstackOverview::scene && HyprstackOverview::scene->runningFor(g_pHyprRenderer->m_renderData.pMonitor.lock());
+    return HyprstackOverview::scene && HyprstackOverview::scene->runningFor(g_pHyprRenderer->context().m_data.pMonitor.lock());
 }

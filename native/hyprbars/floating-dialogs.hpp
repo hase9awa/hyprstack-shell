@@ -2,8 +2,8 @@
 #pragma once
 
 #include <hyprland/src/desktop/state/WindowState.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
-#include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
+#include <hyprland/src/workspace/HLWorkspace.hpp>
 #include <hyprland/src/layout/space/Space.hpp>
 #include <hyprland/src/layout/target/WindowTarget.hpp>
 #include <algorithm>
@@ -14,7 +14,7 @@ static PHLWINDOW telegramWebviewParent(PHLWINDOW window) {
     // Telegram's WebKit helper owns a separate, parentless toplevel. Identify
     // its process argument, so ordinary chats and arbitrary bot titles stay
     // ordinary windows. PPid ties it to the correct Telegram instance.
-    const auto process = "/proc/" + std::to_string(window->getPID()) + "/";
+    const auto process = "/proc/" + std::to_string(window->backend().pid()) + "/";
     std::ifstream command(process + "cmdline", std::ios::binary);
     std::string argument;
     bool helper = false;
@@ -33,30 +33,30 @@ static PHLWINDOW telegramWebviewParent(PHLWINDOW window) {
     if (parentPID <= 1) return nullptr;
     PHLWINDOW parent;
     for (const auto& candidate : Desktop::windowState()->windows()) {
-        if (candidate == window || !candidate->m_isMapped || candidate->isHidden() ||
-            candidate->getPID() != parentPID || !candidate->m_workspace || candidate->m_workspace->m_isSpecialWorkspace)
+        if (candidate == window || !candidate->mapped() || candidate->isHidden() ||
+            candidate->backend().pid() != parentPID || !candidate->m_workspace || (candidate->m_workspace->type() == Workspace::eWorkspaceType::SPECIAL))
             continue;
-        if (!parent || (parent->m_isFloating && !candidate->m_isFloating)) parent = candidate;
+        if (!parent || (parent->isFloating() && !candidate->isFloating())) parent = candidate;
     }
     return parent;
 }
 
 static bool centerFloatingWindow(PHLWINDOW window, bool inferParent) {
-    if (!window->m_isMapped || !window->m_isFloating || window->isX11OverrideRedirect() ||
-        window->m_pinned || Fullscreen::controller()->isFullscreen(window) || !window->layoutTarget())
+    if (!window->mapped() || !window->isFloating() || window->backend().traits().overrideRedirect ||
+        (window->m_state & Desktop::View::WINDOW_STATE_PINNED) || Fullscreen::controller()->isFullscreen(window) || !window->layoutTarget())
         return false;
 
-    auto parent = window->parent();
+    auto parent = window->backend().parent();
     if (!parent && inferParent) parent = telegramWebviewParent(window);
     // Telegram's Linux auxiliary windows do not always set a transient parent.
     // Use the originating process, rather than another account on a different output.
     if (!parent && inferParent) {
         for (const auto& candidate : Desktop::windowState()->windows()) {
-            if (candidate == window || !candidate->m_isMapped || candidate->isHidden() ||
-                candidate->getPID() != window->getPID() || candidate->m_class != window->m_class ||
-                !candidate->m_workspace || candidate->m_workspace->m_isSpecialWorkspace)
+            if (candidate == window || !candidate->mapped() || candidate->isHidden() ||
+                candidate->backend().pid() != window->backend().pid() || candidate->metadata().appID() != window->metadata().appID() ||
+                !candidate->m_workspace || (candidate->m_workspace->type() == Workspace::eWorkspaceType::SPECIAL))
                 continue;
-            if (!parent || (parent->m_isFloating && !candidate->m_isFloating)) parent = candidate;
+            if (!parent || (parent->isFloating() && !candidate->isFloating())) parent = candidate;
         }
     }
     if (parent && parent->layoutTarget() && parent->m_workspace && parent->m_workspace != window->m_workspace)

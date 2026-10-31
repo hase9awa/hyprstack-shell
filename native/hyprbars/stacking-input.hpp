@@ -1,4 +1,4 @@
-// Click transactions and native drag gestures for the pinned Hyprland 0.56 API.
+// Click transactions and native drag gestures for the pinned Hyprland 0.57 API.
 #pragma once
 
 #include "titlebar-actions.hpp"
@@ -18,7 +18,7 @@ class CStackingInput {
   public:
     CStackingInput() {
         m_workspaceMove = Event::bus()->m_events.window.moveToWorkspace.listen([this](PHLWINDOW window, PHLWORKSPACE destination) {
-            if (enabled() || !validMapped(window) || window->m_isFloating || window->m_pinned || !destination || destination->m_isSpecialWorkspace) return;
+            if (enabled() || !validMapped(window) || window->isFloating() || (window->m_state & Desktop::View::WINDOW_STATE_PINNED) || !destination || (destination->type() == Workspace::eWorkspaceType::SPECIAL)) return;
             const auto target = window->layoutTarget();
             // window.layout reads the destination workspace here, but the
             // native target still belongs to its original scrolling space.
@@ -34,7 +34,7 @@ class CStackingInput {
             m_transferTimer = makeShared<CEventLoopTimer>(std::chrono::milliseconds(1), [this](SP<CEventLoopTimer>, void*) {
                 for (const auto& entry : m_transfers) {
                     const auto window = entry.window.lock();
-                    if (enabled() || !validMapped(window) || window->m_isFloating || !window->m_workspace || window->m_workspace->m_isSpecialWorkspace) continue;
+                    if (enabled() || !validMapped(window) || window->isFloating() || !window->m_workspace || (window->m_workspace->type() == Workspace::eWorkspaceType::SPECIAL)) continue;
                     const auto target = window->layoutTarget();
                     const auto space = target ? target->space() : nullptr;
                     const auto algorithm = space ? space->algorithm() : nullptr;
@@ -54,16 +54,16 @@ class CStackingInput {
         m_openEarly = Event::bus()->m_events.window.openEarly.listen([this](PHLWINDOW incoming) {
             m_openingWindow.reset();
             m_openingAnchor.reset();
-            if (enabled() || !incoming || incoming->m_isFloating || !incoming->m_workspace) return;
+            if (enabled() || !incoming || incoming->isFloating() || !incoming->m_workspace) return;
             m_openingWindow = incoming;
             const auto focused = Desktop::focusState()->window();
-            if (focused && focused != incoming && validMapped(focused) && !focused->m_isFloating &&
+            if (focused && focused != incoming && validMapped(focused) && !focused->isFloating() &&
                 focused->m_workspace == incoming->m_workspace)
                 m_openingAnchor = focused;
             for (const auto& window : Desktop::windowState()->windows())
                 if (window != incoming && window->m_workspace == incoming->m_workspace) {
-                    if (!m_openingAnchor && validMapped(window) && !window->m_isFloating &&
-                        window->visibleOnMonitor(incoming->m_monitor.lock()))
+                    if (!m_openingAnchor && validMapped(window) && !window->isFloating() &&
+                        window->presentation().visibleOnMonitor(incoming->m_monitor.lock()))
                         m_openingAnchor = window;
                     normalizeTiledMaximize(window);
                 }
@@ -73,7 +73,7 @@ class CStackingInput {
             const bool ours = m_openingWindow.lock() == incoming;
             m_openingWindow.reset();
             m_openingAnchor.reset();
-            if (!ours || enabled() || !incoming || !validMapped(incoming) || incoming->m_isFloating ||
+            if (!ours || enabled() || !incoming || !validMapped(incoming) || incoming->isFloating() ||
                 !anchor || !validMapped(anchor) || anchor->m_workspace != incoming->m_workspace ||
                 Fullscreen::controller()->getFullscreenModes(incoming).internal == Fullscreen::FSMODE_FULLSCREEN)
                 return;
@@ -86,13 +86,14 @@ class CStackingInput {
             incoming->sizeAnimation()->setValueAndWarp(incoming->sizeAnimation()->goal());
             incoming->positionAnimation()->setValueAndWarp(destination + cameraDelta);
             incoming->move(destination);
-            incoming->updateWindowDecos();
+            incoming->presentation().updateDecorations();
         });
         // Read the very same geometry as renderWindow(), for each output's
         // frame. Animation callbacks can otherwise cache an earlier tick.
-        m_render = Event::bus()->m_events.render.stage.listen([](eRenderStage stage) {
+        m_render = Event::bus()->m_events.render.stage.listen([](Event::SRenderStageEvent event) {
+            const auto stage = event.stage;
             if (stage != RENDER_PRE_WINDOW) return;
-            const auto window = g_pHyprRenderer->m_renderData.currentWindow.lock();
+            const auto window = g_pHyprRenderer->context().m_data.currentWindow.lock();
             if (!validMapped(window) || window->isHidden()) return;
             if (window->sizeAnimation()->isBeingAnimated())
                 g_pDecorationPositioner->forceRecalcFor(window);
@@ -122,7 +123,7 @@ class CStackingInput {
                 const auto drag = g_layoutManager->dragController().get();
                 const auto target = drag->target();
                 const auto window = target ? target->window() : m_dragWindow.lock();
-                if (!window || !window->m_isMapped) { HyprstackSnap::clear(); return; }
+                if (!window || !window->mapped()) { HyprstackSnap::clear(); return; }
                 const bool moved = target ? drag->dragThresholdReached() : m_dragMoved;
                 const auto mode = target ? drag->mode() : m_dragMode;
                 const auto pos = g_pInputManager->getMouseCoordsInternal();
@@ -135,7 +136,7 @@ class CStackingInput {
                 m_releaseTimer = makeShared<CEventLoopTimer>(std::chrono::milliseconds(1),
                     [this, weak = PHLWINDOWREF(window), pos, mode, snap](SP<CEventLoopTimer>, void*) {
                         const auto window = weak.lock();
-                        if (!enabled() || !window || !window->m_isMapped || g_layoutManager->dragController()->target()) return;
+                        if (!enabled() || !window || !window->mapped() || g_layoutManager->dragController()->target()) return;
                         const auto monitor = window->m_monitor.lock();
                         if (mode == MBIND_MOVE && HyprstackSnap::apply(window,snap)) return;
                         // Snap only after an actual move ends at this output's top edge.
@@ -153,7 +154,7 @@ class CStackingInput {
             const auto drag = g_layoutManager->dragController().get();
             const auto target = drag->target();
             const auto window = target ? target->window() : nullptr;
-            if (!window || !window->m_isMapped) { HyprstackSnap::clear(); return; }
+            if (!window || !window->mapped()) { HyprstackSnap::clear(); return; }
             const auto mode = drag->mode();
             if (m_dragWindow.lock() != window || m_dragMode != mode) {
                 m_dragWindow = window;
@@ -175,7 +176,7 @@ class CStackingInput {
                     if (maximized) runDecorationAction(window, "maximize-unset");
                     auto normal = window->layoutBox();
                     normal.x = pos.x - normal.w * fraction;
-                    std::string app = window->m_class;
+                    std::string app = window->metadata().appID();
                     std::ranges::transform(app, app.begin(), [](unsigned char c) { return std::tolower(c); });
                     const bool csd = app.find("thorium") != std::string::npos || app.find("chromium") != std::string::npos ||
                         app.find("chrome") != std::string::npos || app.find("telegram") != std::string::npos ||
@@ -209,7 +210,7 @@ class CStackingInput {
         const auto window = recent ? m_pressedFocus.lock() : Desktop::focusState()->window();
         m_pressValid = false;
         return window && std::format("0x{:x}", reinterpret_cast<uintptr_t>(window.get())) == address &&
-            std::format("{:x}", window->m_stableID) == id;
+            std::format("{:x}", window->metadata().stableID()) == id;
     }
 
   private:
@@ -217,10 +218,10 @@ class CStackingInput {
 
     static void suppressTelegram(PHLWINDOW window) {
         if (!window) return;
-        std::string app = window->m_class;
+        std::string app = window->metadata().appID();
         std::ranges::transform(app, app.begin(), [](unsigned char c) { return std::tolower(c); });
         if (app.find("telegram") != std::string::npos || app.find("ayugram") != std::string::npos)
-            window->m_suppressedEvents |= Desktop::View::SUPPRESS_ACTIVATE | Desktop::View::SUPPRESS_ACTIVATE_FOCUSONLY;
+            window->m_ruleApplicator->focusOnActivate() = false;
     }
 
     CHyprSignalListener m_button, m_move, m_rules, m_reload, m_render, m_openEarly, m_openLate, m_workspaceMove;

@@ -20,7 +20,7 @@ static Render::ShaderFeatureFlags colourFeatures(const NColorManagement::PImageD
                                                  PHLMONITOR monitor) {
     using namespace Render;
     if (!source->needsCM(target)) return 0;
-    const auto settings = g_pHyprRenderer->getCMSettings(source, target, nullptr, true,
+    const auto settings = g_pHyprRenderer->getCMSettings(g_pHyprRenderer->context(), source, target, nullptr, true,
         monitor->m_sdrMinLuminance, monitor->m_sdrMaxLuminance);
     ShaderFeatureFlags flags = SH_FEAT_CM;
     if (target->value().icc.present) flags |= SH_FEAT_ICC;
@@ -36,13 +36,14 @@ static Render::ShaderFeatureFlags colourFeatures(const NColorManagement::PImageD
 
 static void install() {
     prepared.clear();
-    listener = Event::bus()->m_events.render.stage.listen([](eRenderStage stage) {
+    listener = Event::bus()->m_events.render.stage.listen([](Event::SRenderStageEvent event) {
+            const auto stage = event.stage;
         using namespace Render;
         const auto& gl = GL::g_pHyprOpenGL;
-        const auto& data = g_pHyprRenderer->m_renderData;
+        const auto& data = g_pHyprRenderer->context().m_data;
         const auto monitor = data.pMonitor.lock();
         if (stage != RENDER_BEGIN || !gl || !gl->m_shadersInitialized || !monitor || prepared.contains(monitor->m_id)) return;
-        const auto work = g_pHyprRenderer->workBufferImageDescription();
+        const auto work = g_pHyprRenderer->workBufferImageDescription(g_pHyprRenderer->context());
         if (!work || !data.currentFB) return;
         prepared.insert(monitor->m_id);
         gl->makeEGLCurrent();

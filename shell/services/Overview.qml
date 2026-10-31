@@ -4,6 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import Hyprstack
+import Hyprstack.I18n
 import qs.components.misc
 import qs.services
 import "OverviewLayout.js" as Layout
@@ -135,7 +137,17 @@ Singleton {
                 if (!root.active || query.generation !== root.generation)
                     return;
                 try {
-                    const state = JSON.parse(text.trim());
+                    const response = text.trim();
+                    if (!response.startsWith("{"))
+                        throw new Error(response || "No response from Hyprland");
+                    const state = JSON.parse(response);
+                    if (state.error) {
+                        root.error = state.error;
+                        console.warn("Overview:", state.error);
+                        Toaster.toast(Tr.tr("Native module unavailable"), Tr.tr("Rebuild Hyprstack for the running Hyprland and log in again."), "error");
+                        root.close(false);
+                        return;
+                    }
                     if (!state.monitor || (root.nativeStarted && !state.renderer?.active)) {
                         root.close(false);
                         return;

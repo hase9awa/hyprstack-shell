@@ -4,7 +4,7 @@
 
 #include <any>
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <hyprland/src/config/shared/parserUtils/ParserUtils.hpp>
@@ -15,7 +15,6 @@
 #include <hyprland/src/config/lua/types/LuaConfigColor.hpp>
 #include <hyprland/src/state/MonitorState.hpp>
 
-#include <hyprutils/string/VarList.hpp>
 
 #include <algorithm>
 
@@ -53,11 +52,11 @@ static bool superHeld() { return superPressedKeys.contains(125) || superPressedK
 static int soloSuperLua(lua_State* L) { lua_pushboolean(L, !superUsed); return 1; }
 
 static void onNewWindow(PHLWINDOW window) {
-    if (!window->m_X11DoesntWantBorders) {
-        if (std::ranges::any_of(window->m_windowDecorations, [](const auto& d) { return d->getDisplayName() == "Hyprbar"; }))
+    if (!window->backend().traits().suggestsNoBorder) {
+        if (std::ranges::any_of(window->presentation().decorations(), [](const auto& d) { return d->getDisplayName() == "Hyprbar"; }))
             return;
 
-        auto bar = makeUnique<CHyprBar>(window);
+        auto bar = makeShared<CHyprBar>(window);
         g_pGlobalState->bars.emplace_back(bar);
         bar->m_self = bar;
         HyprlandAPI::addWindowDecoration(PHANDLE, window, std::move(bar));
@@ -84,56 +83,7 @@ static void onUpdateWindowRules(PHLWINDOW window) {
         return;
 
     (*BARIT)->updateRules();
-    window->updateWindowDecos();
-}
-
-Hyprlang::CParseResult onNewButton(const char* K, const char* V) {
-    std::string                 v = V;
-    Hyprutils::String::CVarList vars(v);
-
-    Hyprlang::CParseResult      result;
-
-    // hyprbars-button = bgcolor, size, icon, action, fgcolor
-
-    if (vars[0].empty() || vars[1].empty()) {
-        result.setError("bgcolor and size cannot be empty");
-        return result;
-    }
-
-    float size = 10;
-    try {
-        size = std::stof(vars[1]);
-    } catch (std::exception& e) {
-        result.setError("failed to parse size");
-        return result;
-    }
-
-    bool userfg  = false;
-    auto fgcolor = Config::ParserUtils::parseColor("rgb(ffffff)");
-    auto bgcolor = Config::ParserUtils::parseColor(vars[0]);
-
-    if (!bgcolor) {
-        result.setError("invalid bgcolor");
-        return result;
-    }
-
-    if (vars.size() == 5) {
-        userfg  = true;
-        fgcolor = Config::ParserUtils::parseColor(vars[4]);
-    }
-
-    if (!fgcolor) {
-        result.setError("invalid fgcolor");
-        return result;
-    }
-
-    g_pGlobalState->buttons.push_back(SHyprButton{vars[3], userfg, *fgcolor, *bgcolor, size, vars[2]});
-
-    for (auto& b : g_pGlobalState->bars) {
-        b->m_bButtonsDirty = true;
-    }
-
-    return result;
+    window->presentation().updateDecorations();
 }
 
 // HYPRSTACK_TASK_TRANSFORMER: client geometry is never part of a task animation.
@@ -142,8 +92,8 @@ int animateLuaWindow(lua_State* L) {
     const std::string address = luaL_checkstring(L, 1), id = luaL_checkstring(L, 2), operation = luaL_checkstring(L, 3);
     PHLWINDOW window;
     for (const auto& w : Desktop::windowState()->windows()) {
-        if (w->m_isMapped && std::format("0x{:x}", reinterpret_cast<uintptr_t>(w.get())) == address &&
-            std::format("{:x}", w->m_stableID) == id) { window = w; break; }
+        if (w->mapped() && std::format("0x{:x}", reinterpret_cast<uintptr_t>(w.get())) == address &&
+            std::format("{:x}", w->metadata().stableID()) == id) { window = w; break; }
     }
     if (!window) { lua_pushboolean(L, false); return 1; }
     if (operation == "telegram-webview-parent") {
@@ -174,7 +124,7 @@ int animateLuaWindow(lua_State* L) {
         return 0;
     }
     if (operation == "clear-maximize-echo") {
-        window->m_suppressNextMaximize = false;
+        window->fullscreenPolicy().clearExpectedMaximizeEcho();
         return 0;
     }
     if (operation == "busy") {
@@ -183,8 +133,8 @@ int animateLuaWindow(lua_State* L) {
         return 1;
     }
     if (operation == "workspace-opacity") {
-        window->alpha(Desktop::View::WINDOW_ALPHA_MOVE_TO_WORKSPACE)->setValueAndWarp(1.F);
-        window->alpha(Desktop::View::WINDOW_ALPHA_MOVE_FROM_WORKSPACE)->setValueAndWarp(1.F);
+        window->presentation().alpha(Desktop::View::WINDOW_ALPHA_MOVE_TO_WORKSPACE)->setValueAndWarp(1.F);
+        window->presentation().alpha(Desktop::View::WINDOW_ALPHA_MOVE_FROM_WORKSPACE)->setValueAndWarp(1.F);
         return 0;
     }
     if (operation == "clear") { CTaskAnimation::clear(window); return 0; }
@@ -204,9 +154,9 @@ int animateLuaWindow(lua_State* L) {
     const CBox current = previous ? previous->current() : window->getFullWindowBoundingBox();
     CTaskAnimation::clear(window);
     if (operation == "from") {
-        window->m_transformers.emplace_back(makeUnique<CTaskAnimation>(window, reversing ? current : target, window->getFullWindowBoundingBox(), panelTop));
+        window->effects().transformers()->emplace<CTaskAnimation>(window, reversing ? current : target, window->getFullWindowBoundingBox(), panelTop);
     } else if (operation == "to") {
-        window->m_transformers.emplace_back(makeUnique<CTaskAnimation>(window, current, target, panelTop));
+        window->effects().transformers()->emplace<CTaskAnimation>(window, current, target, panelTop);
     } else if (operation == "reset") {
         window->positionAnimation()->setValueAndWarp(pos);
         window->sizeAnimation()->setValueAndWarp(size);
@@ -367,16 +317,12 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.onMaximize);
     HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.onDoubleClick);
 
-    if (Config::mgr()->type() == Config::CONFIG_LEGACY)
-        HyprlandAPI::addConfigKeyword(PHANDLE, "plugin:hyprbars:hyprbars-button", onNewButton, Hyprlang::SHandlerOptions{});
-    else {
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "add_button", ::newLuaButton);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "clear_buttons", ::clearLuaButtons);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "animate_window", ::animateLuaWindow);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "solo_super", ::soloSuperLua);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "clear_focus", ::clearFocusLua);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "task_focused", ::taskFocusedLua);
-    }
     static auto superKey = Event::bus()->m_events.input.keyboard.key.listen([](IKeyboard::SKeyEvent event, Event::SCallbackInfo&) {
         if (event.state == WL_KEYBOARD_KEY_STATE_PRESSED) {
             if (event.keycode == 125 || event.keycode == 126) superUsed = !superPressedKeys.empty();
@@ -401,7 +347,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // add deco to existing windows
     for (auto& w : Desktop::windowState()->windows()) {
-        if (w->isHidden() || !w->m_isMapped)
+        if (w->isHidden() || !w->mapped())
             continue;
 
         onNewWindow(w);
@@ -409,7 +355,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::reloadConfig();
 
-    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.2.2"};
+    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.3.0"};
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {
@@ -425,7 +371,7 @@ APICALL EXPORT void PLUGIN_EXIT() {
     for (auto& m : State::monitorState()->monitors())
         m->m_scheduledRecalc = true;
 
-    g_pHyprRenderer->m_renderPass.removeAllOfType("CBarPassElement");
+    g_pHyprRenderer->context().m_pass.removeAllOfType("CBarPassElement");
 
     Desktop::Rule::windowEffects()->unregisterEffect(g_pGlobalState->barColorRuleIdx);
     Desktop::Rule::windowEffects()->unregisterEffect(g_pGlobalState->titleColorRuleIdx);

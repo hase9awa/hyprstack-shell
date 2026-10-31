@@ -26,8 +26,8 @@ static std::string withoutSilent(std::string value) {
 }
 
 static std::optional<Vector2D> tileSize(PHLWINDOW window) {
-    if (!window || !g_pGlobalState || g_pGlobalState->config.enabled->value() || window->m_isMapped || window->m_isFloating ||
-        window->m_ruleApplicator->static_.floating.value_or(false) || window->parent() || g_pXWaylandManager->shouldBeFloated(window, true))
+    if (!window || !g_pGlobalState || g_pGlobalState->config.enabled->value() || window->mapped() || window->isFloating() ||
+        window->m_ruleApplicator->static_.floating.value_or(false) || window->backend().parent() || window->suggestsFloat(true))
         return std::nullopt;
 
     const auto& rules = window->m_ruleApplicator->static_;
@@ -39,14 +39,14 @@ static std::optional<Vector2D> tileSize(PHLWINDOW window) {
     if (!monitor) return std::nullopt;
     auto workspace = monitor->m_activeWorkspace;
     if (!rules.workspace.empty()) {
-        const auto selected = State::workspaceState()->query().string(withoutSilent(rules.workspace)).run();
+        const auto selected = State::workspaceState()->query().input(withoutSilent(rules.workspace)).run();
         if (selected) {
             workspace = selected;
             if (selected->m_monitor) monitor = selected->m_monitor.lock();
         }
     }
-    if (!workspace || !workspace->m_space) return std::nullopt;
-    const auto algorithm = workspace->m_space->algorithm();
+    if (!workspace || !workspace->space()) return std::nullopt;
+    const auto algorithm = workspace->space()->algorithm();
     const auto scrolling = algorithm ? dynamic_cast<Layout::Tiled::CScrollingAlgorithm*>(algorithm->tiledAlgo().get()) : nullptr;
     if (!scrolling) return std::nullopt;
 
@@ -63,7 +63,7 @@ static std::optional<Vector2D> tileSize(PHLWINDOW window) {
     // or at the end when focus belongs to another workspace.
     size_t columns = 0, insertion = 0;
     const auto focused = Desktop::focusState()->window();
-    for (const auto& target : workspace->m_space->targets()) {
+    for (const auto& target : workspace->space()->targets()) {
         const auto data = target ? scrolling->dataFor(target.lock(), true) : nullptr;
         const auto column = data ? data->column.lock() : nullptr;
         const auto tape = column ? column->scrollingData.lock() : nullptr;
@@ -82,14 +82,14 @@ static std::optional<Vector2D> tileSize(PHLWINDOW window) {
     if (reversed) std::swap(before, after);
     static const auto gapsValue = CConfigValue<Config::IComplexConfigValue>("general:gaps_in");
     const auto gaps = workspaceRule && workspaceRule->m_gapsIn ? *workspaceRule->m_gapsIn : *static_cast<Config::CCssGapData*>(gapsValue.ptr());
-    Vector2D size = workspace->m_space->workArea().size();
+    Vector2D size = workspace->space()->workArea().size();
     static const auto fullscreenOnOne = CConfigValue<Config::INTEGER>("scrolling:fullscreen_on_one_column");
     const double fraction = !columns && *fullscreenOnOne ? 1.0 : width;
     if (horizontal) size.x = size.x * fraction - (before ? gaps.m_left : 0) - (after ? gaps.m_right : 0);
     else size.y = size.y * fraction - (before ? gaps.m_top : 0) - (after ? gaps.m_bottom : 0);
-    const double border = window->getRealBorderSize();
+    const double border = window->presentation().borderSize();
     size -= Vector2D{2 * border, 2 * border};
-    if (workspace->m_isSpecialWorkspace) {
+    if ((workspace->type() == Workspace::eWorkspaceType::SPECIAL)) {
         static const auto scale = CConfigValue<Config::FLOAT>("dwindle:special_scale_factor");
         size = size * *scale;
     }

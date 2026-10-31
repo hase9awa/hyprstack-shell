@@ -3,7 +3,7 @@
 # This file is distributed under the same license as Hyprstack.
 msgid ""
 msgstr ""
-"Project-Id-Version: hyprstack-shell 1.2.2\n"
+"Project-Id-Version: hyprstack-shell 1.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-10 00:00+0400\n"
 "PO-Revision-Date: 2026-10-10 00:00+0400\n"
@@ -5742,3 +5742,120 @@ msgstr "Размер загрузки слишком велик"
 #. VPN controls
 msgid "Install the VPN core using your package manager"
 msgstr "Установите сетевое ядро VPN через менеджер пакетов"
+
+msgid "Kawase"
+msgstr "Кавасэ"
+
+msgid "Frosted glass"
+msgstr "Матовое стекло"
+
+msgid "Ripples"
+msgstr "Круги на воде"
+
+msgid "Drops"
+msgstr "Капли"
+
+msgid "Water"
+msgstr "Вода"
+
+msgid "Fluid jar"
+msgstr "Жидкость в сосуде"
+
+msgid "Prism"
+msgstr "Призма"
+
+msgid "Heat shimmer"
+msgstr "Тепловая рябь"
+
+msgid "Acrylic"
+msgstr "Акрил"
+
+msgid "Aurora"
+msgstr "Северное сияние"
+
+msgid "Haze"
+msgstr "Дымка"
+
+msgid "Background blur"
+msgstr "Размытие фона"
+
+msgid "Blur effect"
+msgstr "Эффект размытия"
+
+msgid "Visible behind translucent windows and panels; animated effects use more GPU"
+msgstr "Виден за полупрозрачными окнами и панелями; анимированные эффекты сильнее нагружают GPU"
+
+msgid "Blur size"
+msgstr "Размер размытия"
+
+msgid "Blur passes"
+msgstr "Проходы размытия"
+
+msgid "Proportional blur"
+msgstr "Пропорциональное размытие"
+
+msgid "Adjust blur strength to each pixel's opacity"
+msgstr "Сила размытия зависит от непрозрачности каждого пикселя"
+
+msgid "Window wobble"
+msgstr "Колебания окон"
+
+msgid "Wobbly windows"
+msgstr "Упругие окна"
+
+msgid "Elastic deformation when moving or resizing windows"
+msgstr "Упругие деформации при перемещении и изменении размера окон"
+
+msgid "Wobble intensity"
+msgstr "Сила колебаний"
+
+msgid "Spring stiffness"
+msgstr "Жёсткость пружины"
+
+msgid "Higher values pull the window back into shape faster"
+msgstr "Чем выше значение, тем быстрее окно возвращает свою форму"
+
+msgid "Spring damping"
+msgstr "Затухание пружины"
+
+msgid "Higher values make oscillations settle sooner"
+msgstr "Чем выше значение, тем быстрее затухают колебания"
+
+msgid "Window glow"
+msgstr "Свечение окон"
+
+msgid "Inner glow"
+msgstr "Внутреннее свечение"
+
+msgid "Light along the window edges in the current accent colour"
+msgstr "Свечение краёв окна акцентным цветом текущей темы"
+
+msgid "Glow size"
+msgstr "Размер свечения"
+
+msgid "Glow intensity"
+msgstr "Яркость свечения"
+
+msgid "Motion blur"
+msgstr "Размытие движения"
+
+msgid "Window motion blur"
+msgstr "Размытие движения окон"
+
+msgid "Blur trails when moving or resizing windows"
+msgstr "Шлейф при перемещении и изменении размера окон"
+
+msgid "Motion blur samples"
+msgstr "Число образцов размытия движения"
+
+msgid "Native module unavailable"
+msgstr "Нативный модуль недоступен"
+
+msgid "Rebuild Hyprstack for the running Hyprland and log in again."
+msgstr "Пересоберите Hyprstack для установленной версии Hyprland и войдите в сеанс заново."
+
+msgid "Native plugin loaded"
+msgstr "Нативный модуль загружен"
+
+msgid "Rebuild Hyprstack for the running Hyprland and log in again"
+msgstr "Пересоберите Hyprstack для установленной версии Hyprland и войдите в сеанс заново"

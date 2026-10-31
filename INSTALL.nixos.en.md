@@ -3,7 +3,7 @@
 # Installing Hyprstack on NixOS
 
 Requires a NixOS configuration using flakes. Hyprstack uses matching
-**Hyprland 0.56.2**, **Quickshell ≥ 0.3.1** and **Qt ≥ 6.9** from the project's
+**Hyprland 0.57.0**, **Quickshell ≥ 0.3.1** and **Qt ≥ 6.9** from the project's
 inputs. No manual CMake build or copying user service files is needed.
 
 Prepare your configuration in your current desktop while this guide is available.

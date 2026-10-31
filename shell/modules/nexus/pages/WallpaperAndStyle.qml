@@ -16,6 +16,21 @@ PageBase {
 
     title: Tr.tr("Wallpaper & style")
 
+    readonly property list<MenuItem> blurVariants: [
+        MenuItem { text: Tr.tr("Kawase"); value: 0 },
+        MenuItem { text: Tr.tr("Frosted glass"); value: 1 },
+        MenuItem { text: Tr.tr("Ripples"); value: 2 },
+        MenuItem { text: Tr.tr("Drops"); value: 3 },
+        MenuItem { text: Tr.tr("Water"); value: 4 },
+        MenuItem { text: Tr.tr("Fluid jar"); value: 5 },
+        MenuItem { text: Tr.tr("Prism"); value: 6 },
+        MenuItem { text: Tr.tr("Heat shimmer"); value: 7 },
+        MenuItem { text: Tr.tr("Acrylic"); value: 8 },
+        MenuItem { text: Tr.tr("Aurora"); value: 9 },
+        MenuItem { text: Tr.tr("Haze"); value: 10 }
+    ]
+
+
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -327,6 +342,156 @@ PageBase {
             from: 0
             to: 100
             onMoved: v => Tiling.set("gapsOut", v)
+        }
+
+        SectionHeader { text: Tr.tr("Background blur") }
+
+        SelectRow {
+            first: true
+            objectName: "appearanceBlurVariant"
+            label: Tr.tr("Blur effect")
+            subtext: Tr.tr("Visible behind translucent windows and panels; animated effects use more GPU")
+            menuItems: root.blurVariants
+            active: root.blurVariants[Effects.blurVariant]
+            enabled: Effects.blurEnabled
+            onSelected: item => Effects.set("blurVariant", item.value)
+        }
+
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceBlurSize"
+            label: Tr.tr("Blur size")
+            value: Effects.blurSize
+            from: 0
+            to: 100
+            enabled: Effects.blurEnabled
+            onMoved: v => Effects.set("blurSize", v)
+        }
+
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceBlurPasses"
+            label: Tr.tr("Blur passes")
+            value: Effects.blurPasses
+            from: 1
+            to: 10
+            enabled: Effects.blurEnabled
+            onMoved: v => Effects.set("blurPasses", v)
+        }
+
+        ToggleRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            last: true
+            objectName: "appearanceProportionalBlur"
+            text: Tr.tr("Proportional blur")
+            subtext: Tr.tr("Adjust blur strength to each pixel's opacity")
+            checked: Effects.proportionalBlur
+            enabled: Effects.blurEnabled
+            onToggled: Effects.set("proportionalBlur", checked)
+        }
+
+        SectionHeader { text: Tr.tr("Window wobble") }
+
+        ToggleRow {
+            first: true
+            objectName: "appearanceWindowWobble"
+            text: Tr.tr("Wobbly windows")
+            subtext: Tr.tr("Elastic deformation when moving or resizing windows")
+            checked: Effects.windowWobble
+            onToggled: Effects.set("windowWobble", checked)
+        }
+
+        SliderRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceWobbleIntensity"
+            icon: "waves"
+            label: Tr.tr("Wobble intensity")
+            valueLabel: `${Math.round(value * 200)}%`
+            value: Effects.wobbleIntensity / 2
+            enabled: Effects.windowWobble
+            onMoved: v => Effects.set("wobbleIntensity", v * 2)
+        }
+
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceWobbleStiffness"
+            label: Tr.tr("Spring stiffness")
+            subtext: Tr.tr("Higher values pull the window back into shape faster")
+            value: Effects.wobbleStiffness
+            from: 1
+            to: 1000
+            enabled: Effects.windowWobble
+            onMoved: v => Effects.set("wobbleStiffness", v)
+        }
+
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            last: true
+            objectName: "appearanceWobbleDamping"
+            label: Tr.tr("Spring damping")
+            subtext: Tr.tr("Higher values make oscillations settle sooner")
+            value: Effects.wobbleDamping
+            from: 0
+            to: 100
+            enabled: Effects.windowWobble
+            onMoved: v => Effects.set("wobbleDamping", v)
+        }
+
+        SectionHeader { text: Tr.tr("Window glow") }
+
+        ToggleRow {
+            first: true
+            objectName: "appearanceWindowGlow"
+            text: Tr.tr("Inner glow")
+            subtext: Tr.tr("Light along the window edges in the current accent colour")
+            checked: Effects.windowGlow
+            onToggled: Effects.set("windowGlow", checked)
+        }
+
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceGlowSize"
+            label: Tr.tr("Glow size")
+            value: Effects.glowSize
+            from: 0
+            to: 100
+            enabled: Effects.windowGlow
+            onMoved: v => Effects.set("glowSize", v)
+        }
+
+        SliderRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            last: true
+            objectName: "appearanceGlowOpacity"
+            icon: "flare"
+            label: Tr.tr("Glow intensity")
+            valueLabel: `${Math.round(value * 100)}%`
+            value: Effects.glowOpacity
+            enabled: Effects.windowGlow
+            onMoved: v => Effects.set("glowOpacity", v)
+        }
+
+        SectionHeader { text: Tr.tr("Motion blur") }
+
+        ToggleRow {
+            first: true
+            objectName: "appearanceMotionBlur"
+            text: Tr.tr("Window motion blur")
+            subtext: Tr.tr("Blur trails when moving or resizing windows")
+            checked: Effects.motionBlur
+            onToggled: Effects.set("motionBlur", checked)
+        }
+
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            last: true
+            objectName: "appearanceMotionBlurSamples"
+            label: Tr.tr("Motion blur samples")
+            value: Effects.motionBlurSamples
+            from: 1
+            to: 64
+            enabled: Effects.motionBlur
+            onMoved: v => Effects.set("motionBlurSamples", v)
         }
 
         SectionHeader { text: Tr.tr("Shadows") }

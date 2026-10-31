@@ -27,7 +27,7 @@ def checks():
     version_text = capture(["Hyprland", "--version-json"])
     try: version = json.loads(version_text or "{}")
     except ValueError: version = {}
-    result = [{"check": "Hyprland 0.56.2", "ok": version.get("version") == "0.56.2", "value": version.get("version", "missing")}]
+    result = [{"check": "Hyprland 0.57.0", "ok": version.get("version") == "0.57.0", "value": version.get("version", "missing")}]
     qs = capture(["qs", "--version"]) or ""
     match = re.search(r"Quickshell (\d+)\.(\d+)\.(\d+)", qs)
     result.append({"check": "Quickshell >= 0.3.1", "ok": bool(match and tuple(map(int, match.groups())) >= (0, 3, 1)), "value": qs or "missing"})
@@ -56,6 +56,13 @@ def checks():
         try: running = json.loads(text or "{}")
         except ValueError: running = {}
         result.append({"check": "Installed/running Hyprland ABI", "ok": bool(version.get("abiHash") and running.get("abiHash") == version["abiHash"]), "value": running.get("abiHash", "missing")})
+        try:
+            plugins = json.loads(capture(["hyprctl", "-j", "plugin", "list"]) or "[]")
+        except ValueError:
+            plugins = []
+        loaded = any(plugin.get("name") == "hyprstack-hyprbars" for plugin in plugins if isinstance(plugin, dict))
+        result.append({"check": "Native plugin loaded", "ok": loaded,
+                       "value": "hyprstack-hyprbars" if loaded else "Rebuild Hyprstack for the running Hyprland and log in again"})
         errors = capture(["hyprctl", "configerrors"])
         result.append({"check": "Hyprland configuration", "ok": errors in ("", "ok"), "value": errors or ""})
     return result

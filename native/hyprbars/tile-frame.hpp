@@ -4,7 +4,7 @@
 #include <hyprland/src/plugins/HookSystem.hpp>
 #include <hyprland/src/render/ElementRenderer.hpp>
 #include <hyprland/src/render/Renderer.hpp>
-#include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/workspace/HLWorkspace.hpp>
 #include <hyprland/src/layout/space/Space.hpp>
 #include <hyprland/src/layout/LayoutManager.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
@@ -18,20 +18,20 @@ bool hyprstackOverviewRendering();
 namespace HyprstackTileFrame {
 static std::map<std::string, double> radii;
 static CFunctionHook* borderHook = nullptr;
-using BorderDraw = void (*)(void*, WP<CBorderPassElement>, const CRegion&);
+using BorderDraw = void (*)(void*, Render::CRenderContext&, WP<CBorderPassElement>, const CRegion&);
 
-static void drawBorder(void* renderer, WP<CBorderPassElement> element, const CRegion& damage) {
+static void drawBorder(void* renderer, Render::CRenderContext& ctx, WP<CBorderPassElement> element, const CRegion& damage) {
     const auto original = reinterpret_cast<BorderDraw>(borderHook->m_original);
     const auto window = element ? element->m_data.window.lock() : nullptr;
-    const auto monitor = g_pHyprRenderer->m_renderData.pMonitor.lock();
-    if (!window || !monitor || !window->m_isMapped || window->m_isFloating || window->m_pinned ||
-        !window->m_workspace || !window->m_workspace->m_space || window->m_workspace->m_isSpecialWorkspace ||
+    const auto monitor = g_pHyprRenderer->context().m_data.pMonitor.lock();
+    if (!window || !monitor || !window->mapped() || window->isFloating() || (window->m_state & Desktop::View::WINDOW_STATE_PINNED) ||
+        !window->m_workspace || !window->m_workspace->space() || (window->m_workspace->type() == Workspace::eWorkspaceType::SPECIAL) ||
         !radii.contains(monitor->m_name) || radii.at(monitor->m_name) <= 0 || hyprstackOverviewRendering() ||
         Fullscreen::controller()->getFullscreenModes(window).internal != Fullscreen::FSMODE_NONE) {
-        original(renderer, element, damage); return;
+        original(renderer, ctx, element, damage); return;
     }
-    const auto area = window->m_workspace->m_space->workArea();
-    const double border = window->getRealBorderSize();
+    const auto area = window->m_workspace->space()->workArea();
+    const double border = window->presentation().borderSize();
     const CBox outer{window->positionAnimation()->goal()-Vector2D{border,border},
         window->sizeAnimation()->goal()+Vector2D{2*border,2*border}};
     const bool left = std::abs(outer.x-area.x) <= 1, right = std::abs(outer.x+outer.w-area.x-area.w) <= 1;
@@ -41,9 +41,9 @@ static void drawBorder(void* renderer, WP<CBorderPassElement> element, const CRe
         auto data=element->m_data;
         data.round=data.outerRound=0;
         const auto part=makeShared<CBorderPassElement>(data);
-        original(renderer, part, damage); return;
+        original(renderer, ctx, part, damage); return;
     }
-    auto& render = g_pHyprRenderer->m_renderData;
+    auto& render = g_pHyprRenderer->context().m_data;
     const auto savedDamage = render.damage.copy();
     auto bounds = element->m_data.box.copy().expand(std::round(border*monitor->m_scale));
     render.renderModif.applyToBox(bounds);
@@ -63,7 +63,7 @@ static void drawBorder(void* renderer, WP<CBorderPassElement> element, const CRe
         data.outerRound = corners[i] ? radius : 0;
         data.roundingPower = 2.F;
         const auto part = makeShared<CBorderPassElement>(data);
-        original(renderer, part, damage);
+        original(renderer, ctx, part, damage);
     }
     render.damage = savedDamage;
 }
@@ -81,7 +81,7 @@ static int luaFrame(lua_State* L) {
         for (const auto& output : State::monitorState()->monitors())
             g_layoutManager->recalculateMonitor(output);
         for (const auto& window : Desktop::windowState()->windows()) {
-            if (!window->m_isMapped || window->m_isFloating || window->isHidden()) continue;
+            if (!window->mapped() || window->isFloating() || window->isHidden()) continue;
             window->positionAnimation()->warp();
             window->sizeAnimation()->warp();
             window->sendWindowSize(true);

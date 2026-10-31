@@ -1,7 +1,7 @@
 {
   description = "Hyprstack shell and matching Hyprland integration";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/55bfb4d7437bd4e09ab7cba58a43bd68eb310044";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/1c89083e451e891152365b799595cf7790a43325";
 
   outputs = { self, nixpkgs }:
     let

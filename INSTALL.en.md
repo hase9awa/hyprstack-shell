@@ -5,8 +5,10 @@
 <a id="arch"></a>
 
 Arch Linux, CachyOS, EndeavourOS and Manjaro with systemd.
-Requires **Hyprland 0.56.2** with matching headers, **Quickshell ≥ 0.3.1**
+Requires **Hyprland 0.57.0** with matching headers, **Quickshell ≥ 0.3.1**
 with Hyprland/PAM/Polkit, and **Qt ≥ 6.9**. CMake checks the ABI during the build.
+
+The native module targets exactly 0.57.0. After upgrading from 0.56, rebuild Hyprstack and log out and back in; restarting only the shell does not replace the compositor.
 
 **Commands assume Bash** — run `bash` first if you use Fish/Zsh.
 For an existing installation, use the [update procedure](MAINTENANCE.md#обновление).

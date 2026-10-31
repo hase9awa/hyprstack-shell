@@ -5,7 +5,7 @@
 #include <hyprland/src/desktop/state/ViewState.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
 #include <hyprland/src/layout/algorithm/tiled/scrolling/ScrollingAlgorithm.hpp>
-#include <hyprland/src/managers/EventManager.hpp>
+#include <hyprland/src/ipc/s2/S2.hpp>
 #include <hyprland/src/managers/SeatManager.hpp>
 #include <hyprland/src/managers/SessionLockManager.hpp>
 #include <array>
@@ -46,7 +46,8 @@ class Controller {
                 m_pressed = true; m_pressedWindow = m_window; info.cancelled = true;
             } else clear();
         });
-        m_render = Event::bus()->m_events.render.stage.listen([this](eRenderStage stage) {
+        m_render = Event::bus()->m_events.render.stage.listen([this](Event::SRenderStageEvent event) {
+            const auto stage = event.stage;
             if (stage != RENDER_POST_WINDOWS || !m_window) return;
             const auto monitor = m_monitor.lock();
             if (!valid(m_window.lock(), monitor) || blocked(monitor,m_box) || overPanel(monitor,m_box.middle())) clear(true);
@@ -89,20 +90,20 @@ class Controller {
     }
 
   private:
-    void publish() const { if (g_pEventManager) g_pEventManager->postEvent({"hyprstack_tiling_hover",status().dump()}); }
+    void publish() const { if (IPC::Socket2::sock()) IPC::Socket2::sock()->postEvent({"hyprstack_tiling_hover",status().dump()}); }
     bool available(PHLMONITOR monitor) const {
         if (m_focusOnHover || !monitor || !m_shells.contains(monitor->m_name) ||
             g_pSessionLockManager->isSessionLocked() || g_pInputManager->isConstrained() ||
             g_layoutManager->dragController()->target() || !g_pInputManager->m_currentlyHeldButtons.empty() ||
             monitor->m_activeSpecialWorkspace || (HyprstackOverview::scene && HyprstackOverview::scene->runningFor(monitor))) return false;
         const auto keyboard = g_pSeatManager->m_keyboard.lock();
-        if (keyboard && (keyboard->getModifiers() & (HL_MODIFIER_SHIFT|HL_MODIFIER_CTRL|HL_MODIFIER_ALT|HL_MODIFIER_META))) return false;
+        if (keyboard && (keyboard->getModifiers() & (Input::HL_MODIFIER_SHIFT|Input::HL_MODIFIER_CTRL|Input::HL_MODIFIER_ALT|Input::HL_MODIFIER_META))) return false;
         return monitor->m_activeWorkspace && !Fullscreen::controller()->hasFullscreen(monitor->m_activeWorkspace);
     }
     static SP<Layout::Tiled::SScrollingTargetData> dataFor(PHLWINDOW window) {
-        if (!window || !window->m_isMapped || window->isHidden() || window->m_isFloating || !window->m_workspace ||
-            !window->m_workspace->m_space || !window->layoutTarget()) return nullptr;
-        const auto algorithm = window->m_workspace->m_space->algorithm();
+        if (!window || !window->mapped() || window->isHidden() || window->isFloating() || !window->m_workspace ||
+            !window->m_workspace->space() || !window->layoutTarget()) return nullptr;
+        const auto algorithm = window->m_workspace->space()->algorithm();
         const auto scrolling = algorithm ? dynamic_cast<Layout::Tiled::CScrollingAlgorithm*>(algorithm->tiledAlgo().get()) : nullptr;
         return scrolling ? scrolling->dataFor(window->layoutTarget(),true) : nullptr;
     }
@@ -117,7 +118,7 @@ class Controller {
     static Side sideFor(PHLWINDOW window) {
         const auto data = dataFor(window);
         const auto tape = data->column->scrollingData.lock();
-        const auto area = window->m_workspace->m_space->workArea();
+        const auto area = window->m_workspace->space()->workArea();
         const auto box = window->layoutBox();
         if (tape->controller->isPrimaryHorizontal()) return box.middle().x < area.middle().x ? LEFT : RIGHT;
         return box.middle().y < area.middle().y ? TOP : BOTTOM;
@@ -175,7 +176,7 @@ class Controller {
         }
         const auto hit = Desktop::viewState()->hitTest().windowAt(point,
             Desktop::View::ALLOW_FLOATING | Desktop::View::RESERVED_EXTENTS | Desktop::View::INPUT_EXTENTS);
-        if (hit && (hit->m_isFloating || hit->hasPopupAt(point))) { clear(); return; }
+        if (hit && (hit->isFloating() || hit->hasPopupAt(point))) { clear(); return; }
         PHLWINDOW target = valid(hit,monitor) ? hit : nullptr;
         if (!target) {
             const auto area = monitor->logicalBox();

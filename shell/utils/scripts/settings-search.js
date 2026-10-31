@@ -2,24 +2,6 @@
 
 // Static metadata: searching never creates hidden pages or starts their services.
 var catalogue = [
-  {"page": 4, "subpages": [2, 6], "path": ["Panels", "Taskbar", "Workspaces"], "label": "Second monitor overlay with Super+S", "context": "", "target": "workspaceSecondaryOnSpecial", "match": "Second monitor overlay with Super+S", "keywords": "Super Win S второй монитор выключен отключён рабочие столы пространства наложение поверх"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Synchronize application colours", "context": "", "target": "themeSyncEnabled", "match": "Synchronize application colours", "keywords": "GTK Qt Java приложения синхронизация тема цвета"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "System colour preference", "context": "", "target": "themeSyncSystem", "match": "System colour preference", "keywords": "system dark light системная светлая тёмная тема"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "GTK 2 / 3 / 4 · libadwaita", "context": "", "target": "themeSyncGtk", "match": "GTK 2 / 3 / 4 · libadwaita", "keywords": "GTK libadwaita цвета приложений"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Qt 5 / 6 · KDE", "context": "", "target": "themeSyncQt", "match": "Qt 5 / 6 · KDE", "keywords": "Qt KDE qt5ct qt6ct цвета приложений"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Java · Swing", "context": "", "target": "themeSyncJava", "match": "Java · Swing", "keywords": "Java Swing GTK цвета приложений"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Synchronize terminal colours", "context": "", "target": "themeSyncTerminals", "match": "Synchronize terminal colours", "keywords": "терминал цвета синхронизация ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Update running terminals", "context": "", "target": "themeSyncLiveReload", "match": "Update running terminals", "keywords": "терминал обновление цвета"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "kitty", "context": "", "target": "themeSync_kitty", "match": "kitty", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "foot", "context": "", "target": "themeSync_foot", "match": "foot", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Alacritty", "context": "", "target": "themeSync_alacritty", "match": "Alacritty", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "WezTerm", "context": "", "target": "themeSync_wezterm", "match": "WezTerm", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Ghostty", "context": "", "target": "themeSync_ghostty", "match": "Ghostty", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Konsole", "context": "", "target": "themeSync_konsole", "match": "Konsole", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Xfce Terminal", "context": "", "target": "themeSync_xfce4Terminal", "match": "Xfce Terminal", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "GNOME Terminal", "context": "", "target": "themeSync_gnomeTerminal", "match": "GNOME Terminal", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "Tilix", "context": "", "target": "themeSync_tilix", "match": "Tilix", "keywords": "терминал цвета ANSI"},
-  {"page": 0, "subpages": [4], "path": ["Wallpaper & style", "Application colours"], "label": "XTerm", "context": "", "target": "themeSync_xterm", "match": "XTerm", "keywords": "терминал цвета ANSI"},
   {
     "page": 0,
     "subpages": [],
@@ -31,6 +13,21 @@ var catalogue = [
     "target": "",
     "match": "",
     "keywords": ""
+  },
+  {
+    "page": 0,
+    "subpages": [
+      4
+    ],
+    "path": [
+      "Wallpaper & style",
+      "Application colours"
+    ],
+    "label": "Application colours",
+    "context": "",
+    "target": "",
+    "match": "",
+    "keywords": "GTK, Qt, Java and terminal colour synchronization"
   },
   {
     "page": 0,
@@ -126,7 +123,7 @@ var catalogue = [
     "context": "",
     "target": "appearanceTilingEdgeScroll",
     "match": "Scroll columns at screen edges on hover",
-    "keywords": "Disable to keep hover focus without moving the tape. Click a window or use shortcuts to reveal it. прокрутка край экрана наведение лента"
+    "keywords": "Disable to keep hover focus without moving the tape. Click a window or use shortcuts to reveal it."
   },
   {
     "page": 0,
@@ -211,6 +208,162 @@ var catalogue = [
     "target": "appearanceGapsOut",
     "match": "Outer gaps",
     "keywords": "Padding at the workspace edges, in pixels; identical for every window count"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Blur effect",
+    "context": "",
+    "target": "appearanceBlurVariant",
+    "match": "Blur effect",
+    "keywords": "Visible behind translucent windows and panels; animated effects use more GPU"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Blur size",
+    "context": "",
+    "target": "appearanceBlurSize",
+    "match": "Blur size",
+    "keywords": ""
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Blur passes",
+    "context": "",
+    "target": "appearanceBlurPasses",
+    "match": "Blur passes",
+    "keywords": ""
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Proportional blur",
+    "context": "",
+    "target": "appearanceProportionalBlur",
+    "match": "Proportional blur",
+    "keywords": "Adjust blur strength to each pixel's opacity"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Wobbly windows",
+    "context": "",
+    "target": "appearanceWindowWobble",
+    "match": "Wobbly windows",
+    "keywords": "Elastic deformation when moving or resizing windows"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Wobble intensity",
+    "context": "",
+    "target": "appearanceWobbleIntensity",
+    "match": "Wobble intensity",
+    "keywords": ""
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Spring stiffness",
+    "context": "",
+    "target": "appearanceWobbleStiffness",
+    "match": "Spring stiffness",
+    "keywords": "Higher values pull the window back into shape faster"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Spring damping",
+    "context": "",
+    "target": "appearanceWobbleDamping",
+    "match": "Spring damping",
+    "keywords": "Higher values make oscillations settle sooner"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Inner glow",
+    "context": "",
+    "target": "appearanceWindowGlow",
+    "match": "Inner glow",
+    "keywords": "Light along the window edges in the current accent colour"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Glow size",
+    "context": "",
+    "target": "appearanceGlowSize",
+    "match": "Glow size",
+    "keywords": ""
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Glow intensity",
+    "context": "",
+    "target": "appearanceGlowOpacity",
+    "match": "Glow intensity",
+    "keywords": ""
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Window motion blur",
+    "context": "",
+    "target": "appearanceMotionBlur",
+    "match": "Window motion blur",
+    "keywords": "Blur trails when moving or resizing windows"
+  },
+  {
+    "page": 0,
+    "subpages": [],
+    "path": [
+      "Wallpaper & style"
+    ],
+    "label": "Motion blur samples",
+    "context": "",
+    "target": "appearanceMotionBlurSamples",
+    "match": "Motion blur samples",
+    "keywords": ""
   },
   {
     "page": 0,
@@ -370,6 +523,18 @@ var catalogue = [
     "target": "",
     "match": "",
     "keywords": ""
+  },
+  {
+    "page": 1,
+    "subpages": [],
+    "path": [
+      "Network"
+    ],
+    "label": "VPN settings",
+    "context": "",
+    "target": "",
+    "match": "VPN settings",
+    "keywords": "Profiles, subscriptions and connection mode"
   },
   {
     "page": 1,
@@ -1664,6 +1829,23 @@ var catalogue = [
     "target": "",
     "match": "Per monitor",
     "keywords": "Hide workspaces not on the current monitor"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      2,
+      6
+    ],
+    "path": [
+      "Panels",
+      "Taskbar",
+      "Workspaces"
+    ],
+    "label": "Second monitor overlay with Super+S",
+    "context": "",
+    "target": "workspaceSecondaryOnSpecial",
+    "match": "Second monitor overlay with Super+S",
+    "keywords": "Works with the second monitor switched off. Super+1–0 selects its workspace; press Super+S again to close the overlay."
   },
   {
     "page": 4,

@@ -1,4 +1,9 @@
 #pragma once
+#include <hyprland/src/desktop/view/window/Window.hpp>
+#include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
+#include <hyprland/src/desktop/view/window/WindowFullscreenPolicy.hpp>
+#include <hyprland/src/desktop/view/window/WindowEffectsController.hpp>
+#include <hyprland/src/render/transformer/TransformerList.hpp>
 
 #define WLR_USE_UNSTABLE
 
@@ -31,7 +36,7 @@ class CHyprBar : public IHyprWindowDecoration {
 
     virtual void                       onPositioningReply(const SDecorationPositioningReply& reply);
 
-    virtual void                       draw(PHLMONITOR, float const& a);
+    virtual void                       draw(Render::CRenderContext& ctx, PHLMONITOR, float const& a, const Render::SWindowRenderPresentation& presentation) override;
 
     virtual eDecorationType            getDecorationType();
 
@@ -101,7 +106,6 @@ class CHyprBar : public IHyprWindowDecoration {
 
     CBox assignedBoxGlobal();
 
-    CHyprSignalListener m_pMinimizeCallback;
     CHyprSignalListener m_pMouseButtonCallback;
     CHyprSignalListener m_pTouchDownCallback;
     CHyprSignalListener m_pTouchUpCallback;

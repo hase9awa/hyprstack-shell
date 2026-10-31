@@ -1,4 +1,4 @@
-// Hyprland 0.56 leaves xdg window-geometry cropping disabled. Respect a
+// Hyprland 0.57 leaves xdg window-geometry cropping disabled. Respect a
 // client's shadow margins and scale the complete image during geometry tweens.
 #pragma once
 
@@ -7,7 +7,7 @@
 #include <hyprland/src/render/ElementRenderer.hpp>
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/render/pass/SurfacePassElement.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/view/WLSurface.hpp>
 #include <hyprland/src/desktop/view/Popup.hpp>
 #include <hyprland/src/desktop/view/Subsurface.hpp>
@@ -19,6 +19,7 @@
 #include <hyprland/src/protocols/core/Subcompositor.hpp>
 #include <hyprland/src/xwayland/XSurface.hpp>
 #include "globals.hpp"
+#include "titlebar-actions.hpp"
 #include <algorithm>
 #include <stdexcept>
 
@@ -45,7 +46,7 @@ static Vector2D clientMaxSize(CXDGToplevelResource* toplevel) {
 }
 
 static CBox clientGeometry(PHLWINDOW window, SP<CWLSurfaceResource> surface) {
-    const auto geometry = window->m_xdgSurface->m_current.geometry;
+    const auto geometry = window->backend().geometry().box;
     // xdg_surface.set_window_geometry is optional. Its default is the whole
     // surface; an unset rectangle must not disable fitting a delayed buffer.
     return geometry.w > 0 && geometry.h > 0 ? geometry : CBox{{}, surface->m_current.size};
@@ -56,7 +57,7 @@ static CRegion clientSurfaceDamage(const Desktop::View::CWLSurface* wlSurface) {
     const auto original = reinterpret_cast<ClientDamageFunction>(clientDamageHook->m_original);
     const auto window = Desktop::View::CWindow::fromView(wlSurface->view());
     const auto surface = wlSurface->resource();
-    if (!window || !surface || window->m_isX11 || !window->m_xdgSurface || !surface->m_current.texture)
+    if (!window || !surface || window->backend().isX11() || !surface->m_current.texture)
         return original(wlSurface);
     auto& state = surface->m_current;
     const auto geometry = clientGeometry(window, surface);
@@ -64,7 +65,7 @@ static CRegion clientSurfaceDamage(const Desktop::View::CWLSurface* wlSurface) {
     if (state.size.x <= 0 || state.size.y <= 0 || state.bufferSize.x <= 0 || state.bufferSize.y <= 0 ||
         geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0 || target.x <= 0 || target.y <= 0)
         return original(wlSurface);
-    const bool fitted = !window->m_isFloating && !g_pGlobalState->config.enabled->value() && geometry.size() != target;
+    const bool fitted = !window->isFloating() && !g_pGlobalState->config.enabled->value() && geometry.size() != target;
     if (geometry.pos() == Vector2D{} && geometry.size() == state.size && !fitted && !window->sizeAnimation()->isBeingAnimated())
         return original(wlSurface);
 
@@ -91,14 +92,14 @@ static Vector2D clientSubsurfacePosition(const Desktop::View::CSubsurface* subsu
     const auto parent = resource ? resource->t1Parent() : nullptr;
     const auto owner = Desktop::View::CWLSurface::fromResource(parent);
     const auto window = owner ? Desktop::View::CWindow::fromView(owner->view()) : nullptr;
-    if (!window || window->m_isX11 || !window->m_xdgSurface) return position;
+    if (!window || window->backend().isX11()) return position;
     const auto geometry = clientGeometry(window, parent);
     if (geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0) return position;
     // Video subsurfaces must publish damage and old/new bounds at the same
     // cropped origin used by clientSurfacePass, including nested subsurfaces.
     auto local = position - window->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT) - geometry.pos();
     if (window->sizeAnimation()->isBeingAnimated()) {
-        const auto reported = window->getReportedSize();
+        const auto reported = window->backend().reportedSize();
         if (reported.x > 0 && reported.y > 0)
             local = local * (window->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT) / reported);
     }
@@ -111,12 +112,12 @@ static void clientPointerMotion(CSeatManager* seat, uint32_t time, const Vector2
     const auto surface = seat->m_state.pointerFocus.lock();
     const auto wlSurface = Desktop::View::CWLSurface::fromResource(surface);
     const auto window = wlSurface ? Desktop::View::CWindow::fromView(wlSurface->view()) : nullptr;
-    if (!window || !window->m_isMapped || window->m_isX11 || !window->m_xdgSurface ||
+    if (!window || !window->mapped() || window->backend().isX11() ||
         surface != window->resource() || !g_pGlobalState || g_pInputManager->isConstrained())
         return original(seat, time, local);
     const auto geometry = clientGeometry(window, surface);
     const auto target = window->size(Desktop::View::IGeometric::GEOMETRIC_GOAL);
-    const bool fitted = !window->m_isFloating && !g_pGlobalState->config.enabled->value() &&
+    const bool fitted = !window->isFloating() && !g_pGlobalState->config.enabled->value() &&
         target.x > 0 && target.y > 0 && geometry.size() != target;
     if (geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0 ||
         (geometry.pos() == Vector2D{} && !fitted))
@@ -134,8 +135,8 @@ static CBox clientTextureBox(CSurfacePassElement* element) {
     const auto original = reinterpret_cast<TextureBoxFunction>(clientTextureBoxHook->m_original)(element);
     const auto& data = element->m_data;
     const auto window = data.pWindow;
-    if (!data.mainSurface || !window || window->m_isX11 || !window->m_xdgSurface ||
-        window->m_isFloating || g_pGlobalState->config.enabled->value() || data.w <= 0 || data.h <= 0)
+    if (!data.mainSurface || !window || window->backend().isX11() ||
+        window->isFloating() || g_pGlobalState->config.enabled->value() || data.w <= 0 || data.h <= 0)
         return original;
     // A client may still display its smaller stacking buffer after the final
     // tile configure. Hyprland otherwise shrinks its texture box independently
@@ -143,25 +144,22 @@ static CBox clientTextureBox(CSurfacePassElement* element) {
     return {data.pos + data.localPos - data.pMonitor->m_position, {data.w, data.h}};
 }
 
-using ClientStateFunction = void (*)(Desktop::View::CWindow*);
-static void tiledClientState(Desktop::View::CWindow* window) {
-    bool rejected = false;
-    if (window && !window->m_isFloating && !g_pGlobalState->config.enabled->value()) {
-        // CSD requests belong to stacking. This applies to undecorated clients
-        // too: they never get a Hyprbar that could suppress native maximize.
-        const auto reject = [&](auto& state) {
-            rejected = state.requestsMaximize.has_value() || state.requestsMinimize.has_value();
-            state.requestsMaximize.reset();
-            state.requestsMinimize.reset();
-        };
-        if (window->m_xdgSurface && window->m_xdgSurface->m_toplevel)
-            reject(window->m_xdgSurface->m_toplevel->m_state);
-        else if (window->m_xwaylandSurface) reject(window->m_xwaylandSurface->m_state);
+using ClientStateFunction = void (*)(Desktop::View::CWindow*, const Desktop::View::SBackendStateRequest&);
+static void tiledClientState(Desktop::View::CWindow* window, const Desktop::View::SBackendStateRequest& request) {
+    auto filtered = request;
+    if (window && window->mapped() && g_pGlobalState) {
+        const bool stacking = g_pGlobalState->config.enabled->value();
+        if (stacking) {
+            if (request.maximized && runDecorationAction(window->m_self.lock(), *request.maximized ? "maximize-set" : "maximize-unset"))
+                filtered.maximized.reset();
+            if (request.minimized.value_or(false)) runDecorationAction(window->m_self.lock(), "minimize");
+        } else if (!window->isFloating()) {
+            filtered.maximized.reset();
+            filtered.minimized.reset();
+            if (request.maximized || request.minimized) window->sendWindowSize(true);
+        }
     }
-    reinterpret_cast<ClientStateFunction>(clientStateHook->m_original)(window);
-    // Acknowledge the existing tile instead of leaving a client waiting for a
-    // geometry change. Video fullscreen and the close protocol are untouched.
-    if (rejected && window->m_isMapped) window->sendWindowSize(true);
+    reinterpret_cast<ClientStateFunction>(clientStateHook->m_original)(window, filtered);
 }
 
 using SurfaceInputFunction = SP<CWLSurfaceResource> (*)(const Desktop::CViewHitTester*,
@@ -169,14 +167,14 @@ using SurfaceInputFunction = SP<CWLSurfaceResource> (*)(const Desktop::CViewHitT
 static SP<CWLSurfaceResource> clientSurfaceInput(const Desktop::CViewHitTester* tester,
     const Vector2D& point, PHLWINDOW window, Vector2D& local) {
     const auto original = reinterpret_cast<SurfaceInputFunction>(clientSurfaceInputHook->m_original);
-    if (!window || !window->m_isMapped || window->m_isX11 || !window->m_xdgSurface ||
-        (window->m_popupHead && window->m_popupHead->at(point)))
+    if (!window || !window->mapped() || window->backend().isX11() ||
+        (window->hasPopupAt(point)))
         return original(tester, point, window, local);
     const auto surface = window->wlSurface()->resource();
     if (!surface) return original(tester, point, window, local);
     const auto geometry = clientGeometry(window, surface);
     const auto target = window->size(Desktop::View::IGeometric::GEOMETRIC_GOAL);
-    const bool fitted = !window->m_isFloating && !g_pGlobalState->config.enabled->value() &&
+    const bool fitted = !window->isFloating() && !g_pGlobalState->config.enabled->value() &&
         target.x > 0 && target.y > 0 && geometry.size() != target;
     if (geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0 ||
         (geometry.pos() == Vector2D{} && !fitted))
@@ -194,16 +192,16 @@ using SurfacePassFunction = void (*)(CSurfacePassElement*, const CSurfacePassEle
 static void clientSurfacePass(CSurfacePassElement* element, const CSurfacePassElement::SRenderData& original) {
     auto data = original;
     const auto window = data.pWindow;
-    if (window && !window->m_isX11 && window->m_xdgSurface &&
+    if (window && !window->backend().isX11() && !window->backend().isX11() &&
         !data.mainSurface && !data.popup && data.squishOversized) {
         // Subsurface positions include the parent's CSD shadow margins.
         // The main image's UVs already remove those margins; make the entire
         // render pass use the same window origin, including occlusion/clips.
-        const auto geometry = window->m_xdgSurface->m_current.geometry;
+        const auto geometry = window->backend().geometry().box;
         if (geometry.w > 0 && geometry.h > 0 && geometry.x >= 0 && geometry.y >= 0) {
             data.localPos -= geometry.pos();
             if (window->sizeAnimation()->isBeingAnimated()) {
-                const auto reported = window->getReportedSize();
+                const auto reported = window->backend().reportedSize();
                 if (reported.x > 0 && reported.y > 0)
                     data.localPos = data.localPos * (Vector2D{data.w, data.h} / reported);
             }
@@ -211,15 +209,15 @@ static void clientSurfacePass(CSurfacePassElement* element, const CSurfacePassEl
     }
     reinterpret_cast<SurfacePassFunction>(clientSurfacePassHook->m_original)(element, data);
 }
-using SurfaceUVFunction = void (*)(Render::IElementRenderer*, PHLWINDOW, SP<CWLSurfaceResource>,
+using SurfaceUVFunction = void (*)(Render::IElementRenderer*, Render::CRenderContext&, PHLWINDOW, SP<CWLSurfaceResource>,
     PHLMONITOR, bool, const Vector2D&, const Vector2D&, bool);
 
-static void clientSurfaceUV(Render::IElementRenderer* renderer, PHLWINDOW window,
+static void clientSurfaceUV(Render::IElementRenderer* renderer, Render::CRenderContext& ctx, PHLWINDOW window,
     SP<CWLSurfaceResource> surface, PHLMONITOR monitor, bool main,
     const Vector2D& projected, const Vector2D& logical, bool misaligned) {
     reinterpret_cast<SurfaceUVFunction>(clientSurfaceUVHook->m_original)(
-        renderer, window, surface, monitor, main, projected, logical, misaligned);
-    if (!main || !window || window->m_isX11 || !window->m_xdgSurface ||
+        renderer, ctx, window, surface, monitor, main, projected, logical, misaligned);
+    if (!main || !window || window->backend().isX11() ||
         !surface || surface != window->wlSurface()->resource()) return;
 
     const auto size = surface->m_current.size;
@@ -228,7 +226,7 @@ static void clientSurfaceUV(Render::IElementRenderer* renderer, PHLWINDOW window
     if (size.x <= 0 || size.y <= 0 || buffer.x <= 0 || buffer.y <= 0 ||
         geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0) return;
     const bool margins = geometry.pos() != Vector2D{} || geometry.size() != size;
-    const bool fitted = !window->m_isFloating && !g_pGlobalState->config.enabled->value() && geometry.size() != logical;
+    const bool fitted = !window->isFloating() && !g_pGlobalState->config.enabled->value() && geometry.size() != logical;
     if (!margins && !fitted && !window->sizeAnimation()->isBeingAnimated()) return;
 
     // Geometry is in logical surface coordinates, after any viewporter crop
@@ -242,7 +240,7 @@ static void clientSurfaceUV(Render::IElementRenderer* renderer, PHLWINDOW window
         sourceBR = (source.pos() + source.size()) / buffer;
     }
     const auto span = sourceBR - sourceTL;
-    auto& data = g_pHyprRenderer->m_renderData;
+    auto& data = g_pHyprRenderer->context().m_data;
     data.primarySurfaceUVTopLeft = sourceTL + span * (cropped.pos() / size);
     data.primarySurfaceUVBottomRight = sourceTL + span * ((cropped.pos() + cropped.size()) / size);
 }

@@ -34,7 +34,8 @@ static CHyprColor parseColour(const std::string& text) {
 class Preview {
   public:
     Preview() {
-        m_render = Event::bus()->m_events.render.stage.listen([this](eRenderStage stage) {
+        m_render = Event::bus()->m_events.render.stage.listen([this](Event::SRenderStageEvent event) {
+            const auto stage = event.stage;
             if (stage == RENDER_POST_WINDOWS) render();
         });
     }
@@ -92,22 +93,22 @@ class Preview {
         CRectPassElement::SRectData data;
         data.box=box.translate(-monitor->m_position).scale(monitor->m_scale);
         data.color=colour; data.round=std::round(radius*monitor->m_scale);
-        g_pHyprRenderer->addPassElement(makeUnique<CRectPassElement>(data));
+        g_pHyprRenderer->addPassElement(g_pHyprRenderer->context(), makeUnique<CRectPassElement>(data));
     }
     void outline(CBox box,CHyprColor colour,int radius,PHLMONITOR monitor) {
         CBorderPassElement::SBorderData data;
         data.box=box.translate(-monitor->m_position).scale(monitor->m_scale);
         data.grad1=Config::CGradientValueData(colour); data.round=std::round(radius*monitor->m_scale); data.borderSize=2;
-        g_pHyprRenderer->addPassElement(makeUnique<CBorderPassElement>(data));
+        g_pHyprRenderer->addPassElement(g_pHyprRenderer->context(), makeUnique<CBorderPassElement>(data));
     }
     void render() {
         const auto monitor=m_monitor.lock();
         const auto window=m_window.lock();
         if (!monitor || !window) return;
         const auto drag=g_layoutManager->dragController().get();
-        if (!g_pGlobalState->config.enabled->value() || !window->m_isMapped || window->isHidden() ||
+        if (!g_pGlobalState->config.enabled->value() || !window->mapped() || window->isHidden() ||
             !drag->target() || drag->target()->window()!=window || drag->mode()!=MBIND_MOVE) { clear(); return; }
-        if (g_pHyprRenderer->m_renderData.pMonitor!=monitor) return;
+        if (g_pHyprRenderer->context().m_data.pMonitor!=monitor) return;
         if (!m_selected.empty()) {
             auto fill=m_accent; fill.a=.18;
             auto edge=m_accent; edge.a=.9;
@@ -136,9 +137,9 @@ static void update(PHLWINDOW window,Vector2D pointer) { if (preview) preview->up
 static Drop drop() { return preview ? preview->drop() : Drop{}; }
 static bool apply(PHLWINDOW window,const Drop& target) {
     const auto manager=dynamic_cast<Config::Lua::CConfigManager*>(Config::mgr().get());
-    if (!manager || !window || !window->m_isMapped || target.zone.empty()) return false;
+    if (!manager || !window || !window->mapped() || target.zone.empty()) return false;
     const auto result=manager->eval(std::format("if not hyprstack_layouts then return false end; return hyprstack_layouts.snap('{}','{:x}',{},{})",
-        std::format("0x{:x}",reinterpret_cast<uintptr_t>(window.get())),window->m_stableID,
+        std::format("0x{:x}",reinterpret_cast<uintptr_t>(window.get())),window->metadata().stableID(),
         Json(target.zone).dump(),Json(target.monitor).dump()),true);
     return result && *result=="true";
 }
