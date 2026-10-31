@@ -106,6 +106,7 @@ class CHyprBar : public IHyprWindowDecoration {
 
     CBox assignedBoxGlobal();
 
+    CHyprSignalListener m_pBackendStateCallback;
     CHyprSignalListener m_pMouseButtonCallback;
     CHyprSignalListener m_pTouchDownCallback;
     CHyprSignalListener m_pTouchUpCallback;

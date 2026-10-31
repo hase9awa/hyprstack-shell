@@ -54,7 +54,10 @@ class CTaskAnimation final : public Render::IWindowTransformer {
             m_from.size() + (m_to.size() - m_from.size()) * p};
     }
 
-    bool active() const override { return !m_cancelled && busy(); }
+    // Lua completes the workspace hand-off after busy() becomes false. Keep
+    // the final transformed image until that hand-off explicitly clears us;
+    // expiring here would expose the full-size window for an intervening frame.
+    bool active() const override { return !m_cancelled; }
     int priority() const override { return 100; }
 
     CBox transformedExtents(const CBox&) const override {

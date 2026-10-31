@@ -151,20 +151,19 @@ static CBox clientTextureBox(CSurfacePassElement* element) {
     return {data.pos + data.localPos - data.pMonitor->m_position, {data.w, data.h}};
 }
 
-using ClientStateFunction = void (*)(Desktop::View::CWindow*, const Desktop::View::SBackendStateRequest&);
-static void tiledClientState(Desktop::View::CWindow* window, const Desktop::View::SBackendStateRequest& request) {
+// onUpdateState() became a small, inlined adapter in 0.57. Intercept the
+// actual fullscreen-policy entry point; observe minimize on the backend signal.
+static_assert(std::is_same_v<decltype(&Desktop::View::CWindow::requestClientFullscreen),
+    void (Desktop::View::CWindow::*)(const Desktop::View::SClientFullscreenRequest&)>);
+using ClientStateFunction = void (*)(Desktop::View::CWindow*, const Desktop::View::SClientFullscreenRequest&);
+static void tiledClientState(Desktop::View::CWindow* window, const Desktop::View::SClientFullscreenRequest& request) {
     auto filtered = request;
-    if (window && window->mapped() && g_pGlobalState) {
-        const bool stacking = g_pGlobalState->config.enabled->value();
-        if (stacking) {
-            if (request.maximized && runDecorationAction(window->m_self.lock(), *request.maximized ? "maximize-set" : "maximize-unset"))
-                filtered.maximized.reset();
-            if (request.minimized.value_or(false)) runDecorationAction(window->m_self.lock(), "minimize");
-        } else if (!window->isFloating()) {
-            filtered.maximized.reset();
-            filtered.minimized.reset();
-            if (request.maximized || request.minimized) window->sendWindowSize(true);
-        }
+    if (window && window->mapped() && g_pGlobalState &&
+        request.origin == Desktop::View::SClientFullscreenRequest::ORIGIN_BACKEND && request.maximized.has_value()) {
+        // The titlebar controller handles stacking; scrolling ignores this
+        // request for both tiled clients and ordinary floating dialogs.
+        filtered.maximized.reset();
+        if (!g_pGlobalState->config.enabled->value()) window->sendWindowSize(true);
     }
     reinterpret_cast<ClientStateFunction>(clientStateHook->m_original)(window, filtered);
 }
@@ -295,7 +294,7 @@ static void installClientSurfacePolicy(HANDLE handle) {
         clientMinSizeHook = install("layoutMinSize", "CXDGToplevelResource::layoutMinSize(", reinterpret_cast<void*>(&clientMinSize));
         clientMaxSizeHook = install("layoutMaxSize", "CXDGToplevelResource::layoutMaxSize(", reinterpret_cast<void*>(&clientMaxSize));
         clientTextureBoxHook = install("getTexBox", "CSurfacePassElement::getTexBox(", reinterpret_cast<void*>(&clientTextureBox));
-        clientStateHook = install("onUpdateState", "Desktop::View::CWindow::onUpdateState(", reinterpret_cast<void*>(&tiledClientState));
+        clientStateHook = install("requestClientFullscreen", "Desktop::View::CWindow::requestClientFullscreen(", reinterpret_cast<void*>(&tiledClientState));
         clientSurfaceUVHook = install("calculateUVForSurface", "Render::IElementRenderer::calculateUVForSurface(",
             reinterpret_cast<void*>(&clientSurfaceUV));
         clientSurfacePassHook = install("CSurfacePassElement", "CSurfacePassElement::CSurfacePassElement(CSurfacePassElement::SRenderData const&)",

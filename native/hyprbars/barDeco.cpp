@@ -31,6 +31,7 @@
 #include <pango/pangocairo.h>
 #include "titlebar-controls.hpp"
 #include "titlebar-actions.hpp"
+#include "client-state.hpp"
 #include <hyprland/src/managers/fullscreen/FullscreenController.hpp>
 
 using namespace Render::GL;
@@ -90,7 +91,18 @@ CHyprBar::CHyprBar(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
 
     syncNativePolicy();
 
-    // Native state requests are handled before the backend policy in client-surface.hpp.
+    m_pBackendStateCallback = pWindow->backend().m_events.stateRequest.listen([this](const Desktop::View::SBackendStateRequest& request) {
+        const auto window = m_pWindow.lock();
+        if (!window || !window->mapped() || !g_pGlobalState->config.enabled->value()) return;
+        auto maximized = request.maximized;
+        // 0.57 replaces both xdg set/unset requests with an internal-mode
+        // toggle. Stacking uses client-only maximize, so retain the raw intent.
+        const auto toplevel = clientToplevel(window);
+        if (maximized && toplevel && toplevel->m_state.requestsMaximize.has_value())
+            maximized = toplevel->m_state.requestsMaximize;
+        if (maximized) runDecorationAction(window, *maximized ? "maximize-set" : "maximize-unset");
+        if (request.minimized.value_or(false)) runDecorationAction(window, "minimize");
+    });
 
     // button events
     m_pMouseButtonCallback = Event::bus()->m_events.input.mouse.button.listen([&](IPointer::SButtonEvent e, Event::SCallbackInfo& info) { onMouseButton(info, e); });
@@ -717,7 +729,7 @@ void CHyprBar::syncNativePolicy() {
     }
     window->fullscreenPolicy().setRequestSuppression(suppression);
     const auto client = Fullscreen::controller()->getFullscreenModes(window).client;
-    window->backend().setMaximized(client == Fullscreen::FSMODE_MAXIMIZED || (!stacking && !window->isFloating()));
+    setClientMaximized(window, client == Fullscreen::FSMODE_MAXIMIZED || (!stacking && !window->isFloating()));
 }
 
 void CHyprBar::onConfigReloaded() {

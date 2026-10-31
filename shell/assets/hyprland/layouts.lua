@@ -629,6 +629,7 @@ local function stack(workspace, prepared)
         elseif not record.maximized then
             hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 0, action = "set" }))
         end
+        visual_animation(window, "client-state")
     end
 end
 
@@ -2267,6 +2268,7 @@ for _, window in ipairs(hl.get_windows()) do
         local record = record_for(window)
         hl.dispatch(hl.dsp.window.set_prop({ window = window, prop = "rounding",
             value = layouts.mode() == "stacking" and record and record.maximized and "0" or "unset" }))
+        visual_animation(window, "client-state")
     end
 end
 if normalized_columns then save() end

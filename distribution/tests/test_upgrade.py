@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Exercise native module migration and the secondary overlay in a nested session.
+"""Exercise migration, window state and rendering in a nested session.
 
 Run with HYPRSTACK_TEST_PREFIX pointing at a pristine staged installation.
-Requires Hyprland 0.57, kitty and an existing Wayland session.
+Requires Hyprland 0.57, kitty, grim, Pillow and an existing Wayland session.
 """
 import json
 import os
@@ -229,6 +229,109 @@ def main():
         ctl("reload")
         time.sleep(.5)
         print("PASS: a captured return-flight frame stays above the focused full-width window", flush=True)
+        failures = []
+
+        def require(condition, label, detail=None):
+            if not condition:
+                failures.append((label, detail))
+                print("FAIL:", label, detail, flush=True)
+
+        def request(title, operation, value=True):
+            evaluate('hl.plugin.upgrade_probe.request_state(' + json.dumps(title) + ',' +
+                json.dumps(operation) + ',' + str(value).lower() + ')')
+
+        def maximized(title):
+            return json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.client_state(' +
+                json.dumps(title) + ')'))["maximized"]
+
+        def box(window):
+            return window["at"], window["size"]
+
+        for title in ("UpgradePrimary", "UpgradeFloating"):
+            original_box = box(clients()[title])
+            for value in (True, False):
+                request(title, "maximize", value)
+                time.sleep(.3)
+                current = clients()[title]
+                require(box(current) == original_box and current["fullscreen"] == 0 and
+                    current["fullscreenClient"] == 0, "titlebar maximize cannot resize scrolling windows",
+                    (title, value, original_box, box(current), current["fullscreen"]))
+            evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window=' +
+                json.dumps("title:^"+title+"$") + ',internal=0,client=0,action="set"}))')
+        if not failures:
+            print("PASS: titlebar maximize requests leave tiled and floating scrolling windows unchanged", flush=True)
+
+        evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"})); hyprstack_layouts.toggle()')
+        time.sleep(.5)
+        normal = clients()["UpgradePrimary"]
+        require(normal["floating"] and not maximized("UpgradePrimary"),
+            "entering stacking publishes the normal client state", normal["fullscreenClient"])
+        for cycle in range(2):
+            request("UpgradePrimary", "maximize", True)
+            time.sleep(.3)
+            enlarged = clients()["UpgradePrimary"]
+            require(enlarged["size"][0] > normal["size"][0] and enlarged["fullscreenClient"] == 1 and
+                maximized("UpgradePrimary"), "client maximize fills the stacking work area", box(enlarged))
+            if cycle == 1:
+                ctl("reload")
+                time.sleep(.3)
+                require(maximized("UpgradePrimary"), "reload retains the real maximized client state")
+            request("UpgradePrimary", "maximize", False)
+            time.sleep(.3)
+            restored = clients()["UpgradePrimary"]
+            require(box(restored) == box(normal) and restored["fullscreenClient"] == 0 and
+                not maximized("UpgradePrimary"), "client unmaximize restores the normal window",
+                (box(normal), box(restored), restored["fullscreenClient"]))
+        if not failures:
+            print("PASS: stacking sends real client state and respects distinct set/unset maximize requests", flush=True)
+
+        # Delay only the workspace hand-off, beyond the visual animation's end.
+        # The final offscreen image must stay in effect during this gap.
+        evaluate('hyprstack_layouts.action("maximize-unset",hl.get_window("title:^UpgradePrimary$").address)')
+        time.sleep(.3)
+        normal = clients()["UpgradePrimary"]
+        point = (round(normal["at"][0]+normal["size"][0]*.4),
+                 round(normal["at"][1]+normal["size"][1]*.6))
+        before = base / "before-minimize.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(before)], env=env, check=True)
+        original_pixel = Image.open(before).convert("RGB").getpixel(point)
+        assert original_pixel[2] > original_pixel[0]*1.5 and original_pixel[2] > 70, (point, original_pixel)
+        evaluate('local w=hl.get_window("title:^UpgradePrimary$"); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"to",550,820,180,32,800)')
+        time.sleep(.35)
+        assert ctl("repl", 'local w=hl.get_window("title:^UpgradePrimary$"); '
+            'return hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"busy")') == "false"
+        frame = base / "completed-minimize-before-handoff.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(frame)], env=env, check=True)
+        pixel = Image.open(frame).convert("RGB").getpixel(point)
+        require(not (pixel[2] > pixel[0]*1.5 and pixel[2] > 70),
+            "a finished minimize never exposes the original full-size window", (point, pixel))
+        evaluate('local w=hl.get_window("title:^UpgradePrimary$"); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"clear")')
+        for cycle in range(3):
+            request("UpgradePrimary", "minimize")
+            wait(lambda: clients()["UpgradePrimary"]["workspace"]["type"] == "special", "minimized workspace")
+            evaluate('hyprstack_layouts.action("restore",hl.get_window("title:^UpgradePrimary$").address)')
+            time.sleep(.35)
+            require(box(clients()["UpgradePrimary"]) == box(normal),
+                "minimize/restore retains stacking geometry", cycle)
+        request("UpgradePrimary", "minimize")
+        time.sleep(.04)
+        ctl("reload")
+        require(clients()["UpgradePrimary"]["workspace"]["type"] == "special",
+            "reload completes a pending minimize")
+        evaluate('hyprstack_layouts.action("restore",hl.get_window("title:^UpgradePrimary$").address)')
+        time.sleep(.04)
+        ctl("reload")
+        time.sleep(.35)
+        require(box(clients()["UpgradePrimary"]) == box(normal) and ctl("configerrors") == "",
+            "reload during restore removes the transformer and preserves the window")
+        if not failures:
+            print("PASS: minimize holds its final image until hand-off; restore and reload keep exact geometry", flush=True)
+        (base / "stacking-regressions.json").write_text(json.dumps(failures, indent=2))
+        assert not failures, failures
+        evaluate('hyprstack_layouts.toggle()')
+        time.sleep(.5)
         ctl("plugin", "unload", str(native / "hyprstack-bars.so"))
         ctl("plugin", "load", str(native / "hyprstack-bars.so"))
         time.sleep(.5)
