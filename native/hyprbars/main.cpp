@@ -36,6 +36,7 @@ extern "C" {
 
 #include "stacking-input.hpp" // HYPRSTACK_STACKING_INPUT
 #include "overview-scene.hpp" // HYPRSTACK_OVERVIEW_SCENE
+#include "secondary-return.hpp"
 #include "autoscroll.hpp"
 #include "tiling-hover.hpp"
 #include "shader-warmup.hpp"
@@ -262,6 +263,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     installClientSurfacePolicy(PHANDLE);
     HyprstackOverview::install(PHANDLE);
+    HyprstackSecondaryReturn::install(PHANDLE);
     HyprstackShaders::install();
 
     g_pGlobalState                    = makeUnique<SGlobalState>();
@@ -355,10 +357,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::reloadConfig();
 
-    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.3.2"};
+    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.3.3"};
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {
+    HyprstackSecondaryReturn::remove(PHANDLE);
     HyprstackInitialGeometry::remove(PHANDLE);
     HyprstackTilingHover::remove();
     HyprstackShaders::remove();

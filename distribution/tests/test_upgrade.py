@@ -12,6 +12,7 @@ import signal
 import subprocess
 import tempfile
 import time
+from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[2] / "shell"
@@ -117,7 +118,9 @@ def main():
         fit_outputs()
         for title, workspace in (("UpgradePrimary", "1"), ("UpgradeSecondary", "21")):
             evaluate('hl.dispatch(hl.dsp.focus({workspace=' + json.dumps(workspace) + '}))')
-            launch(["kitty", "--class", "upgrade-test", "--title", title, "-e", "sleep", "300"], title)
+            background = "203070" if title == "UpgradePrimary" else "b43c24"
+            launch(["kitty", "--class", "upgrade-test", "--title", title, "-o", "background=#"+background,
+                "-o", "background_opacity=1", "-e", "sleep", "300"], title)
             wait(lambda: clients().get(title), title)
         time.sleep(.4)
         for title in ("UpgradePrimary", "UpgradeSecondary"):
@@ -205,6 +208,27 @@ def main():
         ctl("reload")
         assert clients()["UpgradeFloating"]["workspace"].get("id") == 21
         print("PASS: reversing the flight preserves position; reload recovers tiled and floating windows", flush=True)
+        evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"})); hl.dispatch(hl.dsp.layout("colresize 1.0"))')
+        time.sleep(.5)
+        before = base / "covering-window.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(before)], env=env, check=True)
+        background = Image.open(before).convert("RGB").getpixel((400, 600))
+        assert background[2] > background[0]*1.5, background
+        evaluate('hyprstack_layouts.toggle_special()')
+        time.sleep(.5)
+        # Slow only this fixture's native movement, so the sampled point stays
+        # inside both overlapping windows while the compositor captures a frame.
+        evaluate('hl.animation({leaf="windowsMove",enabled=true,speed=20,bezier="windowGeometry"})')
+        evaluate('hyprstack_layouts.toggle_special()')
+        position = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))["current"]
+        point = (round(position[0]+position[2]*.4), round(position[1]+position[3]*.6))
+        frame = base / "return-over-covering-window.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(frame)], env=env, check=True)
+        pixel = Image.open(frame).convert("RGB").getpixel(point)
+        assert pixel[0] > pixel[1]*1.5 and pixel[0] > pixel[2]*1.5, (point, pixel, position)
+        ctl("reload")
+        time.sleep(.5)
+        print("PASS: a captured return-flight frame stays above the focused full-width window", flush=True)
         ctl("plugin", "unload", str(native / "hyprstack-bars.so"))
         ctl("plugin", "load", str(native / "hyprstack-bars.so"))
         time.sleep(.5)

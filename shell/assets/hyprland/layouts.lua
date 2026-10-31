@@ -1674,6 +1674,8 @@ local function restore_secondary_windows(overlay)
     end)
     for _, entry in ipairs(windows) do
         local window, state = entry.window, entry.state
+        local returning = hl.plugin.hyprbars and hl.plugin.hyprbars.secondary_return
+        if returning then returning(window.address, window.stable_id) end
         hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 0, action = "set" }))
         hl.dispatch(hl.dsp.window.move({ window = window, workspace = state.workspace, follow = false }))
         if window.floating ~= state.floating then float(window, state.floating) end
