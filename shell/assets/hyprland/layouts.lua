@@ -844,7 +844,7 @@ if plugin_file then plugin_file:close(); hl.plugin.load(plugin_path) end
 local no_titlebar = hl.plugin.hyprbars and hl.plugin.hyprbars.clear_buttons and true or nil
 
 function layouts.theme(palette)
-    palette = palette or {}
+    palette = palette or theme_palette
     theme_palette = palette
     layouts.window_effects()
     local hex = (palette.outline or "808080"):gsub("#", "")
@@ -863,13 +863,33 @@ function layouts.theme(palette)
         hl.plugin.hyprbars.tiling_hover("theme", palette.primary or "#7e9cd8", palette.surfaceContainerLow or "#1f2335")
     end
     local function color(name, fallback) return "rgb(" .. (palette[name] or fallback):gsub("#", "") .. ")" end
+    local function luminance(value)
+        local hex = value:gsub("#", "")
+        local function linear(start)
+            local channel = (tonumber(hex:sub(start, start + 1), 16) or 0) / 255
+            return channel <= 0.04045 and channel / 12.92 or ((channel + 0.055) / 1.055)^2.4
+        end
+        return linear(1)*0.2126 + linear(3)*0.7152 + linear(5)*0.0722
+    end
+    -- Lowest containers are dark in dark schemes; surfaceDim is darker in
+    -- light schemes. Select a scheme colour below the application's surface.
+    local header = palette.surface or "#24242c"
+    for _, role in ipairs({ "surfaceContainerLowest", "surfaceDim", "background" }) do
+        if palette[role] and luminance(palette[role]) < luminance(header) then header = palette[role] end
+    end
+    if luminance(header) >= luminance(palette.surface or "#24242c") then
+        header = header:gsub("#", ""):gsub("%x%x", function(channel)
+            return string.format("%02x", math.floor(tonumber(channel, 16) * 0.85))
+        end)
+    end
+    local header_color = "rgb(" .. header:gsub("#", "") .. ")"
     -- Address and stable ID come from the decoration's owning window, so a
     -- button always acts on that window even when another one has the focus.
     local command = "python3 " .. string.format("%q", script_dir .. "window-action.py") .. " "
     hl.config({ plugin = { hyprbars = {
         enabled = layouts.mode() == "stacking", bar_height = titlebar_height,
-        bar_color = color("surfaceContainerLow", "2a2a37"), col = { text = color("onSurface", "dcd7ba") },
-        inactive_button_color = color("surfaceContainerLow", "2a2a37"),
+        bar_color = header_color, col = { text = color("onSurface", "dcd7ba") },
+        inactive_button_color = header_color,
         bar_text_font = "Noto Sans", bar_text_size = 12, bar_text_weight = 400, bar_text_align = "center",
         bar_padding = 8, bar_button_padding = 4, bar_part_of_window = true,
         bar_precedence_over_border = true, bar_blur = false, icon_on_hover = false,
@@ -878,7 +898,7 @@ function layouts.theme(palette)
         on_maximize = command,
     } } })
     hl.window_rule({ name = "hyprstack-active-title", match = { focus = true },
-        ["hyprbars:bar_color"] = color("surfaceContainerHigh", "363646"),
+        ["hyprbars:bar_color"] = header_color,
         ["hyprbars:title_color"] = color("primary", "7e9cd8") })
     hl.window_rule({ name = "hyprstack-client-decorations", match = {
         class = "(?i)^(thorium(-browser)?|chromium(-browser)?|google-chrome.*|firefox|librewolf|zen(-browser)?|com\\.ayugram\\.desktop|AyugramDesktop|org\\.telegram\\.desktop|TelegramDesktop|discord|org\\.gnome\\..*)$"
@@ -1683,11 +1703,13 @@ function layouts.close_secondary_overlay(refocus)
     if secondary_overlay_timer then secondary_overlay_timer:set_enabled(false) end
     secondary_transition(function()
         local monitor = hl.get_monitor(overlay.monitor)
+        -- Keep the source workspace visible while moving its windows. Hyprland
+        -- records that monitor for the native cross-output flight only then.
+        restore_secondary_windows(overlay)
         if monitor and monitor.active_special_workspace
             and monitor.active_special_workspace.name == "special:" .. secondary_overlay_name then
             monitor:set_special_workspace(nil)
         end
-        restore_secondary_windows(overlay)
         secondary_overlay = nil
     end)
     local monitor = hl.get_monitor(overlay.monitor)

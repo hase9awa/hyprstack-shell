@@ -50,6 +50,7 @@ def main():
         'dofile(' + json.dumps(str(ROOT / "assets/hyprland/layouts.lua")) + ')\n'
         'hl.monitor({output="",mode="1280x800@60",position="0x0",scale=1})\n'
         'hl.monitor({output="UPGRADE-2",mode="1280x800@60",position="1280x0",scale=1})\n'
+        'hl.window_rule({name="upgrade-floating",match={class="^upgrade-floating$"},float=true})\n'
         'hl.config({input={follow_mouse=0},cursor={no_warps=true}})\n')
     entry = base / "hyprland.lua"
     entry.write_text('local on=hl.on; hl.on=function(name,callback) '
@@ -124,6 +125,12 @@ def main():
             monitor = next(m for m in json.loads(ctl("-j", "monitors")) if m["id"] == w["monitor"])
             assert .35 * monitor["width"] < w["size"][0] < .6 * monitor["width"], w
             assert w["fullscreen"] == 0 and w["fullscreenClient"] == 0, w
+        launch(["kitty", "--class", "upgrade-floating", "--title", "UpgradeFloating", "-e", "sleep", "300"], "floating")
+        wait(lambda: clients().get("UpgradeFloating"), "floating secondary window")
+        evaluate('local w=hl.get_window("title:^UpgradeFloating$"); '
+            'hl.dispatch(hl.dsp.window.move({window=w,workspace="21",follow=false})); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"geometry",1350,180,440,330)')
+        time.sleep(.4)
         print("PASS: legacy snapshot pin loads the current module; terminals open at half width", flush=True)
         ctl("plugin", "load", str(probe))
         time.sleep(.5)
@@ -131,8 +138,25 @@ def main():
         assert regions["full"][2] > 100 and regions["full"][3] > 100, regions
         assert regions["bounded"] == [0, 0, 17, 13] and regions["empty"] == [0, 0, 0, 0], regions
         print("PASS: full, partial and empty client damage regions retain their exact bounds", flush=True)
+        assert json.loads(ctl("-j", "getoption", "binds:drag_center_window"))["bool"] is False
+        evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"}))')
+        time.sleep(.4)
+        w = clients()["UpgradePrimary"]
+        x, y = w["at"][0] + round(w["size"][0]*.2), w["at"][1] + round(w["size"][1]*.25)
+        evaluate('hl.dispatch(hl.dsp.cursor.move({x=' + str(x) + ',y=' + str(y) + '}))')
+        grabbed = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.drag("UpgradePrimary")'))
+        assert grabbed["floating"] and max(abs(a-b) for a,b in zip(grabbed["before"], grabbed["after"])) < .01, grabbed
+        print("PASS: tiled drag keeps an off-centre grab point under the cursor", flush=True)
+        time.sleep(.4)
+        for palette, expected in (({"surface":"282828", "surfaceContainerLowest":"1d2021", "surfaceDim":"242424"}, "1d2021"),
+                                  ({"surface":"fff8f0", "surfaceContainerLowest":"ffffff", "surfaceDim":"dcd5ce"}, "dcd5ce")):
+            evaluate('hyprstack_layouts.theme(' + '{' + ','.join(k+'='+json.dumps(v) for k,v in palette.items()) + '})')
+            colour = json.loads(ctl("-j", "getoption", "plugin:hyprbars:bar_color"))["int"]
+            assert colour & 0xFFFFFF == int(expected, 16), (palette, colour)
+        print("PASS: dark and light schemes choose a titlebar darker than the application surface", flush=True)
         evaluate('hl.dispatch(hl.dsp.focus({monitor="WAYLAND-1"}))')
         original = clients()["UpgradeSecondary"]
+        original_float = clients()["UpgradeFloating"]
         for cycle in range(20):
             evaluate('hyprstack_layouts.toggle_special()')
             wait(lambda: clients()["UpgradeSecondary"]["workspace"]["type"] == "special", "secondary overlay")
@@ -140,13 +164,47 @@ def main():
                 ctl("reload")
                 # Reload is a recovery point: it returns borrowed windows.
             else:
+                if cycle == 0:
+                    time.sleep(.45)
                 evaluate('hyprstack_layouts.toggle_special()')
+                if cycle == 0:
+                    frames = []
+                    until = time.monotonic() + .5
+                    while time.monotonic() < until:
+                        frames.append(json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")')))
+                        time.sleep(.02)
+                    assert frames[0]["movingFromMonitor"], frames[0]
+                    assert any(abs(f["current"][0]-f["goal"][0]) > 10 for f in frames), frames
+                    assert max(abs(a-b) for a,b in zip(frames[-1]["current"],frames[-1]["goal"])) < 1, frames[-1]
+                    xs = [f["current"][0] for f in frames]
+                    direction = 1 if frames[0]["goal"][0] > xs[0] else -1
+                    assert all((b-a)*direction >= -1 for a,b in zip(xs,xs[1:])), xs
+                    (base / "secondary-return-flight.json").write_text(json.dumps(frames, indent=2))
             wait(lambda: clients()["UpgradeSecondary"]["workspace"].get("id") == 21, "secondary restore")
+            assert clients()["UpgradeFloating"]["workspace"].get("id") == 21
         time.sleep(.4)
         restored = clients()["UpgradeSecondary"]
         assert (restored["at"], restored["size"]) == (original["at"], original["size"]), (original, restored)
+        restored_float = clients()["UpgradeFloating"]
+        assert (restored_float["at"], restored_float["size"]) == (original_float["at"], original_float["size"]), (original_float, restored_float)
         assert ctl("configerrors") == "", ctl("configerrors")
         print("PASS: 20 overlay cycles, reload while open, exact geometry restore and no Lua errors", flush=True)
+        print("PASS: the return flight keeps the source-monitor presentation and moves smoothly to the original box", flush=True)
+        evaluate('hyprstack_layouts.toggle_special()')
+        time.sleep(.45)
+        evaluate('hyprstack_layouts.toggle_special()')
+        time.sleep(.04)
+        before_reopen = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))
+        evaluate('hyprstack_layouts.toggle_special()')
+        after_reopen = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))
+        assert abs(before_reopen["current"][0]-after_reopen["current"][0]) < 120, (before_reopen, after_reopen)
+        time.sleep(.5)
+        assert clients()["UpgradeSecondary"]["workspace"]["type"] == "special"
+        evaluate('hyprstack_layouts.toggle_special()')
+        wait(lambda: clients()["UpgradeSecondary"]["workspace"].get("id") == 21, "restore after reversing flight")
+        ctl("reload")
+        assert clients()["UpgradeFloating"]["workspace"].get("id") == 21
+        print("PASS: reversing the flight preserves position; reload recovers tiled and floating windows", flush=True)
         ctl("plugin", "unload", str(native / "hyprstack-bars.so"))
         ctl("plugin", "load", str(native / "hyprstack-bars.so"))
         time.sleep(.5)

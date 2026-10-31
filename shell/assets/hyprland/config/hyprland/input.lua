@@ -19,6 +19,8 @@ hl.config({
 
     binds = {
         scroll_event_delay = 0,
+        -- Keep the grabbed point under the cursor when a tile becomes floating.
+        drag_center_window = false,
     },
 
     cursor = {

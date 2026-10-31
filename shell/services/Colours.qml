@@ -123,7 +123,7 @@ Singleton {
         if (Hypr.usingLua) {
             Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.effects({enabled=${transparency.enabled},opacity=${GlobalConfig.appearance.transparency.base},blur=${(Effects.blurEnabled && !GameMode.enabled)}}) end`);
             const palette = {};
-            for (const role of ["surfaceContainerLow", "surfaceContainerHigh", "onSurfaceVariant", ...Tiling.baseBorderColorRoles, ...Object.keys(root.palette.sourceColours)])
+            for (const role of ["surface", "background", "surfaceDim", "surfaceContainerLowest", "surfaceContainerLow", "surfaceContainerHigh", "onSurfaceVariant", ...Tiling.baseBorderColorRoles, ...Object.keys(root.palette.sourceColours)])
                 palette[role] = colourForRole(role, root.palette).toString();
             const fields = Object.entries(palette).map(([role, color]) => `[${JSON.stringify(role)}]=${JSON.stringify(color)}`).join(",");
             Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.theme({${fields}}) end`);

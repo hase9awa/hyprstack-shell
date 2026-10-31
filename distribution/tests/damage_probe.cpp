@@ -2,8 +2,11 @@
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
 #include <hyprland/src/desktop/view/window/Window.hpp>
+#include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
 #include <hyprland/src/desktop/view/WLSurface.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
+#include <hyprland/src/layout/LayoutManager.hpp>
+#include <hyprland/src/managers/input/InputManager.hpp>
 #include <nlohmann/json.hpp>
 extern "C" {
 #include <lua.h>
@@ -43,10 +46,46 @@ static int damage(lua_State* L) {
 }
 
 APICALL EXPORT std::string PLUGIN_API_VERSION() { return HYPRLAND_API_VERSION; }
+static int geometry(lua_State* L) {
+    const std::string title = luaL_checkstring(L, 1);
+    for (const auto& window : Desktop::windowState()->windows()) {
+        if (window->metadata().title() != title) continue;
+        const auto pos = window->positionAnimation()->value(), size = window->sizeAnimation()->value();
+        const auto goalPos = window->positionAnimation()->goal(), goalSize = window->sizeAnimation()->goal();
+        const auto value = nlohmann::json{{"current", {pos.x, pos.y, size.x, size.y}},
+            {"goal", {goalPos.x, goalPos.y, goalSize.x, goalSize.y}},
+            {"movingFromMonitor", window->presentation().movingFromMonitor()}}.dump();
+        lua_pushlstring(L, value.data(), value.size()); return 1;
+    }
+    return luaL_error(L, "Test window is missing");
+}
+
+static int drag(lua_State* L) {
+    const std::string title = luaL_checkstring(L, 1);
+    for (const auto& window : Desktop::windowState()->windows()) {
+        if (window->metadata().title() != title) continue;
+        const auto target = window->layoutTarget();
+        if (!target || target->floating()) return luaL_error(L, "Test window must be tiled");
+        const auto point = g_pInputManager->getMouseCoordsInternal();
+        const auto before = target->position();
+        const auto fraction = (point - before.pos()) / before.size();
+        g_layoutManager->beginDragTarget(target, MBIND_MOVE);
+        const auto pickedUp = target->position();
+        const auto grabbed = (point - pickedUp.pos()) / pickedUp.size();
+        const auto value = nlohmann::json{{"before", {fraction.x, fraction.y}}, {"after", {grabbed.x, grabbed.y}},
+            {"floating", target->floating()}}.dump();
+        g_layoutManager->endDragTarget();
+        lua_pushlstring(L, value.data(), value.size()); return 1;
+    }
+    return luaL_error(L, "Test window is missing");
+}
+
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     if (std::string(__hyprland_api_get_hash()) != __hyprland_api_get_client_hash())
         throw std::runtime_error("Damage probe: compositor/header ABI mismatch");
     HyprlandAPI::addLuaFunction(handle, "upgrade_probe", "damage", damage);
+    HyprlandAPI::addLuaFunction(handle, "upgrade_probe", "geometry", geometry);
+    HyprlandAPI::addLuaFunction(handle, "upgrade_probe", "drag", drag);
     return {"upgrade-damage-probe", "Disposable surface damage verification", "Hyprstack tests", "1"};
 }
 APICALL EXPORT void PLUGIN_EXIT() {}
