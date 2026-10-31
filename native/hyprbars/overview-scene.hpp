@@ -607,7 +607,7 @@ static UP<Scene> scene;
 using RectDraw = void (*)(Render::GL::CHyprOpenGLImpl*, Render::CRenderContext&, const CBox&, const CHyprColor&, Render::GL::CHyprOpenGLImpl::SRectRenderData);
 static void drawSceneRect(Render::GL::CHyprOpenGLImpl* renderer, Render::CRenderContext& ctx, const CBox& source, const CHyprColor& colour,
     Render::GL::CHyprOpenGLImpl::SRectRenderData data) {
-    auto& render = g_pHyprRenderer->context().m_data;
+    auto& render = ctx.m_data;
     const auto original = reinterpret_cast<RectDraw>(rectHook->m_original);
     if (!scene || !scene->runningFor(render.pMonitor.lock()) || render.renderModif.modifs.empty()) {
         original(renderer, ctx, source, colour, data); return;
@@ -628,7 +628,7 @@ static void drawSceneRect(Render::GL::CHyprOpenGLImpl* renderer, Render::CRender
 }
 using TextureDraw = void (*)(Render::IElementRenderer*, Render::CRenderContext&, WP<CTexPassElement>, const CRegion&);
 static void drawSceneTexture(Render::IElementRenderer* renderer, Render::CRenderContext& ctx, WP<CTexPassElement> element, const CRegion& damage) {
-    auto& render = g_pHyprRenderer->context().m_data;
+    auto& render = ctx.m_data;
     const auto original = reinterpret_cast<TextureDraw>(textureHook->m_original);
     if (!element || !scene || !scene->runningFor(render.pMonitor.lock()) || render.renderModif.modifs.empty()) {
         original(renderer, ctx, element, damage); return;

@@ -23,7 +23,7 @@ using BorderDraw = void (*)(void*, Render::CRenderContext&, WP<CBorderPassElemen
 static void drawBorder(void* renderer, Render::CRenderContext& ctx, WP<CBorderPassElement> element, const CRegion& damage) {
     const auto original = reinterpret_cast<BorderDraw>(borderHook->m_original);
     const auto window = element ? element->m_data.window.lock() : nullptr;
-    const auto monitor = g_pHyprRenderer->context().m_data.pMonitor.lock();
+    const auto monitor = ctx.m_data.pMonitor.lock();
     if (!window || !monitor || !window->mapped() || window->isFloating() || (window->m_state & Desktop::View::WINDOW_STATE_PINNED) ||
         !window->m_workspace || !window->m_workspace->space() || (window->m_workspace->type() == Workspace::eWorkspaceType::SPECIAL) ||
         !radii.contains(monitor->m_name) || radii.at(monitor->m_name) <= 0 || hyprstackOverviewRendering() ||
@@ -43,7 +43,7 @@ static void drawBorder(void* renderer, Render::CRenderContext& ctx, WP<CBorderPa
         const auto part=makeShared<CBorderPassElement>(data);
         original(renderer, ctx, part, damage); return;
     }
-    auto& render = g_pHyprRenderer->context().m_data;
+    auto& render = ctx.m_data;
     const auto savedDamage = render.damage.copy();
     auto bounds = element->m_data.box.copy().expand(std::round(border*monitor->m_scale));
     render.renderModif.applyToBox(bounds);

@@ -31,6 +31,10 @@
 !/distribution/defaults/
 !/distribution/systemd/
 !/distribution/patches/
+!/distribution/tests/
+/distribution/tests/*
+!/distribution/tests/test_upgrade.py
+!/distribution/tests/damage_probe.cpp
 
 !/native/
 /native/*

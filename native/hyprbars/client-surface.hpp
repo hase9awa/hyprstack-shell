@@ -21,7 +21,9 @@
 #include "globals.hpp"
 #include "titlebar-actions.hpp"
 #include <algorithm>
+#include <optional>
 #include <stdexcept>
+#include <type_traits>
 
 static CFunctionHook* clientSurfaceUVHook = nullptr;
 static CFunctionHook* clientSurfacePassHook = nullptr;
@@ -52,29 +54,34 @@ static CBox clientGeometry(PHLWINDOW window, SP<CWLSurfaceResource> surface) {
     return geometry.w > 0 && geometry.h > 0 ? geometry : CBox{{}, surface->m_current.size};
 }
 
-using ClientDamageFunction = CRegion (*)(const Desktop::View::CWLSurface*);
-static CRegion clientSurfaceDamage(const Desktop::View::CWLSurface* wlSurface) {
+// 0.57 passes the surface's current box to limit damage. Dropping this
+// argument forwards an invalid optional to the compositor and leaves stale
+// client pixels even while layer surfaces continue to update normally.
+static_assert(std::is_same_v<decltype(&Desktop::View::CWLSurface::computeDamage),
+    CRegion (Desktop::View::CWLSurface::*)(const std::optional<CBox>&) const>);
+using ClientDamageFunction = CRegion (*)(const Desktop::View::CWLSurface*, const std::optional<CBox>&);
+static CRegion clientSurfaceDamage(const Desktop::View::CWLSurface* wlSurface, const std::optional<CBox>& box) {
     const auto original = reinterpret_cast<ClientDamageFunction>(clientDamageHook->m_original);
     const auto window = Desktop::View::CWindow::fromView(wlSurface->view());
     const auto surface = wlSurface->resource();
     if (!window || !surface || window->backend().isX11() || !surface->m_current.texture)
-        return original(wlSurface);
+        return original(wlSurface, box);
     auto& state = surface->m_current;
     const auto geometry = clientGeometry(window, surface);
     const auto target = window->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT);
     if (state.size.x <= 0 || state.size.y <= 0 || state.bufferSize.x <= 0 || state.bufferSize.y <= 0 ||
         geometry.w <= 0 || geometry.h <= 0 || geometry.x < 0 || geometry.y < 0 || target.x <= 0 || target.y <= 0)
-        return original(wlSurface);
+        return original(wlSurface, box);
     const bool fitted = !window->isFloating() && !g_pGlobalState->config.enabled->value() && geometry.size() != target;
     if (geometry.pos() == Vector2D{} && geometry.size() == state.size && !fitted && !window->sizeAnimation()->isBeingAnimated())
-        return original(wlSurface);
+        return original(wlSurface, box);
 
     // Invert the same UV crop used by clientSurfaceUV. Translating an already
     // clipped computeDamage() loses the right/bottom strips; leaving it alone
     // misses the left/top strips on every partial video frame with CSD margins.
     const auto crop = geometry.intersection(CBox{{}, state.size});
     const auto source = state.viewport.hasSource ? state.viewport.source : CBox{{}, state.bufferSize};
-    if (crop.empty() || source.empty()) return original(wlSurface);
+    if (crop.empty() || source.empty()) return original(wlSurface, box);
     auto damage = state.accumulateBufferDamage();
     damage.transform(Math::wlTransformToHyprutils(state.transform), state.bufferSize.x, state.bufferSize.y);
     damage.intersect(source).translate(-source.pos()).scale(state.size / source.size());
@@ -192,7 +199,7 @@ using SurfacePassFunction = void (*)(CSurfacePassElement*, const CSurfacePassEle
 static void clientSurfacePass(CSurfacePassElement* element, const CSurfacePassElement::SRenderData& original) {
     auto data = original;
     const auto window = data.pWindow;
-    if (window && !window->backend().isX11() && !window->backend().isX11() &&
+    if (window && !window->backend().isX11() &&
         !data.mainSurface && !data.popup && data.squishOversized) {
         // Subsurface positions include the parent's CSD shadow margins.
         // The main image's UVs already remove those margins; make the entire
@@ -240,7 +247,7 @@ static void clientSurfaceUV(Render::IElementRenderer* renderer, Render::CRenderC
         sourceBR = (source.pos() + source.size()) / buffer;
     }
     const auto span = sourceBR - sourceTL;
-    auto& data = g_pHyprRenderer->context().m_data;
+    auto& data = ctx.m_data;
     data.primarySurfaceUVTopLeft = sourceTL + span * (cropped.pos() / size);
     data.primarySurfaceUVBottomRight = sourceTL + span * ((cropped.pos() + cropped.size()) / size);
 }

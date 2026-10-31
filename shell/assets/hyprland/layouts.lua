@@ -475,7 +475,7 @@ local function restore_focus(active, focused, visible)
             if monitor and (not monitor.active_workspace or key(monitor.active_workspace) ~= entry.workspace) then
                 local workspace = hl.get_workspace(entry.workspace)
                 if workspace then
-                    monitor:set_workspace({ workspace = workspace.name })
+                    monitor:set_workspace(workspace)
                 else
                     hl.dispatch(hl.dsp.focus({ monitor = monitor }))
                     hl.dispatch(hl.dsp.focus({ workspace = entry.workspace }))
@@ -825,8 +825,18 @@ function layouts.toggle_gaps()
 end
 
 local script_dir = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
-local plugin_path = os.getenv("HYPRSTACK_TITLEBAR_PLUGIN") or read(config_dir .. "/titlebars.json").path or
-    (os.getenv("HYPRSTACK_DATA_DIR") or (os.getenv("XDG_DATA_HOME") or os.getenv("HOME") .. "/.local/share") .. "/hyprstack") .. "/native/hyprstack-bars.so"
+local native_dir = (os.getenv("HYPRSTACK_DATA_DIR") or
+    (os.getenv("XDG_DATA_HOME") or os.getenv("HOME") .. "/.local/share") .. "/hyprstack") .. "/native/"
+local plugin_override = os.getenv("HYPRSTACK_TITLEBAR_PLUGIN")
+local plugin_path = plugin_override or read(config_dir .. "/titlebars.json").path or native_dir .. "hyprstack-bars.so"
+-- Older local installations pinned a versioned snapshot inside this directory.
+-- Updates rebuild the canonical module, so loading that snapshot after a
+-- Hyprland upgrade leaves all native navigation and decoration policies absent.
+-- Keep explicit external builds, including the environment override, intact.
+if not plugin_override and plugin_path:sub(1, #native_dir) == native_dir
+    and plugin_path:sub(#native_dir + 1):match("^hyprstack%-bars%-[^/]+%.so$") then
+    plugin_path = native_dir .. "hyprstack-bars.so"
+end
 local plugin_file = io.open(plugin_path, "r")
 if plugin_file then plugin_file:close(); hl.plugin.load(plugin_path) end
 -- Loading is deferred until the config has been parsed. The plugin requests a
@@ -1618,7 +1628,7 @@ local function secondary_transition(action)
             action()
             for _, view in ipairs(views) do
                 local monitor = hl.get_monitor(view.monitor)
-                if monitor then monitor:set_workspace({ workspace = view.workspace }) end
+                if monitor then monitor:set_workspace(view.workspace) end
             end
         end)
     end)
@@ -1675,7 +1685,7 @@ function layouts.close_secondary_overlay(refocus)
         local monitor = hl.get_monitor(overlay.monitor)
         if monitor and monitor.active_special_workspace
             and monitor.active_special_workspace.name == "special:" .. secondary_overlay_name then
-            monitor:set_special_workspace({})
+            monitor:set_special_workspace(nil)
         end
         restore_secondary_windows(overlay)
         secondary_overlay = nil

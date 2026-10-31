@@ -237,7 +237,7 @@ Item {
                     readonly property int implicitSize: (WorkspaceIcons.size * Tokens.scale)
                     implicitWidth: implicitSize
                     implicitHeight: implicitSize
-                    readonly property string source: Icons.getAppIcon(modelData.lastIpcObject.class, "application-x-executable")
+                    readonly property string source: Icons.getAppIcon(modelData?.lastIpcObject?.class ?? "", "application-x-executable")
                     readonly property bool focused: root.focused
                     readonly property color themeColour: Colours.palette.m3primary
                     readonly property color colour: WorkspaceIcons.colour(focused)
