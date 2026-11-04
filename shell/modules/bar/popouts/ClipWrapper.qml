@@ -26,11 +26,11 @@ Item {
 
     x: {
         if (content.isDetached)
-            return (parent.width - width) / 2;
+            return Math.round((parent.width - width) / 2);
         return Math.max(0, Math.min(content.currentCenter - borderThickness - content.nonAnimWidth / 2,
             parent.width - content.nonAnimWidth));
     }
-    y: content.isDetached ? (parent.height - height) / 2 : atBottom ? parent.height - height : 0
+    y: content.isDetached ? Math.round((parent.height - height) / 2) : atBottom ? parent.height - height : 0
 
     Behavior on offsetScale {
         NumberAnimation { duration: 240; easing.type: Easing.OutCubic }
