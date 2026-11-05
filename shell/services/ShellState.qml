@@ -13,6 +13,11 @@ Singleton {
     // so a keybind can land directly in one of its modes.
     property string launcherPrefill
 
+    // Whether any screen has a menu up. The shell holds the input then, so
+    // the key that closes windows belongs to the shell and not to the
+    // compositor.
+    readonly property bool menuOpen: components.instances.some(c => c.rootWindow?.menuOpen ?? false)
+
     // prefill is deliberately untyped: a declared string turns a missing
     // argument into the word "undefined" rather than leaving it empty.
     function setLauncher(state: ScreenState, open: bool, prefill): void {

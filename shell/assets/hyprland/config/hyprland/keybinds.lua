@@ -213,10 +213,10 @@ bind_variable("kbPinWindow", hl.dsp.window.pin())
 bind_variable("kbWindowFullscreen", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 bind_variable("kbWindowBorderedFullscreen", hl.dsp.window.fullscreen({ mode = "maximized" }))
 bind_variable("kbToggleWindowFloating", hl.dsp.window.float())
--- The shell draws its own dialogs as layer surfaces, which the compositor
--- does not count as windows and so cannot close. The shell leaves a mark
--- while it has one up; without it the key closes a window as it always has,
--- whether or not the shell is running.
+-- The shell draws its own dialogs and menus as layer surfaces, which the
+-- compositor does not count as windows and so cannot close. The shell leaves
+-- a mark while it has one up; without it the key closes a window as it always
+-- has, whether or not the shell is running.
 local dialog_flag = os.getenv("XDG_RUNTIME_DIR") and os.getenv("HYPRLAND_INSTANCE_SIGNATURE")
     and (os.getenv("XDG_RUNTIME_DIR") .. "/hyprstack-dialogs-" .. os.getenv("HYPRLAND_INSTANCE_SIGNATURE"))
 
