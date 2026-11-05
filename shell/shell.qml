@@ -12,6 +12,7 @@ import "modules/lock"
 import "modules/overview" as OverviewModule
 import "modules/switcher" as SwitcherModule
 import "modules/askpass" as AskpassModule
+import "modules/bluetooth" as BluetoothModule
 import "modules/polkit" as PolkitModule
 import "modules/portals" as PortalsModule
 import "modules/sharepicker" as SharePickerModule
@@ -37,6 +38,7 @@ ShellRoot {
     ServiceLoader {}
     PolkitModule.Polkit {}
     AskpassModule.Askpass {}
+    BluetoothModule.Pairing {}
     SharePickerModule.SharePicker {
         areaPicker: areaPicker
     }

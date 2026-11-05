@@ -5959,3 +5959,62 @@ msgstr "Показывать это впредь без вопроса"
 msgctxt "button"
 msgid "Share"
 msgstr "Показать"
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-format
+msgid "Pair with %1"
+msgstr "Сопряжение с %1"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Pair with the device"
+msgstr "Сопряжение с устройством"
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-format
+msgid "%1 wants to connect"
+msgstr "%1 запрашивает подключение"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "A device wants to connect"
+msgstr "Устройство запрашивает подключение"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Check that the device shows the same code."
+msgstr "Проверьте, что на устройстве показан тот же код."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "The device is asking to pair with this computer."
+msgstr "Устройство просит сопряжения с этим компьютером."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "It is asking for a service it has not been allowed yet."
+msgstr "Оно запрашивает службу, которая ему ещё не разрешена."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Type this code on the device."
+msgstr "Введите этот код на устройстве."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Enter the code the device is showing."
+msgstr "Введите код, который показывает устройство."
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-plural-format
+msgid "%n digit entered on the device"
+msgid_plural "%n digits entered on the device"
+msgstr[0] "На устройстве введена %n цифра"
+msgstr[1] "На устройстве введено %n цифры"
+msgstr[2] "На устройстве введено %n цифр"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Code"
+msgstr "Код"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "PIN"
+msgstr "PIN"
+
+#: modules/bluetooth/PairDialog.qml
+msgctxt "button"
+msgid "Pair"
+msgstr "Сопряжение"

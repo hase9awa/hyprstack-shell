@@ -4804,3 +4804,62 @@ msgstr ""
 msgctxt "button"
 msgid "Share"
 msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-format
+msgid "Pair with %1"
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Pair with the device"
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-format
+msgid "%1 wants to connect"
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "A device wants to connect"
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Check that the device shows the same code."
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "The device is asking to pair with this computer."
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "It is asking for a service it has not been allowed yet."
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Type this code on the device."
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Enter the code the device is showing."
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-plural-format
+msgid "%n digit entered on the device"
+msgid_plural "%n digits entered on the device"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Code"
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgid "PIN"
+msgstr ""
+
+#: modules/bluetooth/PairDialog.qml
+msgctxt "button"
+msgid "Pair"
+msgstr ""

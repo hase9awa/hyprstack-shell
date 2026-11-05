@@ -21,6 +21,7 @@ qml_module(hyprstack-services
         lyriccandidate.cpp
         lyrics.cpp
         sessionmanager.cpp
+        bluezagent.cpp
         networkusage.cpp
         hyprdevices.cpp
         hyprextras.cpp
