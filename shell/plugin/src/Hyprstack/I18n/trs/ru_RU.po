@@ -6027,3 +6027,13 @@ msgstr "VPN запрашивает пароль."
 #: modules/network/SecretDialog.qml
 msgid "NetworkManager needs a password to bring the connection up."
 msgstr "NetworkManager нужен пароль, чтобы поднять подключение."
+
+#: components/filedialog/Sidebar.qml
+msgctxt "file dialog place"
+msgid "Home"
+msgstr "Домашняя папка"
+
+#: components/filedialog/Sidebar.qml
+msgctxt "file dialog sidebar heading"
+msgid "Pinned"
+msgstr "Закреплённые"

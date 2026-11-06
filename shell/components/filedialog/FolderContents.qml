@@ -249,10 +249,16 @@ Item {
                     source = Qt.resolvedUrl(file.path);
                 else if (!file.isDir)
                     source = Quickshell.iconPath(file.mimeType.replace("/", "-"), "application-x-zerosize");
-                else if (root.dialog.cwd.length === 1 && ["Desktop", "Documents", "Downloads", "Music", "Pictures", "Public", "Templates", "Videos"].includes(file.name))
-                    source = Quickshell.iconPath(`folder-${file.name.toLowerCase()}`);
-                else
-                    source = Quickshell.iconPath("inode-directory");
+                else {
+                    // The desktop's own folders are known by their paths:
+                    // their names are in the user's language, their icons
+                    // are not.
+                    const kind = [[Paths.desktop, "desktop"], [Paths.documents, "documents"],
+                        [Paths.downloads, "download"], [Paths.music, "music"],
+                        [Paths.pictures, "pictures"], [Paths.videos, "videos"]]
+                        .find(entry => entry[0] && entry[0] === file.path);
+                    source = Quickshell.iconPath(kind ? `folder-${kind[1]}` : "inode-directory", "inode-directory");
+                }
             }
         }
 

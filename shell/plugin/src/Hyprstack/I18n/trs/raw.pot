@@ -4871,3 +4871,13 @@ msgstr ""
 #: modules/network/SecretDialog.qml
 msgid "NetworkManager needs a password to bring the connection up."
 msgstr ""
+
+#: components/filedialog/Sidebar.qml
+msgctxt "file dialog place"
+msgid "Home"
+msgstr ""
+
+#: components/filedialog/Sidebar.qml
+msgctxt "file dialog sidebar heading"
+msgid "Pinned"
+msgstr ""

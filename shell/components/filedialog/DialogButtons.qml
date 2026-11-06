@@ -8,6 +8,7 @@ import qs.components
 import qs.components.controls
 import qs.components.filedialog
 import qs.services
+import "Filters.js" as Filters
 
 StyledRect {
     id: root
@@ -98,7 +99,7 @@ StyledRect {
                         const group = root.dialog.activeGroup;
                         if (!group)
                             return "";
-                        const patterns = (group.patterns ?? []).map(f => `*.${f}`).join(Tr.trCtx(", ", "file filter separator"));
+                        const patterns = (group.patterns ?? []).map(f => Filters.display(f)).join(Tr.trCtx(", ", "file filter separator"));
                         // TRANSLATORS: %1 = filter label, %2 = file patterns
                         return Tr.trCtx("%1 (%2)", "file filter label and patterns").arg(group.label).arg(patterns);
                     }

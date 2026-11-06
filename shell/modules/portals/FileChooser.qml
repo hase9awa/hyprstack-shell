@@ -22,17 +22,15 @@ Scope {
         return folder.split("/");
     }
 
-    // The dialog matches bare suffixes, so "*.png" arrives here as "png". A
-    // set described only by MIME types has nothing to match on, so it keeps
-    // everything visible rather than hiding the folder's whole contents.
+    // The globs travel to the dialog as the application wrote them, classes
+    // and all. A set described only by MIME types has no glob to match on,
+    // and an empty set keeps the folder's contents visible rather than
+    // hiding everything behind a filter nothing can satisfy.
     function groupsFor(filters: var): var {
-        return filters.map(filter => {
-            const patterns = filter.patterns.map(pattern => pattern.startsWith("*.") ? pattern.slice(2) : pattern);
-            return {
-                label: filter.label,
-                patterns: patterns.length > 0 ? patterns : ["*"]
-            };
-        });
+        return filters.map(filter => ({
+            label: filter.label,
+            patterns: filter.patterns
+        }));
     }
 
     Instantiator {

@@ -7,6 +7,7 @@ import Hyprstack.I18n
 import qs.components
 import qs.services
 import qs.utils
+import "Filters.js" as Filters
 
 LazyLoader {
     id: loader
@@ -72,10 +73,20 @@ LazyLoader {
         readonly property string currentPath: cwd[0] === "Home"
             ? `${Paths.home}${cwd.length > 1 ? "/" : ""}${cwd.slice(1).join("/")}` : cwd.join("/")
 
+        // The same path the other way round: the segments the bar walks,
+        // with home named rather than spelled out.
+        function segmentsFor(path: string): list<string> {
+            if (path === Paths.home)
+                return ["Home"];
+            if (path.startsWith(`${Paths.home}/`))
+                return ["Home", ...path.slice(Paths.home.length + 1).split("/")];
+            return path.split("/");
+        }
+
         function matchesFilter(file: var): bool {
             if (!file || file.isDir)
                 return false;
-            return patterns.includes("*") || patterns.some(pattern => pattern.toLowerCase() === file.suffix.toLowerCase());
+            return Filters.matches(file.name, patterns);
         }
 
         readonly property bool selectionValid: {
