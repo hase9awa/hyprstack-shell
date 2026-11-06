@@ -20,8 +20,13 @@ in {
 
     programs.hyprland.enable = true;
     programs.hyprland.package = lib.mkDefault package.hyprland;
-    programs.hyprlock.enable = true;
     environment.systemPackages = [ package ];
+
+    # The lock screen is the shell's own and authenticates through the PAM
+    # stack of this name, which is all that is wanted here. Switching
+    # programs.hyprlock on instead would also start hypridle beside the
+    # shell, and the shell watches idle itself.
+    security.pam.services.hyprlock = { };
 
     # The shell answers appearance settings, file dialogs and permission
     # prompts itself, so applications follow its theme without gsettings and
