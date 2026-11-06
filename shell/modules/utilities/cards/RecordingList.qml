@@ -88,7 +88,9 @@ ColumnLayout {
                 Layout.rightMargin: Tokens.spacing.extraSmall
                 text: {
                     const time = recording.baseName;
-                    const matches = time.match(/^recording_(\d{4})(\d{2})(\d{2})_(\d{2})-(\d{2})-(\d{2})/);
+                    // recording_2026-11-01_20-02-32-160546, as the recorder
+                    // writes it; older ones left the date undivided.
+                    const matches = time.match(/^recording_(\d{4})-?(\d{2})-?(\d{2})_(\d{2})-(\d{2})-(\d{2})/);
                     if (!matches)
                         return time;
                     const date = new Date(...matches.slice(1));
@@ -115,7 +117,7 @@ ColumnLayout {
                 onClicked: {
                     root.screenState.utilities = false;
                     root.screenState.sidebar = false;
-                    ThemeSync.exec([...GlobalConfig.general.apps.explorer, recording.modelData.path]);
+                    ThemeSync.exec([...GlobalConfig.general.apps.explorer, Paths.recsdir]);
                 }
             }
 

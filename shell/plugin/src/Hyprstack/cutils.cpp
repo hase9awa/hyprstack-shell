@@ -131,6 +131,12 @@ bool CUtils::isDirectory(const QString& path) {
     return !path.isEmpty() && QFileInfo(path).isDir();
 }
 
+QString CUtils::findExecutable(const QString& program) {
+    // An absolute path is answered by its own existence; everything else is
+    // looked for the way the launch itself would look for it.
+    return QStandardPaths::findExecutable(program);
+}
+
 void CUtils::setThemeEnvironment(const QVariantMap& environment) {
     // Update Qt URL handlers and Quickshell.env(). Detached launches additionally
     // pass ThemeSync.launchEnvironment because Quickshell caches its startup env.
