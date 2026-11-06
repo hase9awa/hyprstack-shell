@@ -48,6 +48,15 @@ class ServiceConfig : public settings::ObjectNode {
             vmap({ { u"from"_s, u"com.github.th_ch.youtube_music"_s }, { u"to"_s, u"YT Music"_s } }),
         }))
     CONFIG_GLOBAL_ENUM_PROPERTY(LyricsBackend, lyricsBackend, LyricsBackend::Auto)
+
+    // What the shell answers for on the session's behalf. Turning one off
+    // hands that job back to whatever else is installed to do it, or to
+    // nobody, which for an agent means the request is simply refused.
+    CONFIG_GLOBAL_PROPERTY(bool, portals, true)
+    CONFIG_GLOBAL_PROPERTY(bool, polkitAgent, true)
+    CONFIG_GLOBAL_PROPERTY(bool, askpass, true)
+    CONFIG_GLOBAL_PROPERTY(bool, bluetoothAgent, true)
+    CONFIG_GLOBAL_PROPERTY(bool, networkSecrets, true)
 };
 
 } // namespace hyprstack::config

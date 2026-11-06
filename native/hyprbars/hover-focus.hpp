@@ -13,13 +13,16 @@
 #include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
 #include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp>
 #include <nlohmann/json.hpp>
+#include <algorithm>
 #include <chrono>
 
 namespace HyprstackHoverFocus {
-// Long enough that a pointer on its way through a window never carries the
-// focus off with it, short enough that one which stopped there is not kept
-// waiting. The compositor itself only knows distance, not dwelling.
-constexpr auto DWELL = std::chrono::milliseconds(200);
+// How long the pointer has to stay on a window before the focus follows it.
+// The setting carries the number; this is what it starts at, long enough
+// that a pointer on its way through a window never carries the focus off
+// with it. The compositor itself only knows distance, not dwelling.
+constexpr int DEFAULT_DWELL = 200;
+constexpr int MAX_DWELL = 1000;
 
 class Controller {
   public:
@@ -51,10 +54,14 @@ class Controller {
         if (!enabled) disarm();
     }
 
+    void setDwell(int milliseconds) {
+        m_dwell = std::chrono::milliseconds(std::clamp(milliseconds, 0, MAX_DWELL));
+    }
+
     nlohmann::json status() const {
         const auto window = m_candidate.lock();
         return {{"enabled", m_enabled}, {"waiting", bool(window)}, {"timerArmed", m_timer->armed()},
-            {"dwellMs", DWELL.count()},
+            {"dwellMs", m_dwell.count()},
             {"candidate", window ? std::format("0x{:x}", reinterpret_cast<uintptr_t>(window.get())) : ""}};
     }
 
@@ -80,7 +87,7 @@ class Controller {
         // same wait; a different one starts it over.
         if (window == m_candidate) return;
         m_candidate = window;
-        m_timer->updateTimeout(DWELL);
+        m_timer->updateTimeout(m_dwell);
     }
     void fire() {
         const auto window = m_candidate.lock();
@@ -98,6 +105,7 @@ class Controller {
     }
 
     bool m_enabled = false;
+    std::chrono::milliseconds m_dwell { DEFAULT_DWELL };
     PHLWINDOWREF m_candidate;
     SP<CEventLoopTimer> m_timer;
     CHyprSignalListener m_move, m_button, m_key, m_close, m_reload, m_lock;
@@ -111,6 +119,8 @@ static int luaHoverFocus(lua_State* L) {
         return 1;
     }
     controller->enable(lua_toboolean(L, 1));
+    if (lua_isnumber(L, 2))
+        controller->setDwell(static_cast<int>(lua_tointeger(L, 2)));
     lua_pushboolean(L, true);
     return 1;
 }

@@ -4872,6 +4872,58 @@ msgstr ""
 msgid "NetworkManager needs a password to bring the connection up."
 msgstr ""
 
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Answered by the shell"
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Desktop portals"
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Permission prompts, file dialogs, the application chooser and the wallpaper offer. Off hands them to another backend."
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Authorisation requests"
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "The Polkit agent. A session wants one agent, no more."
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Passwords for ssh and sudo"
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Asked here when the terminal has nowhere to ask. Off leaves both to ask for themselves."
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Bluetooth pairing questions"
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Codes to compare and PINs to type. With nobody to ask, bluez refuses the pairing."
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "NetworkManager passwords"
+msgstr ""
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "For a VPN, a network with 802.1x, and connections brought up on their own."
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Wait before switching, ms"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "How long the pointer has to rest on a window. A pointer merely crossing the screen leaves the focus alone."
+msgstr ""
+
 #: components/filedialog/Sidebar.qml
 msgctxt "file dialog place"
 msgid "Home"

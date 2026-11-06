@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Hyprstack.Config
 import qs.services
 
 Scope {
@@ -36,7 +37,7 @@ Scope {
 
         // A nested compositor shares the runtime directory with the desktop
         // that started it and must not answer for the real session.
-        active: Quickshell.env("HYPRSTACK_NESTED") !== "1"
+        active: Quickshell.env("HYPRSTACK_NESTED") !== "1" && GlobalConfig.services.askpass
         path: root.socketPath
 
         handler: Socket {

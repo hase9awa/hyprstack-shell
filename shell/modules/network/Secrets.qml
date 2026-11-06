@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Hyprstack.Config
 import Hyprstack.Services
 import qs.services
 
@@ -21,7 +22,7 @@ Scope {
     LazyLoader {
         id: agentLoader
 
-        active: Quickshell.env("HYPRSTACK_NESTED") !== "1"
+        active: Quickshell.env("HYPRSTACK_NESTED") !== "1" && GlobalConfig.services.networkSecrets
 
         Scope {
             id: agentScope

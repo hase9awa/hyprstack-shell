@@ -244,6 +244,19 @@ PageBase {
             onToggled: Tiling.set("focusOnHover", checked)
         }
 
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceTilingFocusHoverDelay"
+            visible: Tiling.focusOnHover
+            label: Tr.tr("Wait before switching, ms")
+            subtext: Tr.tr("How long the pointer has to rest on a window. A pointer merely crossing the screen leaves the focus alone.")
+            value: Tiling.focusHoverDelay
+            from: 0
+            to: 1000
+            stepSize: 25
+            onMoved: v => Tiling.set("focusHoverDelay", v)
+        }
+
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             objectName: "appearanceAutoscroll"

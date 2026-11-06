@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Hyprstack.Config
 import Hyprstack.Portals
 import qs.services
 
@@ -17,7 +18,7 @@ Scope {
     LazyLoader {
         id: hostLoader
 
-        active: Quickshell.env("HYPRSTACK_NESTED") !== "1"
+        active: Quickshell.env("HYPRSTACK_NESTED") !== "1" && GlobalConfig.services.portals
 
         Scope {
             id: hostScope

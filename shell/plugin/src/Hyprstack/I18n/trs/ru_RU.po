@@ -6028,6 +6028,58 @@ msgstr "VPN запрашивает пароль."
 msgid "NetworkManager needs a password to bring the connection up."
 msgstr "NetworkManager нужен пароль, чтобы поднять подключение."
 
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Answered by the shell"
+msgstr "Отвечает оболочка"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Desktop portals"
+msgstr "Порталы рабочего стола"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Permission prompts, file dialogs, the application chooser and the wallpaper offer. Off hands them to another backend."
+msgstr "Запросы разрешений, файловые диалоги, выбор приложения и предложение обоев. Выключено — отвечает другой backend."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Authorisation requests"
+msgstr "Запросы авторизации"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "The Polkit agent. A session wants one agent, no more."
+msgstr "Агент Polkit. В сеансе нужен один агент, не больше."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Passwords for ssh and sudo"
+msgstr "Пароли для ssh и sudo"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Asked here when the terminal has nowhere to ask. Off leaves both to ask for themselves."
+msgstr "Спрашиваются здесь, когда терминалу негде спросить. Выключено — спрашивают сами."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Bluetooth pairing questions"
+msgstr "Вопросы при сопряжении Bluetooth"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Codes to compare and PINs to type. With nobody to ask, bluez refuses the pairing."
+msgstr "Сравнить код, ввести PIN. Когда спросить некого, bluez отказывает в сопряжении."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "NetworkManager passwords"
+msgstr "Пароли NetworkManager"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "For a VPN, a network with 802.1x, and connections brought up on their own."
+msgstr "Для VPN, сетей с 802.1x и подключений, которые поднимаются сами."
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Wait before switching, ms"
+msgstr "Задержка перед переключением, мс"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "How long the pointer has to rest on a window. A pointer merely crossing the screen leaves the focus alone."
+msgstr "Сколько указатель должен пролежать на окне. Указатель, просто пересекающий экран, фокус не трогает."
+
 #: components/filedialog/Sidebar.qml
 msgctxt "file dialog place"
 msgid "Home"

@@ -38,6 +38,8 @@ local overview_active = false
 local overview_watchdog
 local tiling_preferences = read(config_dir .. "/tiling.json")
 tiling_preferences.focusOnHover = tiling_preferences.focusOnHover ~= false
+tiling_preferences.focusHoverDelay = math.max(0, math.min(1000,
+    math.floor(tonumber(tiling_preferences.focusHoverDelay) or 200)))
 local theme_palette = {}
 local border_color_roles = { primary = true, secondary = true, tertiary = true,
     error = true, success = true, onSurface = true, outline = true }
@@ -720,7 +722,7 @@ local function pointer_focus()
     -- it. The compositor's own follow is instant and knows only distance,
     -- so it stays off wherever the plugin is there to do it instead.
     local dwell = hl.plugin.hyprbars and hl.plugin.hyprbars.hover_focus
-    if dwell then dwell(hover) end
+    if dwell then dwell(hover, tiling_preferences.focusHoverDelay) end
     -- Scrolling follows the pointer by default; stacking and the optional
     -- click-focus mode keep keyboard focus until a click.
     hl.config({ input = { follow_mouse = (hover and not dwell) and 1 or 2,
@@ -751,6 +753,10 @@ function layouts.tiling(options)
     end
     if appearance_changed then appearance() end
     if options.focusOnHover ~= nil then tiling_preferences.focusOnHover = options.focusOnHover == true end
+    if options.focusHoverDelay ~= nil then
+        tiling_preferences.focusHoverDelay = math.max(0, math.min(1000,
+            math.floor(tonumber(options.focusHoverDelay) or 200)))
+    end
     pointer_focus()
     if options.gaps ~= nil then tiling_preferences.gaps = options.gaps ~= false end
     if options.gapsIn ~= nil then
