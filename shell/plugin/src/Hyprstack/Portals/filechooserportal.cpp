@@ -200,6 +200,11 @@ void FileChooserPortal::add(FileChooserRequest::Action action, const QDBusObject
     m_requests.append(request);
     emit requestsChanged();
     qCInfo(lcFileChooser) << "Chooser requested by" << (appId.isEmpty() ? u"an application"_s : appId);
+    // What an application asked to see, in its own words. Applications
+    // spell a filter in several ways and a wrong guess shows an empty
+    // folder, so the words themselves are worth having when one does:
+    // QT_LOGGING_RULES="hyprstack.portals.filechooser.debug=true".
+    qCDebug(lcFileChooser) << "asked for" << request->filters();
 }
 
 qsizetype FileChooserPortal::requestCount(QQmlListProperty<FileChooserRequest>* list) {
