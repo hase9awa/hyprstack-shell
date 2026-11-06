@@ -21,9 +21,6 @@ Singleton {
     property real wobbleIntensity: 0.2
     property int wobbleStiffness: 200
     property int wobbleDamping: 12
-    property bool windowGlow: false
-    property int glowSize: 10
-    property real glowOpacity: 0.35
     property bool motionBlur: false
     property int motionBlurSamples: 7
     property var preferences: ({})
@@ -49,9 +46,6 @@ Singleton {
         else if (option === "wobbleIntensity") wobbleIntensity = bounded(value, 0, 2, 0.2, false);
         else if (option === "wobbleStiffness") wobbleStiffness = bounded(value, 1, 1000, 200);
         else if (option === "wobbleDamping") wobbleDamping = bounded(value, 0, 100, 12);
-        else if (option === "windowGlow") windowGlow = !!value;
-        else if (option === "glowSize") glowSize = bounded(value, 0, 100, 10);
-        else if (option === "glowOpacity") glowOpacity = bounded(value, 0, 1, 0.35, false);
         else if (option === "motionBlur") motionBlur = !!value;
         else if (option === "motionBlurSamples") motionBlurSamples = bounded(value, 1, 64, 7);
         else return;
@@ -72,7 +66,6 @@ Singleton {
             blurSize: blurSize, blurPasses: blurPasses, proportionalBlur: proportionalBlur,
             windowWobble: windowWobble, wobbleIntensity: wobbleIntensity,
             wobbleStiffness: wobbleStiffness, wobbleDamping: wobbleDamping,
-            windowGlow: windowGlow, glowSize: glowSize, glowOpacity: glowOpacity,
             motionBlur: motionBlur, motionBlurSamples: motionBlurSamples};
     }
 
@@ -92,7 +85,12 @@ Singleton {
         onLoaded: {
             try {
                 const data = JSON.parse(text());
-                root.preferences = data;
+                const preferences = Object.assign({}, data);
+                const removedGlow = ["windowGlow", "glowSize", "glowOpacity"].some(key => key in preferences);
+                delete preferences.windowGlow;
+                delete preferences.glowSize;
+                delete preferences.glowOpacity;
+                root.preferences = preferences;
                 root.blurEnabled = data.blur !== false;
                 root.windowShadows = data.windowShadows !== false;
                 root.uiShadows = data.uiShadows !== false;
@@ -106,11 +104,10 @@ Singleton {
                 root.wobbleIntensity = root.bounded(data.wobbleIntensity ?? 0.2, 0, 2, 0.2, false);
                 root.wobbleStiffness = root.bounded(data.wobbleStiffness ?? 200, 1, 1000, 200);
                 root.wobbleDamping = root.bounded(data.wobbleDamping ?? 12, 0, 100, 12);
-                root.windowGlow = data.windowGlow === true;
-                root.glowSize = root.bounded(data.glowSize ?? 10, 0, 100, 10);
-                root.glowOpacity = root.bounded(data.glowOpacity ?? 0.35, 0, 1, 0.35, false);
                 root.motionBlur = data.motionBlur === true;
                 root.motionBlurSamples = root.bounded(data.motionBlurSamples ?? 7, 1, 64, 7);
+                if (removedGlow)
+                    storage.setText(JSON.stringify(Object.assign({}, preferences, root.values())));
             } catch (error) {
                 console.warn(`Unable to load effect preferences: ${error}`);
             }

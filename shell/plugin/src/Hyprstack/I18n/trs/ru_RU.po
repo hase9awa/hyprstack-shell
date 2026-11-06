@@ -3109,16 +3109,8 @@ msgid "Window border width"
 msgstr "Толщина рамки окна"
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
-msgid "Scrolling mode only; 0 hides the window border"
-msgstr "Только тайловый режим; 0 скрывает рамку окна"
-
-#: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Window border colour"
 msgstr "Цвет рамки окна"
-
-#: modules/nexus/pages/WallpaperAndStyle.qml
-msgid "Scrolling mode; choose a colour from the current scheme independently of the theme accent"
-msgstr "Тайловый режим; цвет из текущей схемы независимо от акцента темы"
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Window corner rounding"
@@ -5821,21 +5813,6 @@ msgstr "Затухание пружины"
 msgid "Higher values make oscillations settle sooner"
 msgstr "Чем выше значение, тем быстрее затухают колебания"
 
-msgid "Window glow"
-msgstr "Свечение окон"
-
-msgid "Inner glow"
-msgstr "Внутреннее свечение"
-
-msgid "Light along the window edges in the current accent colour"
-msgstr "Свечение краёв окна акцентным цветом текущей темы"
-
-msgid "Glow size"
-msgstr "Размер свечения"
-
-msgid "Glow intensity"
-msgstr "Яркость свечения"
-
 msgid "Motion blur"
 msgstr "Размытие движения"
 
@@ -5859,3 +5836,36 @@ msgstr "Нативный модуль загружен"
 
 msgid "Rebuild Hyprstack for the running Hyprland and log in again"
 msgstr "Пересоберите Hyprstack для установленной версии Hyprland и войдите в сеанс заново"
+
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Scrolling: 0 hides the border. Stacking: always 1 px."
+msgstr "Тайловый режим: 0 скрывает рамку. Стакинг: всегда 1 px."
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient focus border"
+msgstr "Градиентная рамка активного окна"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Blend two colours from the current scheme on the focused window"
+msgstr "Плавный переход между двумя цветами текущей схемы"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient start colour"
+msgstr "Начальный цвет градиента"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Colour of the focused window border in both layouts"
+msgstr "Цвет рамки активного окна в обоих режимах"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient end colour"
+msgstr "Конечный цвет градиента"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient angle"
+msgstr "Угол градиента"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Direction in degrees"
+msgstr "Направление в градусах"

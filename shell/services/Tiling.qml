@@ -16,6 +16,9 @@ Singleton {
     property int gapsOut: 10
     property int focusBorderWidth: 1
     property string focusBorderColor: "primary"
+    property bool focusBorderGradient: false
+    property string focusBorderGradientEndColor: "secondary"
+    property int focusBorderGradientAngle: 45
     readonly property var baseBorderColorRoles: ["primary", "secondary", "tertiary", "error", "success", "onSurface", "outline",
         ...Array.from({length: 16}, (_, i) => `term${i}`)]
     readonly property var borderColorChoices: [
@@ -60,6 +63,9 @@ Singleton {
         else if (option === "gapsOut") gapsOut = Math.max(0, Math.min(100, Math.round(value)));
         else if (option === "focusBorderWidth") focusBorderWidth = Math.max(0, Math.min(10, Math.round(value)));
         else if (option === "focusBorderColor") focusBorderColor = validBorderRole(value) ? value : "primary";
+        else if (option === "focusBorderGradient") focusBorderGradient = !!value;
+        else if (option === "focusBorderGradientEndColor") focusBorderGradientEndColor = validBorderRole(value) ? value : "secondary";
+        else if (option === "focusBorderGradientAngle") focusBorderGradientAngle = Math.max(0, Math.min(360, Math.round(value)));
         else if (option === "windowRounding") windowRounding = Math.max(0, Math.min(60, Math.round(value)));
         else if (option === "focusOnHover") focusOnHover = !!value;
         else if (option === "edgeScroll") edgeScroll = !!value;
@@ -67,13 +73,15 @@ Singleton {
         else return;
         storage.setText(JSON.stringify({desktopFrame: desktopFrame, gaps: gaps, gapsIn: gapsIn,
             gapsOut: gapsOut, focusBorderWidth: focusBorderWidth, focusBorderColor: focusBorderColor,
+            focusBorderGradient: focusBorderGradient, focusBorderGradientEndColor: focusBorderGradientEndColor,
+            focusBorderGradientAngle: focusBorderGradientAngle,
             windowRounding: windowRounding, focusOnHover: focusOnHover, edgeScroll: edgeScroll, autoscroll: autoscroll}));
         apply();
     }
 
     function apply(): void {
         if (loaded && Hypr.usingLua)
-            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},focusBorderColor=${JSON.stringify(focusBorderColor)},windowRounding=${windowRounding},focusOnHover=${focusOnHover},edgeScroll=${edgeScroll},autoscroll=${autoscroll}}) end`);
+            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},focusBorderColor=${JSON.stringify(focusBorderColor)},focusBorderGradient=${focusBorderGradient},focusBorderGradientEndColor=${JSON.stringify(focusBorderGradientEndColor)},focusBorderGradientAngle=${focusBorderGradientAngle},windowRounding=${windowRounding},focusOnHover=${focusOnHover},edgeScroll=${edgeScroll},autoscroll=${autoscroll}}) end`);
     }
 
     FileView {
@@ -91,6 +99,9 @@ Singleton {
                 root.gapsOut = Math.max(0, Math.min(100, Math.round(data.gapsOut ?? 10)));
                 root.focusBorderWidth = Math.max(0, Math.min(10, Math.round(data.focusBorderWidth ?? 1)));
                 root.focusBorderColor = root.validBorderRole(data.focusBorderColor) ? data.focusBorderColor : "primary";
+                root.focusBorderGradient = data.focusBorderGradient === true;
+                root.focusBorderGradientEndColor = root.validBorderRole(data.focusBorderGradientEndColor) ? data.focusBorderGradientEndColor : "secondary";
+                root.focusBorderGradientAngle = Math.max(0, Math.min(360, Math.round(data.focusBorderGradientAngle ?? 45)));
                 root.windowRounding = Math.max(0, Math.min(60, Math.round(data.windowRounding ?? 15)));
                 root.focusOnHover = data.focusOnHover !== false;
                 root.edgeScroll = data.edgeScroll !== false;

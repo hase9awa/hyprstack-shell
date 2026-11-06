@@ -72,7 +72,7 @@ in settings.
 - [NixOS](INSTALL.nixos.en.md) — package and NixOS/Home Manager modules.
 
 Requires **Hyprland 0.57.0 or 0.57.1**, **Quickshell ≥ 0.3.1**, **Qt ≥ 6.9**.
-Settings include window wobble, 11 blur variants, inner glow and motion blur.
+Settings include a gradient focus border, window wobble, 11 blur variants and motion blur.
 Rebuild the native extension after a Hyprland ABI change.
 
 [Updates and recovery (Russian)](MAINTENANCE.md#обновление).

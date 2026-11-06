@@ -281,22 +281,56 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             objectName: "appearanceFocusBorderWidth"
             label: Tr.tr("Window border width")
-            subtext: Tr.tr("Scrolling mode only; 0 hides the window border")
+            subtext: Tr.tr("Scrolling: 0 hides the border. Stacking: always 1 px.")
             value: Tiling.focusBorderWidth
             from: 0
             to: 10
             onMoved: v => Tiling.set("focusBorderWidth", v)
         }
 
+        ToggleRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceFocusBorderGradient"
+            text: Tr.tr("Gradient focus border")
+            subtext: Tr.tr("Blend two colours from the current scheme on the focused window")
+            checked: Tiling.focusBorderGradient
+            onToggled: Tiling.set("focusBorderGradient", checked)
+        }
+
         PaletteRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             objectName: "appearanceFocusBorderColor"
-            label: Tr.tr("Window border colour")
-            subtext: Tr.tr("Scrolling mode; choose a colour from the current scheme independently of the theme accent")
+            label: Tiling.focusBorderGradient ? Tr.tr("Gradient start colour") : Tr.tr("Window border colour")
+            subtext: Tr.tr("Colour of the focused window border in both layouts")
             value: Tiling.focusBorderColor
             palette: Colours.current
             choices: Tiling.borderColorChoices.map(choice => ({role: choice.role, label: Tr.tr(choice.label)}))
             onSelected: role => Tiling.set("focusBorderColor", role)
+        }
+
+        PaletteRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceFocusBorderGradientEndColor"
+            visible: Tiling.focusBorderGradient
+            label: Tr.tr("Gradient end colour")
+            value: Tiling.focusBorderGradientEndColor
+            palette: Colours.current
+            choices: Tiling.borderColorChoices.map(choice => ({role: choice.role, label: Tr.tr(choice.label)}))
+            choicePrefix: "focusBorderGradientEndColor_"
+            onSelected: role => Tiling.set("focusBorderGradientEndColor", role)
+        }
+
+        StepperRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            objectName: "appearanceFocusBorderGradientAngle"
+            visible: Tiling.focusBorderGradient
+            label: Tr.tr("Gradient angle")
+            subtext: Tr.tr("Direction in degrees")
+            value: Tiling.focusBorderGradientAngle
+            from: 0
+            to: 360
+            stepSize: 15
+            onMoved: v => Tiling.set("focusBorderGradientAngle", v)
         }
 
         StepperRow {
@@ -435,40 +469,6 @@ PageBase {
             to: 100
             enabled: Effects.windowWobble
             onMoved: v => Effects.set("wobbleDamping", v)
-        }
-
-        SectionHeader { text: Tr.tr("Window glow") }
-
-        ToggleRow {
-            first: true
-            objectName: "appearanceWindowGlow"
-            text: Tr.tr("Inner glow")
-            subtext: Tr.tr("Light along the window edges in the current accent colour")
-            checked: Effects.windowGlow
-            onToggled: Effects.set("windowGlow", checked)
-        }
-
-        StepperRow {
-            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
-            objectName: "appearanceGlowSize"
-            label: Tr.tr("Glow size")
-            value: Effects.glowSize
-            from: 0
-            to: 100
-            enabled: Effects.windowGlow
-            onMoved: v => Effects.set("glowSize", v)
-        }
-
-        SliderRow {
-            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
-            last: true
-            objectName: "appearanceGlowOpacity"
-            icon: "flare"
-            label: Tr.tr("Glow intensity")
-            valueLabel: `${Math.round(value * 100)}%`
-            value: Effects.glowOpacity
-            enabled: Effects.windowGlow
-            onMoved: v => Effects.set("glowOpacity", v)
         }
 
         SectionHeader { text: Tr.tr("Motion blur") }

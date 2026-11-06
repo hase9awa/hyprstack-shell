@@ -12,9 +12,6 @@
   "wobbleIntensity": 0.2,
   "wobbleStiffness": 200,
   "wobbleDamping": 12,
-  "windowGlow": false,
-  "glowSize": 10,
-  "glowOpacity": 0.35,
   "motionBlur": false,
   "motionBlurSamples": 7
 }

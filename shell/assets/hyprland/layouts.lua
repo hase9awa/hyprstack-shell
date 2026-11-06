@@ -49,9 +49,17 @@ local function valid_border_role(role)
     return type(role) == "string" and (border_color_roles[role]
         or (#role <= 104 and role:match("^palette_%a[%w_]*$")))
 end
+local function border_colour(palette, role, fallback)
+    role = valid_border_role(role) and role or fallback
+    local hex = (palette[role] or palette.primary or "7e9cd8"):gsub("#", "")
+    if not hex:match("^%x%x%x%x%x%x$") then hex = "7e9cd8" end
+    return "rgba(" .. hex .. "e6)"
+end
 local function active_border(palette)
-    local role = valid_border_role(tiling_preferences.focusBorderColor) and tiling_preferences.focusBorderColor or "primary"
-    return "rgba(" .. (palette[role] or palette.primary or "7e9cd8"):gsub("#", "") .. "e6)"
+    local colour = border_colour(palette, tiling_preferences.focusBorderColor, "primary")
+    if tiling_preferences.focusBorderGradient ~= true then return colour end
+    return { colors = { colour, border_colour(palette, tiling_preferences.focusBorderGradientEndColor, "secondary") },
+        angle = math.max(0, math.min(360, math.floor(tonumber(tiling_preferences.focusBorderGradientAngle) or 45))) }
 end
 local tiled_gaps_in = hl.get_config("general.gaps_in")
 local tiled_gaps_out = hl.get_config("general.gaps_out")
@@ -528,9 +536,10 @@ local function maximized_geometry(window)
     local top = changing and 0 or reserved.top
     local bottom = changing and 40 or reserved.bottom
     local bar = client_decorated(window) and 0 or titlebar_height
-    return { x = monitor.x + reserved.left, y = monitor.y + top + bar,
-        width = width - reserved.left - reserved.right,
-        height = height - top - bottom - bar }
+    -- Keep the 1 px stacking border inside the available workspace edges.
+    return { x = monitor.x + reserved.left + 1, y = monitor.y + top + bar + 1,
+        width = width - reserved.left - reserved.right - 2,
+        height = height - top - bottom - bar - 2 }
 end
 
 local function set_maximized(window, enabled)
@@ -721,7 +730,7 @@ end
 
 local function appearance()
     local rounding = tiled_rounding
-    local border = layouts.mode() == "stacking" and 0 or tiled_border
+    local border = layouts.mode() == "stacking" and 1 or tiled_border
     if rounding ~= last_rounding or border ~= last_border then
         hl.config({ decoration = { rounding = rounding }, general = { border_size = border } })
         last_rounding, last_border = rounding, border
@@ -749,8 +758,24 @@ end
 function layouts.tiling(options)
     options = options or tiling_preferences
     local appearance_changed = false
+    local border_changed = false
     if options.focusBorderColor ~= nil then
         tiling_preferences.focusBorderColor = valid_border_role(options.focusBorderColor) and options.focusBorderColor or "primary"
+        border_changed = true
+    end
+    if options.focusBorderGradient ~= nil then
+        tiling_preferences.focusBorderGradient = options.focusBorderGradient == true
+        border_changed = true
+    end
+    if options.focusBorderGradientEndColor ~= nil then
+        tiling_preferences.focusBorderGradientEndColor = valid_border_role(options.focusBorderGradientEndColor) and options.focusBorderGradientEndColor or "secondary"
+        border_changed = true
+    end
+    if options.focusBorderGradientAngle ~= nil then
+        tiling_preferences.focusBorderGradientAngle = math.max(0, math.min(360, math.floor(tonumber(options.focusBorderGradientAngle) or 45)))
+        border_changed = true
+    end
+    if border_changed then
         hl.config({ general = { col = { active_border = active_border(theme_palette) } } })
     end
     if options.focusBorderWidth ~= nil then
@@ -822,7 +847,7 @@ end
 function layouts.window_effects(options, game_mode)
     if type(options) == "string" then options = json.decode(options) end
     if game_mode ~= nil then effects_game_mode = game_mode == true end
-    return window_effects.apply(options or read(config_dir .. "/effects.json"), effects_game_mode, theme_palette)
+    return window_effects.apply(options or read(config_dir .. "/effects.json"), effects_game_mode)
 end
 
 function layouts.toggle_gaps()
@@ -2063,7 +2088,7 @@ for _, direction in ipairs({ { "J", "r+1" }, { "K", "r-1" }, { "H", "left" }, { 
     end, { repeating = true, description = "Workspaces: " .. ({ J = "Next workspace", K = "Previous workspace",
         H = "Previous column", L = "Next column" })[direction[1]] })
 end
-for _, direction in ipairs({ { "Left", -1 }, { "H", -1 }, { "Right", 1 }, { "L", 1 } }) do
+for _, direction in ipairs({ { "Left", -1 }, { "Right", 1 } }) do
     hl.bind("SHIFT + " .. direction[1], function()
         if overview_active then
             hl.dispatch(hl.dsp.global("hyprstack:overview" .. (direction[2] == -1 and "H" or "L")))

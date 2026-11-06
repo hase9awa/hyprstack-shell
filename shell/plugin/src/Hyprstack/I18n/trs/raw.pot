@@ -3070,15 +3070,7 @@ msgid "Window border width"
 msgstr ""
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
-msgid "Scrolling mode only; 0 hides the window border"
-msgstr ""
-
-#: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Window border colour"
-msgstr ""
-
-#: modules/nexus/pages/WallpaperAndStyle.qml
-msgid "Scrolling mode; choose a colour from the current scheme independently of the theme accent"
 msgstr ""
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
@@ -4587,4 +4579,37 @@ msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
 msgid "Works with the second monitor switched off. Super+1–0 selects its workspace; press Super+S again to close the overlay."
+msgstr ""
+
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Scrolling: 0 hides the border. Stacking: always 1 px."
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient focus border"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Blend two colours from the current scheme on the focused window"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient start colour"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Colour of the focused window border in both layouts"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient end colour"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Gradient angle"
+msgstr ""
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Direction in degrees"
 msgstr ""

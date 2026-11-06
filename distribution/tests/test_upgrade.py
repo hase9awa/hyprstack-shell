@@ -139,7 +139,8 @@ def main():
 
         bindings = json.loads(ctl("-j", "binds"))
         assert {b["key"].lower() for b in bindings if b["modmask"] == 1
-                and "including empty monitors" in b.get("description", "")} == {"h", "l", "left", "right"}
+                and "including empty monitors" in b.get("description", "")} == {"left", "right"}
+        assert not any(b["modmask"] == 1 and b["key"].lower() in ("h", "l") for b in bindings)
 
         def focused_title():
             return json.loads(ctl("-j", "activewindow")).get("title")
@@ -200,6 +201,49 @@ def main():
         wait(lambda: "UpgradeFocus" not in clients(), "focus fixture cleanup")
         evaluate('hyprstack_layouts.focus(1,"UPGRADE-2")')
         print("PASS: horizontal Shift navigation crosses empty and occupied outputs without wrapping in both layouts", flush=True)
+
+        # Legacy effect files cannot re-enable the removed inner glow.
+        evaluate('hyprstack_layouts.window_effects({windowGlow=true,glowOpacity=1,glowSize=100})')
+        assert json.loads(ctl("-j", "getoption", "decoration:glow:enabled"))["bool"] is False
+        evaluate('hyprstack_layouts.tiling({focusBorderWidth=0,focusBorderColor="primary",'
+            'focusBorderGradient=true,focusBorderGradientEndColor="secondary",focusBorderGradientAngle=90}); '
+            'hyprstack_layouts.theme({primary="e46876",secondary="7e9cd8",outline="808080"})')
+        gradient = json.loads(ctl("-j", "getoption", "general:col.active_border"))["gradient"].lower()
+        assert "e6e46876" in gradient and "e67e9cd8" in gradient and "90deg" in gradient, gradient
+        assert json.loads(ctl("-j", "getoption", "general:border_size"))["int"] == 0
+        evaluate('hyprstack_layouts.toggle()')
+        assert json.loads(ctl("-j", "getoption", "general:border_size"))["int"] == 1
+        # The scrolling width cannot hide or thicken stacking borders.
+        evaluate('hyprstack_layouts.tiling({focusBorderWidth=8})')
+        assert json.loads(ctl("-j", "getoption", "general:border_size"))["int"] == 1
+        focus_window("UpgradePrimary")
+        evaluate('local w=hl.get_window("title:^UpgradePrimary$"); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"geometry",120,180,500,330)')
+        time.sleep(.5)
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(base / "gradient-focused.png")], env=env, check=True)
+        evaluate('hyprstack_layouts.action("maximize",hl.get_window("title:^UpgradePrimary$").address)')
+        time.sleep(.4)
+        maximized = clients()["UpgradePrimary"]
+        assert maximized["at"][0] == 1 and sum((maximized["at"][0], maximized["size"][0])) == 1279, maximized
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(base / "gradient-maximized.png")], env=env, check=True)
+        evaluate('hyprstack_layouts.action("maximize",hl.get_window("title:^UpgradePrimary$").address)')
+        focus_window("UpgradeSecondary")
+        time.sleep(.4)
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(base / "gradient-inactive.png")], env=env, check=True)
+        # Re-resolve saved roles when the current colour scheme changes.
+        evaluate('hyprstack_layouts.theme({primary="98bb6c",secondary="e6c384",outline="808080"}); '
+            'hyprstack_layouts.tiling({focusBorderGradientAngle=180})')
+        gradient = json.loads(ctl("-j", "getoption", "general:col.active_border"))["gradient"].lower()
+        assert "e698bb6c" in gradient and "e6e6c384" in gradient and "180deg" in gradient, gradient
+        inactive = json.loads(ctl("-j", "getoption", "general:col.inactive_border"))["gradient"].split()
+        assert len(inactive) == 2, inactive
+        evaluate('hyprstack_layouts.toggle(); '
+            'hyprstack_layouts.tiling({focusBorderWidth=1,focusBorderGradient=false,'
+            'focusBorderGradientEndColor="secondary",focusBorderGradientAngle=45}); '
+            'hyprstack_layouts.theme({})')
+        assert json.loads(ctl("-j", "getoption", "general:border_size"))["int"] == 1
+        assert len(json.loads(ctl("-j", "getoption", "general:col.active_border"))["gradient"].split()) == 2
+        print("PASS: stacking borders stay 1 px; focus gradients follow theme colours and angle; inner glow stays disabled", flush=True)
 
         launch(["kitty", "--class", "upgrade-floating", "--title", "UpgradeFloating", "-e", "sleep", "300"], "floating")
         wait(lambda: clients().get("UpgradeFloating"), "floating secondary window")
