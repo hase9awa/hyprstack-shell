@@ -201,13 +201,14 @@ function layouts.mode()
     return preferences.mode
 end
 
-function layouts.focus_column(direction)
-    if layouts.mode() ~= "scrolling" then return end
+function layouts.focus_column(direction, include_empty_monitors)
+    local scrolling = layouts.mode() == "scrolling"
+    if not scrolling and not include_empty_monitors then return end
     local active = hl.get_active_window()
-    local column = active and active.layout and active.layout.column
+    local column = scrolling and active and active.layout and active.layout.column
     if not active or not column then
         if not active then
-            layouts.focus_other_monitor(direction)
+            layouts.focus_other_monitor(direction, include_empty_monitors)
         else
             -- Floating windows have no column index. Restrict geometric
             -- navigation to this workspace, then use the same monitor edge
@@ -225,7 +226,7 @@ function layouts.focus_column(direction)
                 navigation_since_reload = true
                 hl.dispatch(hl.dsp.focus({ window = target }))
             else
-                layouts.focus_other_monitor(direction)
+                layouts.focus_other_monitor(direction, include_empty_monitors)
             end
         end
         return
@@ -246,7 +247,7 @@ function layouts.focus_column(direction)
     if target then
         hl.dispatch(hl.dsp.focus({ window = target }))
     else
-        layouts.focus_other_monitor(direction)
+        layouts.focus_other_monitor(direction, include_empty_monitors)
     end
 end
 
@@ -283,17 +284,18 @@ local function monitor_size(monitor)
     return width / monitor.scale, height / monitor.scale
 end
 
-function layouts.focus_other_monitor(direction)
-    if layouts.mode() ~= "scrolling" then return end
+function layouts.focus_other_monitor(direction, include_empty_monitors)
+    if layouts.mode() ~= "scrolling" and not include_empty_monitors then return end
     local source = hl.get_active_monitor()
     if not source then return end
     local sw, sh = monitor_size(source)
     local sx, sy = source.x + sw / 2, source.y + sh / 2
-    local target, distance
+    local target, target_window, distance
     for _, monitor in ipairs(hl.get_monitors()) do
-        if monitor ~= source and monitor.active_workspace then
+        if monitor ~= source then
             local edge, edge_index
-            for _, window in ipairs(monitor.active_workspace:get_windows()) do
+            local windows = monitor.active_workspace and monitor.active_workspace:get_windows() or {}
+            for _, window in ipairs(windows) do
                 if window.mapped and not window.hidden then
                     local column = window.layout and window.layout.column
                     local index = column and column.index or 0
@@ -302,20 +304,26 @@ function layouts.focus_other_monitor(direction)
                     end
                 end
             end
-            if edge then
+            if edge or include_empty_monitors then
                 local width, height = monitor_size(monitor)
                 local x, y = monitor.x + width / 2, monitor.y + height / 2
                 local dx = (x - sx) * direction
                 local score = math.abs(x - sx) + math.abs(y - sy) * 2
-                if dx > 0 and (not distance or score < distance) then target, distance = edge, score end
+                if dx > 0 and (not distance or score < distance) then
+                    target, target_window, distance = monitor, edge, score
+                end
             end
         end
     end
-    -- Only occupied outputs in the requested physical direction are eligible.
+    -- Super+H/L skips empty outputs; Shift navigation can focus them directly.
     -- At the outer edge the focus stays put, without wrapping around.
     if target then
         navigation_since_reload = true
-        hl.dispatch(hl.dsp.focus({ window = target }))
+        if target_window then
+            hl.dispatch(hl.dsp.focus({ window = target_window }))
+        else
+            hl.dispatch(hl.dsp.focus({ monitor = target }))
+        end
     end
 end
 
@@ -2054,6 +2062,15 @@ for _, direction in ipairs({ { "J", "r+1" }, { "K", "r-1" }, { "H", "left" }, { 
         end
     end, { repeating = true, description = "Workspaces: " .. ({ J = "Next workspace", K = "Previous workspace",
         H = "Previous column", L = "Next column" })[direction[1]] })
+end
+for _, direction in ipairs({ { "Left", -1 }, { "H", -1 }, { "Right", 1 }, { "L", 1 } }) do
+    hl.bind("SHIFT + " .. direction[1], function()
+        if overview_active then
+            hl.dispatch(hl.dsp.global("hyprstack:overview" .. (direction[2] == -1 and "H" or "L")))
+            return
+        end
+        layouts.focus_column(direction[2], true)
+    end, { repeating = true, description = "Windows: Focus " .. (direction[2] == -1 and "left" or "right") .. " including empty monitors" })
 end
 for _, direction in ipairs({ { "H", "l" }, { "L", "r" } }) do
     local shortcut = "SUPER + SHIFT + " .. direction[1]

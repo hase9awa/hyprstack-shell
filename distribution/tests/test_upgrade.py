@@ -91,7 +91,9 @@ def main():
             text=True, stderr=subprocess.DEVNULL, timeout=5).strip()
 
     def evaluate(code):
-        return ctl("eval", code)
+        result = ctl("eval", code)
+        assert result == "ok", (code, result)
+        return result
 
     def toggle_overlay():
         # Host pointer events must not choose the other nested output while a
@@ -134,6 +136,71 @@ def main():
             monitor = next(m for m in json.loads(ctl("-j", "monitors")) if m["id"] == w["monitor"])
             assert .35 * monitor["width"] < w["size"][0] < .6 * monitor["width"], w
             assert w["fullscreen"] == 0 and w["fullscreenClient"] == 0, w
+
+        bindings = json.loads(ctl("-j", "binds"))
+        assert {b["key"].lower() for b in bindings if b["modmask"] == 1
+                and "including empty monitors" in b.get("description", "")} == {"h", "l", "left", "right"}
+
+        def focused_title():
+            return json.loads(ctl("-j", "activewindow")).get("title")
+
+        def focused_monitor():
+            return next(m["name"] for m in json.loads(ctl("-j", "monitors")) if m["focused"])
+
+        def focus_window(title):
+            evaluate('hl.dispatch(hl.dsp.focus({window="title:^' + title + '$"}))')
+            wait(lambda: focused_title() == title, "focus " + title)
+
+        def horizontal(direction, empty=False):
+            evaluate('hyprstack_layouts.focus_column(' + str(direction) + (', true)' if empty else ')'))
+
+        focus_window("UpgradePrimary")
+        launch(["kitty", "--class", "upgrade-test", "--title", "UpgradeFocus",
+            "-o", "confirm_os_window_close=0", "-e", "sleep", "300"], "focus")
+        wait(lambda: clients().get("UpgradeFocus"), "second primary column")
+        for mode in ("scrolling", "stacking"):
+            if mode == "stacking":
+                evaluate('hyprstack_layouts.toggle(); '
+                    'for title,x in pairs({UpgradePrimary=60,UpgradeFocus=660}) do '
+                    'local w=hl.get_window("title:^"..title.."$"); '
+                    'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"geometry",x,150,400,300) end')
+                time.sleep(.4)
+            # The neighboring output stays enabled but its active workspace is empty.
+            evaluate('hl.dispatch(hl.dsp.focus({monitor="UPGRADE-2"})); '
+                'hl.dispatch(hl.dsp.focus({workspace="22"}))')
+            focus_window("UpgradePrimary")
+            horizontal(1, True)
+            wait(lambda: focused_title() == "UpgradeFocus", mode + " neighboring window")
+            horizontal(1)
+            assert focused_title() == "UpgradeFocus", "Super+H/L must keep skipping empty outputs"
+            horizontal(1, True)
+            try:
+                wait(lambda: focused_monitor() == "UPGRADE-2" and not focused_title(), mode + " empty output")
+            except AssertionError:
+                (base / ("focus-" + mode + ".json")).write_text(json.dumps({
+                    "clients": clients(), "monitors": json.loads(ctl("-j", "monitors")),
+                    "active": json.loads(ctl("-j", "activewindow"))}, indent=2))
+                raise
+            horizontal(1, True)
+            assert focused_monitor() == "UPGRADE-2" and not focused_title(), "No wrap at the outer edge"
+            horizontal(-1, True)
+            wait(lambda: focused_monitor() == "WAYLAND-1" and focused_title(), mode + " return from empty output")
+            evaluate('hl.dispatch(hl.dsp.focus({monitor="UPGRADE-2"})); '
+                'hl.dispatch(hl.dsp.focus({workspace="21"}))')
+            focus_window("UpgradeFocus")
+            horizontal(1, True)
+            wait(lambda: focused_title() == "UpgradeSecondary", mode + " occupied output")
+            horizontal(-1, True)
+            wait(lambda: focused_monitor() == "WAYLAND-1", mode + " return from occupied output")
+            focus_window("UpgradePrimary")
+            horizontal(-1, True)
+            assert focused_title() == "UpgradePrimary" and focused_monitor() == "WAYLAND-1"
+        evaluate('hyprstack_layouts.toggle(); '
+            'hl.dispatch(hl.dsp.window.close({window=hl.get_window("title:^UpgradeFocus$")}))')
+        wait(lambda: "UpgradeFocus" not in clients(), "focus fixture cleanup")
+        evaluate('hyprstack_layouts.focus(1,"UPGRADE-2")')
+        print("PASS: horizontal Shift navigation crosses empty and occupied outputs without wrapping in both layouts", flush=True)
+
         launch(["kitty", "--class", "upgrade-floating", "--title", "UpgradeFloating", "-e", "sleep", "300"], "floating")
         wait(lambda: clients().get("UpgradeFloating"), "floating secondary window")
         evaluate('local w=hl.get_window("title:^UpgradeFloating$"); '
