@@ -65,11 +65,12 @@ Hyprstack — оболочка для Hyprland с прокручиваемым �
 
 ## Установка
 
-- [Arch Linux / CachyOS / EndeavourOS / Manjaro](INSTALL.md#arch) — зависимости,
-  сборка и копирование конфигурации.
-- [NixOS](INSTALL.md#nixos) — пакет и модули NixOS/Home Manager.
+- [Arch Linux / CachyOS / EndeavourOS / Manjaro](INSTALL.md#arch) — пакеты,
+  сборка и конфигурация.
+- [NixOS](INSTALL.nixos.md) — пакет и модули NixOS/Home Manager.
 
-Требуются **Hyprland 0.56.2**, **Quickshell ≥ 0.3.1**, **Qt ≥ 6.9**.
+Требуются **Hyprland 0.57.0 или 0.57.1**, **Quickshell ≥ 0.3.1**, **Qt ≥ 6.9**.
+В настройках доступны колебания окон, 11 вариантов размытия, свечение и размытие движения.
 После изменения ABI Hyprland нативный модуль нужно пересобрать.
 
 [Обновление и восстановление](MAINTENANCE.md#обновление).
@@ -89,8 +90,8 @@ Hyprstack — оболочка для Hyprland с прокручиваемым �
 | `Super` | Открыть дашборд |
 | `Super+D` | Запуск приложений |
 | `Super+O` | Обзор окон и рабочих столов |
-| `Super+Return` | Терминал · kitty |
-| `Super+W` | Браузер · Firefox |
+| `Super+Return` | Выбранный при установке терминал |
+| `Super+W` | Выбранный при установке браузер |
 | `Super+E` | Системный файловый менеджер · домашняя папка |
 | `Ctrl+Alt+V` | Настройки звука · pavucontrol |
 | `Super+H` / `Super+L` | Соседнее окно в scrolling |

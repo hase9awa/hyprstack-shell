@@ -51,7 +51,10 @@ StackView {
         spacing: Tokens.spacing.small
 
         opacity: shown ? 1 : 0
-        scale: shown ? 1 : 0.8
+        transform: Translate {
+            y: menu.shown ? 0 : 6 * menu.Tokens.scale
+            Behavior on y { Anim {} }
+        }
 
         Component.onCompleted: shown = true
         StackView.onActivating: shown = true
@@ -62,10 +65,6 @@ StackView {
             Anim {
                 type: Anim.DefaultEffects
             }
-        }
-
-        Behavior on scale {
-            Anim {}
         }
 
         QsMenuOpener {

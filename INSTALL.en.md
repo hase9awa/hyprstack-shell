@@ -1,45 +1,37 @@
-[Русский](INSTALL.md) · [Home](README.en.md)
+[Русский](INSTALL.md) · [Home](README.en.md) · [NixOS](INSTALL.nixos.en.md)
 
-# Installation
-
-[Arch Linux and derivatives](#arch) · [NixOS](#nixos)
-
-Requires **Hyprland 0.56.2**, **Quickshell ≥ 0.3.1** with Hyprland, PAM and
-Polkit modules, and **Qt ≥ 6.9**. Build requirements: C++23, CMake ≥ 3.22,
-Python ≥ 3.10. Hyprland headers must match the installed compositor's ABI.
+# Installing on Arch Linux and derivatives
 
 <a id="arch"></a>
 
-## Arch Linux / CachyOS / EndeavourOS / Manjaro
+Arch Linux, CachyOS, EndeavourOS and Manjaro with systemd.
+Requires **Hyprland 0.57.0 or 0.57.1** with matching headers, **Quickshell ≥ 0.3.1**
+with Hyprland/PAM/Polkit, and **Qt ≥ 6.9**. CMake checks the ABI during the build.
 
-### 1. Dependencies
+After updating Hyprland, rebuild Hyprstack and log in to a new session.
 
-Check repository versions. Continue only if Hyprland **0.56.2** is available
-and the requirements above are met:
+**Commands assume Bash** — run `bash` first if you use Fish/Zsh.
+For an existing installation, use the [update procedure](MAINTENANCE.md#обновление).
 
-```bash
-pacman -Si hyprland quickshell qt6-base
-```
+## 1. Dependencies
 
 ```bash
 sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   hyprland quickshell nlohmann-json qt6-base qt6-declarative qt6-shadertools \
   qt6-svg qt6-imageformats qt6-wayland qt5ct qt6ct libqalculate lm_sensors \
   pixman libdrm libinput systemd-libs wayland libxkbcommon pango cairo \
-  python python-pillow kitty firefox btop pavucontrol \
-  wl-clipboard cliphist grim slurp wf-recorder libnotify \
-  brightnessctl networkmanager pipewire pipewire-pulse wireplumber \
-  polkit libcap hyprlock hyprpicker xdg-utils xdg-user-dirs libxml2 adwaita-icon-theme dbus \
-  glib2 gsettings-desktop-schemas xdg-desktop-portal-gtk
+  python python-pillow fuzzel wl-clipboard cliphist grim slurp wf-recorder \
+  libnotify brightnessctl networkmanager pipewire pipewire-audio \
+  pipewire-pulse wireplumber polkit libcap hyprlock hyprpicker xdg-utils \
+  xdg-user-dirs libxml2 adwaita-icon-theme dbus glib2 gsettings-desktop-schemas \
+  xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
 ```
 
-To update colours in running Dolphin and other KDE applications, use
-[qt6ct-kde](https://aur.archlinux.org/packages/qt6ct-kde) in place of `qt6ct`.
-Plain `qt6ct` applies the KDE colour scheme when the application is reopened.
+Install your preferred terminal and browser; Kitty and Firefox are optional.
+The panel uses NetworkManager and PipeWire/WirePlumber —
+[service checks](MAINTENANCE.md#сеть-и-звук).
 
-### 2. Build
-
-Run without `sudo`:
+## 2. Build and install
 
 ```bash
 git clone https://github.com/hase9awa/hyprstack-shell.git
@@ -52,153 +44,61 @@ cmake --build build --parallel 2
 cmake --install build
 ```
 
-Use `--parallel 1` instead of `--parallel 2` if memory is limited.
+Use `--parallel 1` if memory is limited.
 
 <a id="config"></a>
 
-### 3. Configuration
-
-Log out of the graphical session, open a TTY (**Ctrl+Alt+F3**) and return
-to the source directory. Commands assume Bash; XDG paths must match those
-in your graphical session.
-
-<a id="backup"></a>
-
-Move the previous configuration to a backup:
-
-```bash
-config_dir=${XDG_CONFIG_HOME:-$HOME/.config}
-backup_dir=$(mktemp -d "$HOME/hyprstack-backup.XXXXXXXX")
-for name in hypr hyprstack systemd/user/hyprstack-session.service systemd/user/hyprstack-vpn.service; do
-    if [ -e "$config_dir/$name" ] || [ -L "$config_dir/$name" ]; then
-        mv "$config_dir/$name" "$backup_dir/"
-    fi
-done
-printf 'Backup: %s\n' "$backup_dir"
-```
-
-Save the printed path. Then copy the new configuration:
-
-```bash
-mkdir -p "$config_dir/hypr" "$config_dir/hyprstack"
-cp -R shell/assets/hyprland/config/. "$config_dir/hypr/"
-cp -R distribution/defaults/hyprstack/. "$config_dir/hyprstack/"
-export PATH="$HOME/.local/bin:$PATH"
-hyprstack scheme set -n hyprstack-catppuccin -m dark
-```
-
-**Arch-based systems only:** install the user services.
-On NixOS, the module provides them; skip this block.
-
-```bash
-mkdir -p "$config_dir/systemd/user"
-cp distribution/systemd/user/hyprstack-{session,vpn}.service "$config_dir/systemd/user/"
-systemctl --user daemon-reload
-```
-
-Without user systemd, skip this block; the shell uses its built-in session
-manager. Add `~/.local/bin` to your login profile's `PATH`.
-The built-in VPN requires a user systemd service. It starts when you connect;
-do not enable it at login.
-
-### 4. Launch
-
-Log into Hyprland through your display manager or run `start-hyprland` in a TTY.
-In a terminal, run:
-
-```bash
-hyprstack-doctor
-hyprctl configerrors
-```
-
-<a id="nixos"></a>
-
-## NixOS
-
-### 1. System module
-
-Add these entries to your existing `flake.nix`, keeping your other inputs
-and modules. Replace `YOUR_HOST` with your configuration name:
-
-```nix
-{
-  inputs.hyprstack.url = "github:hase9awa/hyprstack-shell";
-
-  outputs = { nixpkgs, hyprstack, ... }: {
-    nixosConfigurations.YOUR_HOST = nixpkgs.lib.nixosSystem {
-      modules = [
-        ./configuration.nix
-        hyprstack.nixosModules.default
-        { programs.hyprstack.enable = true; }
-      ];
-    };
-  };
-}
-```
-
-The module installs matching Hyprland, Quickshell, Qt, PAM and the shell service.
-Do not override `programs.hyprland.package` with a different package.
-
-### 2. User configuration
-
-If Home Manager is already set up, log out of the graphical session and run
-**only the [backup block](#backup)**. Add this to the same `modules` list,
-replacing `YOUR_USER` with your username:
-
-```nix
-{
-  home-manager.users.YOUR_USER = {
-    imports = [ hyprstack.homeManagerModules.default ];
-    programs.hyprstack.enable = true;
-  };
-}
-```
-
-Both modules must use the same `hyprstack` input. Shell preferences remain
-editable through the interface.
-Custom Lua: [`programs.hyprstack.extraConfig`](CONFIGURATION.md#экраны-и-клавиатура)
-or `~/.config/hyprstack/local.lua`.
-
-**Without Home Manager:** skip this step; copy user configuration after
-applying the system configuration, as described below.
-
-### 3. Apply
-
-From your NixOS configuration directory:
-
-```bash
-sudo nixos-rebuild switch --flake .#YOUR_HOST
-```
+## 3. Configuration
 
 <details>
-<summary>Copying configuration without Home Manager</summary>
+<summary>If you are installing from a running Hyprland session</summary>
 
-In a TTY, get the files and follow [Arch step 3](#config),
-**skipping the user service block**. No CMake build is needed.
+Disable automatic configuration reload before copying files.
+For a Lua configuration:
 
 ```bash
-git clone https://github.com/hase9awa/hyprstack-shell.git
-cd hyprstack-shell
+hyprctl eval 'hl.config({misc={disable_autoreload=true}})'
 ```
+
+For a previous `.conf` configuration:
+
+```bash
+hyprctl keyword misc:disable_autoreload true
+```
+
+Log out after configuration and log in again. No configuration commands need to be entered in a TTY.
 
 </details>
 
-Start a new Hyprland session and run `hyprstack-doctor`
-and `hyprctl configerrors`.
+From the source directory:
 
-## Services and optional packages
+```bash
+config_dir=${XDG_CONFIG_HOME:-$HOME/.config}
+mkdir -p "$config_dir"/{hypr,hyprstack,systemd/user}
+cp -a --backup=numbered shell/assets/hyprland/config/. "$config_dir/hypr/"
+cp -a --backup=numbered distribution/defaults/hyprstack/. "$config_dir/hyprstack/"
+cp -a --backup=numbered distribution/systemd/user/*.service "$config_dir/systemd/user/"
+```
 
-Networking requires NetworkManager; audio requires PipeWire/WirePlumber.
-Enable these services in your system. Disable autostart for your previous
-panel, notification daemon and external Polkit agent.
+Backups named `.~1~` are created only when replacing existing files.
+Set your installed applications in the copied configuration:
 
-Optional packages: `bluez` for Bluetooth, `upower` for battery information,
-`power-profiles-daemon` for power profiles, `ddcutil` for external display
-brightness and `wtype` for emoji typing. Install a file manager of your choice.
+- `hyprstack/hypr-vars.lua`: the `terminal` and `browser` commands.
+- `hyprstack/shell.json`: `general.apps.terminal`, for example `["foot"]`.
 
-Configure VPN under **Settings → Network → VPN settings**. sing-box/Xray cores
-are downloaded when needed; TUN on Arch-based systems requires a one-time
-Polkit authorization. [Protocols, imports and routing (Russian)](CONFIGURATION.md#vpn-и-прокси).
+[Examples and terminal arguments](CONFIGURATION.md#приложения-по-умолчанию).
 
-[Configuration and shortcuts (Russian)](CONFIGURATION.md) ·
-[Updates and diagnostics (Russian)](MAINTENANCE.md)
+## 4. Launch
+
+Log out and select **Hyprland** in your display manager.
+From a TTY, run `start-hyprland`. The main configuration is `~/.config/hypr/hyprland.lua`.
+
+```bash
+~/.local/bin/hyprstack-doctor
+hyprctl configerrors
+```
+
+`hyprstack-session.service` starts the shell automatically; do not enable it manually.
+If the shell does not appear, see [startup diagnostics](MAINTENANCE.md#если-оболочка-не-запустилась).
+
+[Configuration and shortcuts](CONFIGURATION.md) · [Updates](MAINTENANCE.md#обновление)

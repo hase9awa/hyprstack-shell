@@ -4,44 +4,34 @@
 
 ## Обновление
 
+Поддерживаются **Hyprland 0.57.0 и 0.57.1**. После обновления Hyprland
+пересоберите Hyprstack по инструкции ниже: нативный модуль зависит от его версии.
+
 ### Arch Linux и производные
 
-Завершите Hyprland, войдите в TTY (**Ctrl+Alt+F3**) и выполните без `sudo`:
+Сохраните локальные изменения в Git коммитом или через `git stash`.
+Завершите сеанс Hyprland, перейдите в TTY (**Ctrl+Alt+F3**) и выполните без `sudo`:
 
 ```bash
 cd /путь/к/hyprstack-shell
 ./update.sh
 ```
 
-Скрипт получает исходники, проверяет ABI, собирает проект и обновляет файлы
-с резервной копией. В `~/.config/hyprstack/` сохраняются пользовательские
-JSON-файлы, `hypr-vars.lua` (переопределения стандартных биндов), `local.lua`
-(дополнительные привязки и настройки) и `monitors.lua` (экраны).
-Стандартные файлы в `~/.config/hypr/` и служебный `hyprstack/hypr-user.lua`
-перезаписываются; текущая цветовая схема `hypr/scheme/current.lua` сохраняется.
-Подробнее — [куда вносить пользовательские настройки](CONFIGURATION.md).
+Скрипт скачает исходники, пересоберёт оболочку и создаст резервную копию.
+Личные Lua/JSON-настройки и текущая тема сохраняются; стандартные конфиги
+перезаписываются. Свои правки храните [в пользовательских файлах](CONFIGURATION.md).
 
-Служба `hyprstack-vpn.service` обновляется вместе с оболочкой. Профили VPN в
-`${XDG_DATA_HOME:-$HOME/.local/share}/hyprstack/vpn/` и отдельно установленные
-сетевые ядра сохраняются. Этот каталог содержит параметры серверов и пароли;
-его не следует публиковать вместе с персональными настройками.
+Затем войдите в Hyprland и проверьте установку: `hyprstack-doctor`.
+Дополнительные параметры: `./update.sh --help`.
 
-Если `update.sh` ещё нет в старом клоне, сначала выполните `git pull --ff-only`.
-
-Опции: `--dry-run` — план изменений, `--jobs 1` — сборка с меньшим расходом памяти,
-`--no-pull` — сборка текущих исходников. Свои изменения в Git сохраните
-коммитом или через `git stash`.
-
-После обновления войдите в Hyprland и выполните `hyprstack-doctor`.
-Для отката снова завершите сеанс и запустите:
+Для отката завершите сеанс и выполните:
 
 ```bash
 ./update.sh --rollback
 ```
 
-Копии: `${XDG_STATE_HOME:-$HOME/.local/state}/hyprstack-install/backups/`.
-Откат не меняет системные пакеты; требуется Hyprland **0.56.2**.
-Для конфигурации со ссылками на каталоги используйте свой менеджер dotfiles.
+Откат не меняет системные пакеты. Версия Hyprland должна соответствовать
+восстанавливаемой сборке.
 
 ### NixOS и Home Manager
 
@@ -53,12 +43,11 @@ sudo nixos-rebuild switch --flake .#YOUR_HOST
 ```
 
 Войдите в новый сеанс. Встроенный Home Manager применится вместе с системой.
-Для отдельного Home Manager обновите тот же вход в его flake и выполните
-`home-manager switch --flake .#YOUR_USER`. `update.sh` на NixOS не используется.
+Для отдельного Home Manager обновите вход `hyprstack` в его flake и выполните
+`home-manager switch --flake .#YOUR_USER`.
 
-Без Home Manager обновите пользовательскую конфигурацию по
-[инструкции](INSTALL.md#config), затем верните личные Lua/JSON-файлы из копии.
-Сборку CMake и копирование службы пропустите.
+Без Home Manager следуйте [инструкции NixOS](INSTALL.nixos.md#без-home-manager),
+указав `data_dir=/run/current-system/sw/share/hyprstack`. `update.sh` на NixOS не используется.
 
 ## Диагностика
 
@@ -68,6 +57,10 @@ hyprctl configerrors
 hyprstack-doctor --json
 journalctl --user -u hyprstack-session.service -b
 ```
+
+`hyprstack-session.service` должна работать внутри сеанса Hyprland; её запускает
+его конфигурация. `hyprstack-vpn.service` работает только при подключённом VPN.
+Включать эти службы через `systemctl --user enable` не нужно.
 
 Для запуска оболочки с выводом ошибок в терминал:
 
@@ -92,19 +85,60 @@ hyprstack-shell
 
 Перезапуск оболочки: `hyprstack-session restart`.
 
+### Если оболочка не запустилась
+
+```bash
+hyprctl version
+hyprctl configerrors
+systemctl --user status hyprstack-session.service --no-pager
+journalctl --user -u hyprstack-session.service -b --no-pager
+```
+
+Если `hyprctl version` не подключается к композитору, проверьте выбор сеанса
+Hyprland в менеджере входа. Конфигурация проекта — `hypr/hyprland.lua`,
+создавать `hyprland.conf` не нужно.
+
+`hyprstack-session start` проверяет всю цепочку запуска службы.
+Команда `hyprstack shell` запускает только интерфейс.
+
+## Сеть и звук
+
+Панель сети использует NetworkManager, звук — PipeWire/WirePlumber:
+
+```bash
+systemctl is-active NetworkManager.service
+wpctl status
+```
+
+Если эти компоненты ещё не настроены, включите их:
+
+```bash
+sudo systemctl enable --now NetworkManager.service
+systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service
+```
+
+При переходе с другого менеджера сети используйте
+[инструкцию NetworkManager](https://wiki.archlinux.org/title/NetworkManager#Enable_NetworkManager).
+
 ## Восстановление прежнего окружения
 
 На NixOS верните предыдущую ревизию конфигурации и примените её либо загрузите
 прежнее поколение системы. Восстановите также конфигурацию Home Manager.
 Изменяемые настройки пользователя возвращаются из резервной копии отдельно.
 
-Без Home Manager завершите Hyprland и перейдите в TTY:
+При ручном копировании заменённые файлы сохраняются рядом как `имя.~1~`,
+`имя.~2~` и так далее. Завершите Hyprland и верните нужные версии файлов.
 
-1. Найдите `hyprstack-backup.*`, выведенный при установке.
+Для старых установок с каталогом `hyprstack-backup.*`:
+
+1. Найдите копию `hyprstack-backup.*`, путь которой выведен при установке.
+   Она находится в `${XDG_CONFIG_HOME:-$HOME/.config}` или домашнем каталоге.
+   Если прежних конфигов не было, копия не создавалась и восстанавливать их не нужно.
 2. Перенесите нынешние `hypr` и `hyprstack` из `${XDG_CONFIG_HOME:-$HOME/.config}`
    в отдельный каталог и верните туда прежние каталоги или ссылки из копии.
-3. Верните сохранённые `hyprstack-session.service` и `hyprstack-vpn.service`
-   в `systemd/user/`. Если прежних служб не было, удалите установленные службы
+3. Верните сохранённые `systemd/user/hyprstack-session.service` и
+   `systemd/user/hyprstack-vpn.service` в `systemd/user/`. В старых копиях они
+   могли лежать в корне каталога копии. Если прежних служб не было, удалите установленные службы
    Hyprstack.
 4. При наличии пользовательского systemd выполните `systemctl --user daemon-reload`
    и войдите в прежнее окружение.

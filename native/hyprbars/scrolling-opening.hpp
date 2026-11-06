@@ -3,19 +3,19 @@
 
 #include "barDeco.hpp"
 #include "globals.hpp"
-#include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/workspace/HLWorkspace.hpp>
 #include <hyprland/src/layout/algorithm/Algorithm.hpp>
 #include <hyprland/src/layout/algorithm/tiled/scrolling/ScrollingAlgorithm.hpp>
 #include <hyprland/src/layout/space/Space.hpp>
 #include <hyprland/src/managers/fullscreen/FullscreenController.hpp>
 
 static bool normalizeTiledMaximize(PHLWINDOW window) {
-    if (!window || !window->m_isMapped || window->m_isFloating || window->m_pinned ||
-        g_pGlobalState->config.enabled->value() || !window->m_workspace || !window->m_workspace->m_space ||
+    if (!window || !window->mapped() || window->isFloating() || (window->m_state & Desktop::View::WINDOW_STATE_PINNED) ||
+        g_pGlobalState->config.enabled->value() || !window->m_workspace || !window->m_workspace->space() ||
         Fullscreen::controller()->getFullscreenModes(window).internal != Fullscreen::FSMODE_MAXIMIZED)
         return false;
 
-    const auto algorithm = window->m_workspace->m_space->algorithm();
+    const auto algorithm = window->m_workspace->space()->algorithm();
     const auto scrolling = algorithm ? dynamic_cast<Layout::Tiled::CScrollingAlgorithm*>(algorithm->tiledAlgo().get()) : nullptr;
     if (!scrolling) return false;
     const auto data = scrolling->dataFor(window->layoutTarget(), true);

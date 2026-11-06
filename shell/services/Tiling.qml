@@ -31,6 +31,7 @@ Singleton {
     // How long the pointer has to rest on a window before the focus follows
     // it, in milliseconds.
     property int focusHoverDelay: 200
+    property bool edgeScroll: true
     property bool autoscroll: true
     property bool loaded: false
     property var hoverState: ({visible: false})
@@ -65,18 +66,19 @@ Singleton {
         else if (option === "windowRounding") windowRounding = Math.max(0, Math.min(60, Math.round(value)));
         else if (option === "focusOnHover") focusOnHover = !!value;
         else if (option === "focusHoverDelay") focusHoverDelay = Math.max(0, Math.min(1000, Math.round(value)));
+        else if (option === "edgeScroll") edgeScroll = !!value;
         else if (option === "autoscroll") autoscroll = !!value;
         else return;
         storage.setText(JSON.stringify({desktopFrame: desktopFrame, gaps: gaps, gapsIn: gapsIn,
             gapsOut: gapsOut, focusBorderWidth: focusBorderWidth, focusBorderColor: focusBorderColor,
             windowRounding: windowRounding, focusOnHover: focusOnHover, focusHoverDelay: focusHoverDelay,
-            autoscroll: autoscroll}));
+            edgeScroll: edgeScroll, autoscroll: autoscroll}));
         apply();
     }
 
     function apply(): void {
         if (loaded && Hypr.usingLua)
-            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},focusBorderColor=${JSON.stringify(focusBorderColor)},windowRounding=${windowRounding},focusOnHover=${focusOnHover},focusHoverDelay=${focusHoverDelay},autoscroll=${autoscroll}}) end`);
+            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},focusBorderColor=${JSON.stringify(focusBorderColor)},windowRounding=${windowRounding},focusOnHover=${focusOnHover},focusHoverDelay=${focusHoverDelay},edgeScroll=${edgeScroll},autoscroll=${autoscroll}}) end`);
     }
 
     FileView {
@@ -97,6 +99,7 @@ Singleton {
                 root.windowRounding = Math.max(0, Math.min(60, Math.round(data.windowRounding ?? 15)));
                 root.focusOnHover = data.focusOnHover !== false;
                 root.focusHoverDelay = Math.max(0, Math.min(1000, Math.round(data.focusHoverDelay ?? 200)));
+                root.edgeScroll = data.edgeScroll !== false;
                 root.autoscroll = data.autoscroll !== false;
             } catch (error) {
                 console.warn(`Unable to load tiling appearance: ${error}`);

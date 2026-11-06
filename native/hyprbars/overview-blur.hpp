@@ -1,4 +1,4 @@
-// Cached wallpaper blur for Hyprstack's pinned Hyprland 0.56 renderer.
+// Cached wallpaper blur for Hyprstack's pinned Hyprland 0.57 renderer.
 // Filter in linear light, with FP16 intermediates and a normalized Gaussian.
 #pragma once
 
@@ -28,7 +28,7 @@ class WallpaperBlur {
         glActiveTexture(GL_TEXTURE0); glGetIntegerv(GL_TEXTURE_BINDING_2D, &texture);
         glGetBooleanv(GL_COLOR_WRITEMASK, mask);
         const bool blend = glIsEnabled(GL_BLEND), stencil = glIsEnabled(GL_STENCIL_TEST), clipping = glIsEnabled(GL_SCISSOR_TEST);
-        auto bind = renderer->bindTempFB(source);
+        auto bind = renderer->bindTempFB(g_pHyprRenderer->context(), source);
         Hyprutils::Utils::CScopeGuard restore([&] {
             renderer->setViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
             renderer->blend(blend);
@@ -42,7 +42,7 @@ class WallpaperBlur {
         if (!shader()) return nullptr;
         const auto half = Vector2D{std::max(1.0, std::ceil(source->m_size.x / 2)), std::max(1.0, std::ceil(source->m_size.y / 2))};
         const auto quarter = Vector2D{std::max(1.0, std::ceil(half.x / 2)), std::max(1.0, std::ceil(half.y / 2))};
-        const auto description = source->imageDescription() ? source->imageDescription() : renderer->workBufferImageDescription();
+        const auto description = source->imageDescription() ? source->imageDescription() : renderer->workBufferImageDescription(g_pHyprRenderer->context());
         const auto allocate = [&](SP<Render::IFramebuffer>& fb, Vector2D size, const char* name) {
             if (!fb) fb = renderer->createFB(name);
             if (!fb || !fb->alloc(size.x, size.y, DRM_FORMAT_ABGR16161616F)) { m_error = "Cannot allocate floating-point wallpaper blur buffer"; return false; }
@@ -181,7 +181,7 @@ void main() {
         glUniform2fv(m_pairs, pairs.size() / 2, pairs.data());
     }
     void draw(SP<Render::ITexture> texture, SP<Render::IFramebuffer> target, int stage, Vector2D direction) {
-        g_pHyprRenderer->bindFB(target);
+        g_pHyprRenderer->bindFB(g_pHyprRenderer->context(), target);
         g_pHyprRenderer->setViewport(0, 0, target->m_size.x, target->m_size.y);
         glActiveTexture(GL_TEXTURE0);
         texture->bind();

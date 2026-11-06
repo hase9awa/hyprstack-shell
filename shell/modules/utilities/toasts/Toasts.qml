@@ -79,7 +79,6 @@ Item {
         }
 
         opacity: modelData.closed || previewHidden ? 0 : 1
-        scale: modelData.closed || previewHidden ? 0.7 : 1
 
         anchors.bottomMargin: {
             root.flag; // Force update
@@ -92,9 +91,9 @@ Item {
             return y;
         }
 
-        anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        width: modelData.compact ? toastInner.implicitWidth : root.width
         implicitHeight: toastInner.implicitHeight
 
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
@@ -108,9 +107,10 @@ Item {
             Component.onCompleted: running = !toast.previewHidden
 
             target: toast
-            properties: "opacity,scale"
+            properties: "opacity"
             from: 0
             to: 1
+            type: Anim.FastEffects
         }
 
         ParallelAnimation {
@@ -123,11 +123,7 @@ Item {
                 target: toast
                 property: "opacity"
                 to: 0
-            }
-            Anim {
-                target: toast
-                property: "scale"
-                to: 0.7
+                duration: toast.modelData.compact ? 0 : toast.Tokens.anim.durations.expressiveDefaultEffects
             }
         }
 
@@ -141,10 +137,6 @@ Item {
             Anim {
                 type: Anim.DefaultEffects
             }
-        }
-
-        Behavior on scale {
-            Anim {}
         }
 
         Behavior on anchors.bottomMargin {

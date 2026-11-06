@@ -177,7 +177,7 @@ bind_variable("kbWindowGroupCycleNext", hl.dsp.group.next(), repeating)
 bind_variable("kbWindowGroupCyclePrev", hl.dsp.group.prev(), repeating)
 bind_variable("kbToggleGroup", hl.dsp.group.toggle())
 bind_variable("kbUngroup", hl.dsp.window.move({ out_of_group = true }))
-bind_variable("kbGroupLockActive", hl.dsp.group.lock_active())
+bind_variable("kbGroupLockActive", hl.dsp.group.lock())
 
 -- Window actions
 for _, dir in ipairs({ "left", "right", "up", "down" }) do

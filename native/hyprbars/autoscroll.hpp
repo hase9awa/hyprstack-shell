@@ -2,7 +2,7 @@
 #pragma once
 
 #include <hyprland/src/desktop/state/FocusState.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/layout/LayoutManager.hpp>
 #include <hyprland/src/managers/SeatManager.hpp>
@@ -128,7 +128,7 @@ class Controller {
     }
     bool valid() const {
         const auto window = m_window.lock();
-        return (m_active || m_pending) && window && window->m_isMapped && !window->isHidden() && !m_surface.expired() &&
+        return (m_active || m_pending) && window && window->mapped() && !window->isHidden() && !m_surface.expired() &&
             !g_pSessionLockManager->isSessionLocked() && !g_pInputManager->isConstrained() &&
             g_pSeatManager->m_state.pointerFocus == m_surface && Desktop::focusState()->window() == window;
     }
@@ -136,12 +136,12 @@ class Controller {
         if (!m_enabled || g_pSessionLockManager->isSessionLocked() || g_pInputManager->isConstrained() ||
             g_layoutManager->dragController()->target()) return false;
         const auto keyboard = g_pSeatManager->m_keyboard.lock();
-        if (keyboard && (keyboard->getModifiers() & (HL_MODIFIER_SHIFT|HL_MODIFIER_CTRL|HL_MODIFIER_ALT|HL_MODIFIER_META))) return false;
+        if (keyboard && (keyboard->getModifiers() & (Input::HL_MODIFIER_SHIFT|Input::HL_MODIFIER_CTRL|Input::HL_MODIFIER_ALT|Input::HL_MODIFIER_META))) return false;
         const auto surface = g_pSeatManager->m_state.pointerFocus.lock();
         const auto owner = surface ? Desktop::View::CWLSurface::fromResource(surface) : nullptr;
         const auto window = owner ? dynamicPointerCast<Desktop::View::CWindow>(owner->view()) : nullptr;
         // Menus, panel widgets, the desktop and lock surfaces keep their input.
-        if (!window || !window->m_isMapped || window->isHidden()) return false;
+        if (!window || !window->mapped() || window->isHidden()) return false;
         const auto point = g_pInputManager->getMouseCoordsInternal();
         if (!CBox{window->position(Desktop::View::IGeometric::GEOMETRIC_CURRENT),
             window->size(Desktop::View::IGeometric::GEOMETRIC_CURRENT)}.containsPoint(point)) return false;

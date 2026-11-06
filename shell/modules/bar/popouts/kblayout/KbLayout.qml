@@ -145,7 +145,6 @@ ColumnLayout {
         spacing: Tokens.spacing.small
 
         opacity: 1
-        scale: 1
 
         MaterialIcon {
             text: "keyboard"
@@ -182,12 +181,6 @@ ColumnLayout {
                     to: 0.0
                     duration: 70
                 }
-                NumberAnimation {
-                    target: activeRow
-                    property: "scale"
-                    to: 0.92
-                    duration: 70
-                }
             }
 
             ParallelAnimation {
@@ -197,13 +190,6 @@ ColumnLayout {
                     to: 1.0
                     duration: 160
                     easing.type: Easing.OutCubic
-                }
-                NumberAnimation {
-                    target: activeRow
-                    property: "scale"
-                    to: 1.0
-                    duration: 220
-                    easing.type: Easing.OutBack
                 }
             }
         }

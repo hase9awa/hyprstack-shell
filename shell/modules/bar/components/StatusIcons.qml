@@ -146,6 +146,7 @@ StyledRect {
     }
 
     component EntryWrapper: Item {
+        id: entry
         required property var modelData
         required property int index
         property int margin: root.spacing / 2
@@ -163,6 +164,25 @@ StyledRect {
         implicitHeight: item?.implicitHeight ?? 0
 
         children: item
+
+        // Centre the visible glyph, rather than the font's line box.
+        // The layout label and Material Symbols have different font metrics.
+        FontMetrics {
+            id: glyphMetrics
+            font: item instanceof Text ? item.font : Tokens.font.body.small
+        }
+
+        Binding {
+            target: item
+            property: "y"
+            when: item instanceof Text
+            value: {
+                if (!(item instanceof Text))
+                    return 0;
+                const bounds = glyphMetrics.tightBoundingRect(item.text);
+                return (entry.height - bounds.height) / 2 - item.baselineOffset - bounds.y;
+            }
+        }
 
         Behavior on topGap {
             Anim {

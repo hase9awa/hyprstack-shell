@@ -1,1 +1,20 @@
-{"blur": false, "windowShadows": true, "uiShadows": true, "shadowSize": 18, "shadowOpacity": 0.35}
+{
+  "blur": false,
+  "windowShadows": true,
+  "uiShadows": true,
+  "shadowSize": 18,
+  "shadowOpacity": 0.35,
+  "blurVariant": 0,
+  "blurSize": 8,
+  "blurPasses": 2,
+  "proportionalBlur": false,
+  "windowWobble": false,
+  "wobbleIntensity": 0.2,
+  "wobbleStiffness": 200,
+  "wobbleDamping": 12,
+  "windowGlow": false,
+  "glowSize": 10,
+  "glowOpacity": 0.35,
+  "motionBlur": false,
+  "motionBlurSamples": 7
+}

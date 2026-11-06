@@ -2,7 +2,7 @@
 // different animation clocks or slide multiple workspaces into the same row.
 #pragma once
 #include <hyprland/src/event/EventBus.hpp>
-#include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/workspace/HLWorkspace.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
 #include <hyprland/src/state/WorkspaceState.hpp>
@@ -27,7 +27,7 @@ static constexpr double duration = .28;
 static double phase(Clock::time_point start) { return std::clamp(std::chrono::duration<double>(Clock::now()-start).count()/duration, 0.0, 1.0); }
 static double eased(double t) { return 1-std::pow(1-t, 3); }
 static Layout::Tiled::CScrollingAlgorithm* scrollingLayout(PHLWORKSPACE workspace) {
-    const auto algorithm = workspace && workspace->m_space ? workspace->m_space->algorithm() : nullptr;
+    const auto algorithm = workspace && workspace->space() ? workspace->space()->algorithm() : nullptr;
     return algorithm ? dynamic_cast<Layout::Tiled::CScrollingAlgorithm*>(algorithm->tiledAlgo().get()) : nullptr;
 }
 
@@ -50,13 +50,13 @@ class Cameras {
   public:
     Cameras() {
         m_active = Event::bus()->m_events.workspace.active.listen([this](PHLWORKSPACE workspace) {
-            if (!m_enabled || !workspace || workspace->m_isSpecialWorkspace || workspace->m_id <= 0) return;
+            if (!m_enabled || !workspace || (workspace->type() == Workspace::eWorkspaceType::SPECIAL) || workspace->numberedID().value_or(0) <= 0) return;
             const auto monitor = workspace->m_monitor.lock();
             if (!monitor) return;
             auto& output = forOutput(monitor);
             const double current = output.row();
-            output.from = m_paused ? workspace->m_id : current;
-            output.to = workspace->m_id;
+            output.from = m_paused ? workspace->numberedID().value_or(0) : current;
+            output.to = workspace->numberedID().value_or(0);
             output.start = Clock::now();
             tick();
         });
@@ -123,10 +123,10 @@ class Cameras {
         for (auto& output : m_outputs) {
             const auto monitor = output.monitor.lock();
             if (!monitor) continue;
-            if (monitor->m_activeWorkspace) output.from = output.to = monitor->m_activeWorkspace->m_id;
+            if (monitor->m_activeWorkspace) output.from = output.to = monitor->m_activeWorkspace->numberedID().value_or(0);
             for (const auto& weak : State::workspaceState()->workspaces()) {
                 const auto workspace = weak.lock();
-                if (!workspace || workspace->m_monitor != monitor || workspace->m_isSpecialWorkspace) continue;
+                if (!workspace || workspace->m_monitor != monitor || (workspace->type() == Workspace::eWorkspaceType::SPECIAL)) continue;
                 workspace->m_forceRendering = false;
                 workspace->m_renderOffset->setValueAndWarp({});
                 workspace->m_alpha->setValueAndWarp(workspace == monitor->m_activeWorkspace ? 1.F : 0.F);
@@ -135,7 +135,7 @@ class Cameras {
         }
         for (auto& column : m_columns) {
             if (column.from.size() > .001) for (const auto& member : column.members)
-                if (const auto window = member.window.lock(); window && window->m_isMapped) window->positionAnimation()->warp();
+                if (const auto window = member.window.lock(); window && window->mapped()) window->positionAnimation()->warp();
             column.from = {};
         }
         if (m_timer) m_timer->updateTimeout(std::nullopt);
@@ -145,16 +145,16 @@ class Cameras {
         for (const auto& output : m_outputs) if (const auto monitor = output.monitor.lock()) {
             Json entry = {{"monitor", monitor->m_name}, {"row", output.row()}, {"goal", output.to},
                 {"stride", monitor->m_size.y}, {"workspaces", Json::array()}};
-            for (const auto& weak : State::workspaceState()->workspaces()) if (const auto ws = weak.lock(); ws && ws->m_monitor == monitor && !ws->m_isSpecialWorkspace)
-                entry["workspaces"].push_back({{"id", ws->m_id}, {"y", ws->m_renderOffset->value().y},
+            for (const auto& weak : State::workspaceState()->workspaces()) if (const auto ws = weak.lock(); ws && ws->m_monitor == monitor && !(ws->type() == Workspace::eWorkspaceType::SPECIAL))
+                entry["workspaces"].push_back({{"id", ws->numberedID().value_or(0)}, {"y", ws->m_renderOffset->value().y},
                     {"alpha", ws->m_alpha->value()}, {"rendered", ws->m_forceRendering}});
             result["outputs"].push_back(entry);
         }
         for (const auto& column : m_columns) if (const auto workspace = column.workspace.lock()) {
             const auto offset = column.offset();
-            Json entry = {{"workspace", workspace->m_id}, {"offset", std::abs(offset.x) >= std::abs(offset.y) ? offset.x : offset.y},
+            Json entry = {{"workspace", workspace->numberedID().value_or(0)}, {"offset", std::abs(offset.x) >= std::abs(offset.y) ? offset.x : offset.y},
                 {"offsetX", offset.x}, {"offsetY", offset.y}, {"windows", Json::array()}};
-            for (const auto& member : column.members) if (const auto w = member.window.lock(); w && w->m_isMapped) {
+            for (const auto& member : column.members) if (const auto w = member.window.lock(); w && w->mapped()) {
                 const auto position = w->positionAnimation()->value(), goal = w->positionAnimation()->goal();
                 entry["windows"].push_back({{"address", std::format("0x{:x}", reinterpret_cast<uintptr_t>(w.get()))},
                     {"x", position.x}, {"y", position.y}, {"goalX", goal.x}, {"goalY", goal.y}});
@@ -173,12 +173,12 @@ class Cameras {
     Output& forOutput(PHLMONITOR monitor) {
         auto found = std::ranges::find_if(m_outputs, [&](const auto& output) { return output.monitor == monitor; });
         if (found != m_outputs.end()) return *found;
-        const double row = monitor->m_activeWorkspace ? monitor->m_activeWorkspace->m_id : 1;
+        const double row = monitor->m_activeWorkspace ? monitor->m_activeWorkspace->numberedID().value_or(0) : 1;
         m_outputs.push_back({monitor, row, row, Clock::now()});
         return m_outputs.back();
     }
     void update(PHLMONITOR monitor) {
-        if (!m_enabled || m_paused || !monitor || !monitor->m_activeWorkspace || monitor->m_activeWorkspace->m_id <= 0) return;
+        if (!m_enabled || m_paused || !monitor || !monitor->m_activeWorkspace || monitor->m_activeWorkspace->numberedID().value_or(0) <= 0) return;
         auto& output = forOutput(monitor);
         const bool swiping = m_swipeAxis == VERTICAL && m_swipeMonitor == monitor && g_pUnifiedWorkspaceSwipe->isGestureInProgress();
         if (swiping && m_swipeUpdated) {
@@ -189,22 +189,22 @@ class Cameras {
             const auto style = monitor->m_activeWorkspace->m_renderOffset->getStyle();
             const bool vertical = style == "slidevert" || style.starts_with("slidefadevert");
             const auto offset = monitor->m_activeWorkspace->m_renderOffset->value();
-            output.from = output.to = monitor->m_activeWorkspace->m_id -
+            output.from = output.to = monitor->m_activeWorkspace->numberedID().value_or(0) -
                 (vertical ? offset.y : offset.x) / ((vertical ? monitor->m_size.y : monitor->m_size.x) + *gap);
             output.start = Clock::now();
             m_swipeUpdated = false;
         }
         // Internal workspace changes do not emit workspace.active.
-        if (!swiping && output.to != monitor->m_activeWorkspace->m_id) {
-            output.from = output.row(); output.to = monitor->m_activeWorkspace->m_id; output.start = Clock::now();
+        if (!swiping && output.to != monitor->m_activeWorkspace->numberedID().value_or(0)) {
+            output.from = output.row(); output.to = monitor->m_activeWorkspace->numberedID().value_or(0); output.start = Clock::now();
         }
         const double row = output.row();
         const double stride = monitor->m_size.y;
         const bool moving = swiping || std::abs(row-output.to) > .00001;
         for (const auto& weak : State::workspaceState()->workspaces()) {
             const auto workspace = weak.lock();
-            if (!workspace || workspace->m_monitor != monitor || workspace->m_isSpecialWorkspace || workspace->m_id <= 0) continue;
-            const double y = (workspace->m_id-row)*stride;
+            if (!workspace || workspace->m_monitor != monitor || (workspace->type() == Workspace::eWorkspaceType::SPECIAL) || workspace->numberedID().value_or(0) <= 0) continue;
+            const double y = (workspace->numberedID().value_or(0)-row)*stride;
             const bool intersects = moving && std::abs(y) < stride;
             const Vector2D offset{0.0, moving ? y : 0.0};
             const float alpha = intersects || (!moving && workspace == monitor->m_activeWorkspace) ? 1.F : 0.F;
@@ -241,7 +241,7 @@ class Cameras {
         bool rigid = true;
         size_t matched = 0;
         for (const auto& window : Desktop::windowState()->windows()) {
-            if (!window->m_isMapped || window->m_isFloating || window->m_pinned || window->m_workspace != workspace) continue;
+            if (!window->mapped() || window->isFloating() || (window->m_state & Desktop::View::WINDOW_STATE_PINNED) || window->m_workspace != workspace) continue;
             Member member{window, window->positionAnimation()->goal(), window->sizeAnimation()->goal()};
             const auto old = std::ranges::find_if(column.members, [&](const auto& old) { return old.window == window; });
             if (old != column.members.end()) {

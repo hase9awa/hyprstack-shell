@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -26,12 +27,22 @@ def checks():
     version_text = capture(["Hyprland", "--version-json"])
     try: version = json.loads(version_text or "{}")
     except ValueError: version = {}
-    result = [{"check": "Hyprland 0.56.2", "ok": version.get("version") == "0.56.2", "value": version.get("version", "missing")}]
+    result = [{"check": "Hyprland 0.57.0 / 0.57.1", "ok": version.get("version") in ("0.57.0", "0.57.1"), "value": version.get("version", "missing")}]
     qs = capture(["qs", "--version"]) or ""
     match = re.search(r"Quickshell (\d+)\.(\d+)\.(\d+)", qs)
     result.append({"check": "Quickshell >= 0.3.1", "ok": bool(match and tuple(map(int, match.groups())) >= (0, 3, 1)), "value": qs or "missing"})
-    for name in ("kitty", "wl-paste", "cliphist", "wpctl", "xdg-open"):
+    for name in ("wl-paste", "cliphist", "wpctl", "xdg-open"):
         result.append({"check": name, "ok": bool(shutil.which(name)), "value": shutil.which(name) or "missing"})
+    config = Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
+    try:
+        path = config / "hyprstack/shell.json"
+        prefs = json.loads(path.read_text()) if path.exists() else {}
+        terminal = prefs.get("general", {}).get("apps", {}).get("terminal", ["kitty"])
+        if not isinstance(terminal, list) or not terminal or not all(isinstance(arg, str) for arg in terminal):
+            raise ValueError("general.apps.terminal must be a non-empty array of strings")
+        result.append({"check": "Configured terminal", "ok": bool(shutil.which(terminal[0])), "value": shlex.join(terminal)})
+    except (OSError, ValueError, AttributeError) as error:
+        result.append({"check": "Configured terminal", "ok": False, "value": str(error)})
     for name in ("shell/shell.qml", "qml/Hyprstack/qmldir", "qml/M3Shapes/qmldir", "native/hyprstack-bars.so"):
         result.append({"check": name, "ok": (data / name).is_file(), "value": str(data / name)})
     pam = os.environ.get("HYPRSTACK_PAM_SERVICE", "hyprlock")
@@ -45,6 +56,13 @@ def checks():
         try: running = json.loads(text or "{}")
         except ValueError: running = {}
         result.append({"check": "Installed/running Hyprland ABI", "ok": bool(version.get("abiHash") and running.get("abiHash") == version["abiHash"]), "value": running.get("abiHash", "missing")})
+        try:
+            plugins = json.loads(capture(["hyprctl", "-j", "plugin", "list"]) or "[]")
+        except ValueError:
+            plugins = []
+        loaded = any(plugin.get("name") == "hyprstack-hyprbars" for plugin in plugins if isinstance(plugin, dict))
+        result.append({"check": "Native plugin loaded", "ok": loaded,
+                       "value": "hyprstack-hyprbars" if loaded else "Rebuild Hyprstack for the running Hyprland and log in again"})
         errors = capture(["hyprctl", "configerrors"])
         result.append({"check": "Hyprland configuration", "ok": errors in ("", "ok"), "value": errors or ""})
     return result

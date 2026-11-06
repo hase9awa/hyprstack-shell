@@ -6,7 +6,7 @@
 
 #include <hyprland/src/desktop/state/FocusState.hpp>
 #include <hyprland/src/desktop/state/ViewState.hpp>
-#include <hyprland/src/desktop/view/Window.hpp>
+#include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/layout/LayoutManager.hpp>
 #include <hyprland/src/managers/SessionLockManager.hpp>
@@ -77,7 +77,7 @@ class Controller {
         if (!eligible()) return nullptr;
         const auto window = Desktop::viewState()->hitTest().windowAt(point,
             Desktop::View::ALLOW_FLOATING | Desktop::View::RESERVED_EXTENTS | Desktop::View::INPUT_EXTENTS);
-        if (!window || !window->m_isMapped || window->isHidden()) return nullptr;
+        if (!window || !window->mapped() || window->isHidden()) return nullptr;
         return window;
     }
     void update(Vector2D point) {

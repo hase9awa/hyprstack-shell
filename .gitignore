@@ -8,6 +8,8 @@
 !/README.en.md
 !/INSTALL.md
 !/INSTALL.en.md
+!/INSTALL.nixos.md
+!/INSTALL.nixos.en.md
 !/CONFIGURATION.md
 !/MAINTENANCE.md
 !/update.sh
@@ -32,6 +34,10 @@
 !/distribution/patches/
 !/distribution/portals/
 !/distribution/dbus/
+!/distribution/tests/
+/distribution/tests/*
+!/distribution/tests/test_upgrade.py
+!/distribution/tests/damage_probe.cpp
 
 !/native/
 /native/*

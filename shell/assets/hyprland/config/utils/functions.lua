@@ -94,6 +94,27 @@ local config_dir = os.getenv("XDG_CONFIG_HOME") or (home .. "/.config")
 local json       = require("utils.json") -- rxi's peak library
 
 -- Default config
+local function terminal_command()
+    local file = io.open(config_dir .. "/hyprstack/shell.json", "r")
+    if file then
+        local ok, settings = pcall(json.decode, file:read("*a"))
+        file:close()
+        local general = ok and type(settings) == "table" and settings.general
+        local apps = type(general) == "table" and general.apps
+        local terminal = type(apps) == "table" and apps.terminal
+        if type(terminal) == "table" and type(terminal[1]) == "string" then
+            local command = {}
+            for _, argument in ipairs(terminal) do
+                if type(argument) ~= "string" then return nil end
+                command[#command + 1] = argument
+            end
+            command[#command + 1] = "btop"
+            return command
+        end
+    end
+    return { "sh", "-c", require("variables").terminal .. " btop" }
+end
+
 local function default_config()
     return {
         music = {
@@ -108,8 +129,8 @@ local function default_config()
         sysmon = {
             btop = {
                 enable  = true,
-                match   = { { class = "btop", title = "btop", workspace = { name = "special:sysmon" } } },
-                command = { "kitty", "--class", "btop", "--title", "btop", "btop" },
+                match   = { { workspace = { name = "special:sysmon" } } },
+                command = terminal_command(),
             },
         },
         todo = {

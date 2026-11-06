@@ -42,13 +42,17 @@ void toastNumLock(bool enabled) {
     Toaster::instance()->toast(title, message, icon);
 }
 
-void toastKbLayout(const QString& layout) {
+void toastKbLayout(const QJsonObject& keyboard) {
     if (!toastConfig()->kbLayoutChanged())
         return;
 
-    Toaster::instance()->toast(
+    const auto layout = keyboard.value(u"active_keymap"_s).toString();
+    const auto layouts = keyboard.value(u"layout"_s).toString().split(u',');
+    const auto index = keyboard.value(u"active_layout_index"_s).toInt(-1);
+    const auto code = index >= 0 && index < layouts.size() ? layouts[index].trimmed().toUpper() : layout;
+    Toaster::instance()->toast(code.isEmpty() ? layout : code,
         // TRANSLATORS: %1 = an XKB keyboard layout name, e.g. English (US)
-        mark(u"Keyboard layout changed"_s), mark(u"Layout changed to: %1"_s, { layout }), u"keyboard"_s);
+        mark(u"Layout changed to: %1"_s, { layout }), u"keyboard"_s, Toast::Type::Info, 1200, true);
 }
 
 } // namespace
@@ -117,7 +121,7 @@ bool HyprKeyboard::updateLastIpcObject(const QJsonObject& object) {
         dirty = true;
         emit activeKeymapChanged();
         if (isMain && !last.value(u"active_keymap"_s).toString().isEmpty())
-            toastKbLayout(object.value(u"active_keymap"_s).toString());
+            toastKbLayout(object);
     }
     if (last.value(u"capsLock"_s) != object.value(u"capsLock"_s)) {
         dirty = true;

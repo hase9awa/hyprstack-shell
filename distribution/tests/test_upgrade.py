@@ -1,0 +1,382 @@
+#!/usr/bin/env python3
+"""Exercise migration, window state and rendering in a nested session.
+
+Run with HYPRSTACK_TEST_PREFIX pointing at a pristine staged installation.
+Requires Hyprland 0.57, kitty, grim, Pillow and an existing Wayland session.
+"""
+import json
+import os
+from pathlib import Path
+import shutil
+import signal
+import subprocess
+import tempfile
+import time
+from PIL import Image
+
+
+ROOT = Path(__file__).resolve().parents[2] / "shell"
+
+
+def main():
+    prefix = Path(os.environ["HYPRSTACK_TEST_PREFIX"])
+    plugin = prefix / "share/hyprstack/native/hyprstack-bars.so"
+    assert plugin.is_file(), plugin
+    base = Path(tempfile.mkdtemp(prefix="hs-upg-"))
+    print("Artifacts:", base, flush=True)
+    home, runtime = base / "home", base / "r"
+    home.mkdir()
+    runtime.mkdir(mode=0o700)
+    config = home / ".config"
+    shutil.copytree(ROOT / "assets/hyprland/config", config / "hypr")
+    prefs = config / "hyprstack"
+    prefs.mkdir()
+    native = home / ".local/share/hyprstack/native"
+    native.mkdir(parents=True)
+    (native / "hyprstack-bars.so").symlink_to(plugin)
+    probe = base / "damage-probe.so"
+    flags = subprocess.check_output(["pkg-config", "--cflags", "hyprland", "pixman-1", "libdrm",
+        "libinput", "libudev", "wayland-server", "xkbcommon", "lua"], text=True).split()
+    subprocess.run(["c++", "-std=c++23", "-shared", "-fPIC", "-fno-gnu-unique", *flags,
+        str(Path(__file__).with_name("damage_probe.cpp")), "-o", str(probe)], check=True)
+    # A pre-upgrade snapshot must never win over the freshly built module.
+    legacy = native / "hyprstack-bars-desktop-fixes-old.so"
+    legacy.write_bytes(b"incompatible pre-upgrade module\n")
+    (prefs / "titlebars.json").write_text(json.dumps({"path": str(legacy)}))
+    (prefs / "workspaces.json").write_text(json.dumps({"per_monitor": True, "count": 10,
+        "monitor_bases": {"WAYLAND-1": 0, "UPGRADE-2": 20},
+        "secondary_monitor": "UPGRADE-2", "secondary_on_special": True, "initialized": True}))
+    (prefs / "layouts.json").write_text('{"mode":"scrolling"}\n')
+    (prefs / "tiling.json").write_text('{"focusOnHover":false,"edgeScroll":false}\n')
+    (prefs / "hypr-user.lua").write_text(
+        'dofile(' + json.dumps(str(ROOT / "assets/hyprland/layouts.lua")) + ')\n'
+        'hl.monitor({output="",mode="1280x800@60",position="0x0",scale=1})\n'
+        'hl.monitor({output="UPGRADE-2",mode="1280x800@60",position="1280x0",scale=1})\n'
+        'hl.window_rule({name="upgrade-floating",match={class="^upgrade-floating$"},float=true})\n'
+        'hl.config({input={follow_mouse=0},cursor={no_warps=true}})\n')
+    entry = base / "hyprland.lua"
+    entry.write_text('local on=hl.on; hl.on=function(name,callback) '
+        'if name~="hyprland.start" then return on(name,callback) end end\n'
+        'dofile(' + json.dumps(str(config / "hypr/hyprland.lua")) + ')\nhl.on=on\n')
+    parent = dict(os.environ)
+    display = parent["WAYLAND_DISPLAY"]
+    if not display.startswith("/"):
+        display = str(Path(parent["XDG_RUNTIME_DIR"]) / display)
+    env = dict(parent, HOME=str(home), XDG_RUNTIME_DIR=str(runtime),
+        XDG_CONFIG_HOME=str(config), XDG_DATA_HOME=str(home / ".local/share"),
+        XDG_STATE_HOME=str(home / ".local/state"), XDG_CACHE_HOME=str(home / ".cache"),
+        WAYLAND_DISPLAY=display, AQ_DRM_DEVICES="/dev/null", HYPRSTACK_NESTED="1")
+    for key in ("HYPRLAND_INSTANCE_SIGNATURE", "HYPRSTACK_TITLEBAR_PLUGIN", "HYPRSTACK_DATA_DIR",
+                "LIBGL_ALWAYS_SOFTWARE", "__EGL_VENDOR_LIBRARY_FILENAMES"):
+        env.pop(key, None)
+    children = []
+
+    def launch(args, name):
+        with (base / (name + ".log")).open("w") as log:
+            process = subprocess.Popen(args, env=env, stdout=log, stderr=log, start_new_session=True)
+        children.append(process)
+        return process
+
+    def wait(check, label):
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            result = check()
+            if result:
+                return result
+            time.sleep(.05)
+        raise AssertionError("Timed out: " + label)
+
+    def ctl(*args, host=False):
+        return subprocess.check_output(["hyprctl", *args], env=parent if host else env,
+            text=True, stderr=subprocess.DEVNULL, timeout=5).strip()
+
+    def evaluate(code):
+        return ctl("eval", code)
+
+    def toggle_overlay():
+        # Host pointer events must not choose the other nested output while a
+        # fixture is exercising a flight from WAYLAND-1.
+        return evaluate('hl.dispatch(hl.dsp.focus({monitor="WAYLAND-1"})); hyprstack_layouts.toggle_special()')
+
+    def clients():
+        return {w["title"]: w for w in json.loads(ctl("-j", "clients"))}
+
+    def fit_outputs():
+        for w in json.loads(ctl("-j", "clients", host=True)):
+            if w["pid"] == compositor.pid:
+                ctl("eval", 'local w=hl.get_window(' + json.dumps("address:" + w["address"]) + '); '
+                    'hl.dispatch(hl.dsp.window.float({window=w,action="enable"})); '
+                    'hl.dispatch(hl.dsp.window.resize({window=w,x=1280,y=800,relative=false}))', host=True)
+        if focused.get("address"):
+            ctl("eval", 'hl.dispatch(hl.dsp.focus({window=' + json.dumps("address:" + focused["address"]) + '}))', host=True)
+
+    focused = json.loads(ctl("-j", "activewindow", host=True))
+    try:
+        compositor = launch(["Hyprland", "-c", str(entry)], "compositor")
+        socket = wait(lambda: next((runtime / "hypr").glob("*/.socket.sock"), None), "compositor")
+        env["HYPRLAND_INSTANCE_SIGNATURE"] = socket.parent.name
+        env["WAYLAND_DISPLAY"] = str(wait(lambda: next((p for p in runtime.glob("wayland-*") if p.is_socket()), None), "display"))
+        wait(lambda: any(p["name"] == "hyprstack-hyprbars" for p in json.loads(ctl("-j", "plugin", "list"))), "current native module")
+        wait(lambda: any(w["pid"] == compositor.pid for w in json.loads(ctl("-j", "clients", host=True))), "host window")
+        fit_outputs()
+        ctl("output", "create", "wayland", "UPGRADE-2")
+        wait(lambda: len(json.loads(ctl("-j", "monitors"))) == 2, "two outputs")
+        fit_outputs()
+        for title, workspace in (("UpgradePrimary", "1"), ("UpgradeSecondary", "21")):
+            evaluate('hl.dispatch(hl.dsp.focus({workspace=' + json.dumps(workspace) + '}))')
+            background = "203070" if title == "UpgradePrimary" else "b43c24"
+            launch(["kitty", "--class", "upgrade-test", "--title", title, "-o", "background=#"+background,
+                "-o", "background_opacity=1", "-e", "sleep", "300"], title)
+            wait(lambda: clients().get(title), title)
+        time.sleep(.4)
+        for title in ("UpgradePrimary", "UpgradeSecondary"):
+            w = clients()[title]
+            monitor = next(m for m in json.loads(ctl("-j", "monitors")) if m["id"] == w["monitor"])
+            assert .35 * monitor["width"] < w["size"][0] < .6 * monitor["width"], w
+            assert w["fullscreen"] == 0 and w["fullscreenClient"] == 0, w
+        launch(["kitty", "--class", "upgrade-floating", "--title", "UpgradeFloating", "-e", "sleep", "300"], "floating")
+        wait(lambda: clients().get("UpgradeFloating"), "floating secondary window")
+        evaluate('local w=hl.get_window("title:^UpgradeFloating$"); '
+            'hl.dispatch(hl.dsp.window.move({window=w,workspace="21",follow=false})); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"geometry",1350,180,440,330)')
+        time.sleep(.4)
+        print("PASS: legacy snapshot pin loads the current module; terminals open at half width", flush=True)
+        ctl("plugin", "load", str(probe))
+        time.sleep(.5)
+        regions = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.damage("UpgradePrimary")'))
+        assert regions["full"][2] > 100 and regions["full"][3] > 100, regions
+        assert regions["bounded"] == [0, 0, 17, 13] and regions["empty"] == [0, 0, 0, 0], regions
+        print("PASS: full, partial and empty client damage regions retain their exact bounds", flush=True)
+        assert json.loads(ctl("-j", "getoption", "binds:drag_center_window"))["bool"] is False
+        evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"}))')
+        time.sleep(.4)
+        w = clients()["UpgradePrimary"]
+        x, y = w["at"][0] + round(w["size"][0]*.2), w["at"][1] + round(w["size"][1]*.25)
+        evaluate('hl.dispatch(hl.dsp.cursor.move({x=' + str(x) + ',y=' + str(y) + '}))')
+        grabbed = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.drag("UpgradePrimary")'))
+        assert grabbed["floating"] and max(abs(a-b) for a,b in zip(grabbed["before"], grabbed["after"])) < .01, grabbed
+        print("PASS: tiled drag keeps an off-centre grab point under the cursor", flush=True)
+        time.sleep(.4)
+        for palette, expected in (({"surface":"282828", "surfaceContainerLowest":"1d2021", "surfaceDim":"242424"}, "1d2021"),
+                                  ({"surface":"fff8f0", "surfaceContainerLowest":"ffffff", "surfaceDim":"dcd5ce"}, "dcd5ce")):
+            evaluate('hyprstack_layouts.theme(' + '{' + ','.join(k+'='+json.dumps(v) for k,v in palette.items()) + '})')
+            colour = json.loads(ctl("-j", "getoption", "plugin:hyprbars:bar_color"))["int"]
+            assert colour & 0xFFFFFF == int(expected, 16), (palette, colour)
+        print("PASS: dark and light schemes choose a titlebar darker than the application surface", flush=True)
+        evaluate('hl.dispatch(hl.dsp.focus({monitor="WAYLAND-1"}))')
+        original = clients()["UpgradeSecondary"]
+        original_float = clients()["UpgradeFloating"]
+        for cycle in range(20):
+            toggle_overlay()
+            wait(lambda: clients()["UpgradeSecondary"]["workspace"]["type"] == "special", "secondary overlay")
+            if cycle == 10:
+                ctl("reload")
+                # Reload is a recovery point: it returns borrowed windows.
+            else:
+                if cycle == 0:
+                    time.sleep(.45)
+                toggle_overlay()
+                if cycle == 0:
+                    frames = []
+                    until = time.monotonic() + .5
+                    while time.monotonic() < until:
+                        frames.append(json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")')))
+                        time.sleep(.02)
+                    assert frames[0]["movingFromMonitor"], frames[0]
+                    assert any(abs(f["current"][0]-f["goal"][0]) > 10 for f in frames), frames
+                    assert max(abs(a-b) for a,b in zip(frames[-1]["current"],frames[-1]["goal"])) < 1, frames[-1]
+                    xs = [f["current"][0] for f in frames]
+                    direction = 1 if frames[0]["goal"][0] > xs[0] else -1
+                    assert all((b-a)*direction >= -1 for a,b in zip(xs,xs[1:])), xs
+                    (base / "secondary-return-flight.json").write_text(json.dumps(frames, indent=2))
+            wait(lambda: clients()["UpgradeSecondary"]["workspace"].get("id") == 21, "secondary restore")
+            assert clients()["UpgradeFloating"]["workspace"].get("id") == 21
+        time.sleep(.4)
+        restored = clients()["UpgradeSecondary"]
+        assert (restored["at"], restored["size"]) == (original["at"], original["size"]), (original, restored)
+        restored_float = clients()["UpgradeFloating"]
+        assert (restored_float["at"], restored_float["size"]) == (original_float["at"], original_float["size"]), (original_float, restored_float)
+        assert ctl("configerrors") == "", ctl("configerrors")
+        print("PASS: 20 overlay cycles, reload while open, exact geometry restore and no Lua errors", flush=True)
+        print("PASS: the return flight keeps the source-monitor presentation and moves smoothly to the original box", flush=True)
+        toggle_overlay()
+        time.sleep(.45)
+        toggle_overlay()
+        time.sleep(.04)
+        before_reopen = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))
+        toggle_overlay()
+        after_reopen = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))
+        assert abs(before_reopen["current"][0]-after_reopen["current"][0]) < 120, (before_reopen, after_reopen)
+        time.sleep(.5)
+        assert clients()["UpgradeSecondary"]["workspace"]["type"] == "special"
+        toggle_overlay()
+        wait(lambda: clients()["UpgradeSecondary"]["workspace"].get("id") == 21, "restore after reversing flight")
+        ctl("reload")
+        assert clients()["UpgradeFloating"]["workspace"].get("id") == 21
+        print("PASS: reversing the flight preserves position; reload recovers tiled and floating windows", flush=True)
+        evaluate('hl.dispatch(hl.dsp.focus({monitor="WAYLAND-1"})); hl.dispatch(hl.dsp.focus({workspace="1"})); '
+            'hl.dispatch(hl.dsp.focus({window=hl.get_window("title:^UpgradePrimary$")})); hl.dispatch(hl.dsp.layout("colresize 1.0"))')
+        time.sleep(.5)
+        before = base / "covering-window.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(before)], env=env, check=True)
+        background = Image.open(before).convert("RGB").getpixel((400, 600))
+        (base / "covering-state.json").write_text(json.dumps({"clients":clients(),
+            "monitors":json.loads(ctl("-j","monitors")),"focused":json.loads(ctl("-j","activewindow"))},indent=2))
+        assert background[2] > background[0]*1.5, background
+        toggle_overlay()
+        time.sleep(.5)
+        # Slow only this fixture's native movement, so the sampled point stays
+        # inside both overlapping windows while the compositor captures a frame.
+        evaluate('hl.animation({leaf="windowsMove",enabled=true,speed=20,bezier="windowGeometry"})')
+        toggle_overlay()
+        position = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))["current"]
+        point = (round(position[0]+position[2]*.4), round(position[1]+position[3]*.6))
+        frame = base / "return-over-covering-window.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(frame)], env=env, check=True)
+        pixel = Image.open(frame).convert("RGB").getpixel(point)
+        assert pixel[0] > pixel[1]*1.5 and pixel[0] > pixel[2]*1.5, (point, pixel, position)
+        ctl("reload")
+        time.sleep(.5)
+        print("PASS: a captured return-flight frame stays above the focused full-width window", flush=True)
+        failures = []
+
+        def require(condition, label, detail=None):
+            if not condition:
+                failures.append((label, detail))
+                print("FAIL:", label, detail, flush=True)
+
+        def request(title, operation, value=True):
+            evaluate('hl.plugin.upgrade_probe.request_state(' + json.dumps(title) + ',' +
+                json.dumps(operation) + ',' + str(value).lower() + ')')
+
+        def maximized(title):
+            return json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.client_state(' +
+                json.dumps(title) + ')'))["maximized"]
+
+        def box(window):
+            return window["at"], window["size"]
+
+        for title in ("UpgradePrimary", "UpgradeFloating"):
+            original_box = box(clients()[title])
+            for value in (True, False):
+                request(title, "maximize", value)
+                time.sleep(.3)
+                current = clients()[title]
+                require(box(current) == original_box and current["fullscreen"] == 0 and
+                    current["fullscreenClient"] == 0, "titlebar maximize cannot resize scrolling windows",
+                    (title, value, original_box, box(current), current["fullscreen"]))
+            evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window=' +
+                json.dumps("title:^"+title+"$") + ',internal=0,client=0,action="set"}))')
+        if not failures:
+            print("PASS: titlebar maximize requests leave tiled and floating scrolling windows unchanged", flush=True)
+
+        evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"})); hyprstack_layouts.toggle()')
+        time.sleep(.5)
+        normal = clients()["UpgradePrimary"]
+        require(normal["floating"] and not maximized("UpgradePrimary"),
+            "entering stacking publishes the normal client state", normal["fullscreenClient"])
+        for cycle in range(2):
+            request("UpgradePrimary", "maximize", True)
+            time.sleep(.3)
+            enlarged = clients()["UpgradePrimary"]
+            require(enlarged["size"][0] > normal["size"][0] and enlarged["fullscreenClient"] == 1 and
+                maximized("UpgradePrimary"), "client maximize fills the stacking work area", box(enlarged))
+            if cycle == 1:
+                ctl("reload")
+                time.sleep(.3)
+                require(maximized("UpgradePrimary"), "reload retains the real maximized client state")
+            request("UpgradePrimary", "maximize", False)
+            time.sleep(.3)
+            restored = clients()["UpgradePrimary"]
+            require(box(restored) == box(normal) and restored["fullscreenClient"] == 0 and
+                not maximized("UpgradePrimary"), "client unmaximize restores the normal window",
+                (box(normal), box(restored), restored["fullscreenClient"]))
+        if not failures:
+            print("PASS: stacking sends real client state and respects distinct set/unset maximize requests", flush=True)
+
+        evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window="title:^UpgradePrimary$",internal=2,client=2,action="set"}))')
+        time.sleep(.3)
+        for value in (True, False):
+            request("UpgradePrimary", "maximize", value)
+            time.sleep(.15)
+            current = clients()["UpgradePrimary"]
+            require(current["fullscreen"] == 2 and current["fullscreenClient"] == 2,
+                "client maximize echoes preserve exclusive fullscreen", (value, current["fullscreen"], current["fullscreenClient"]))
+        evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window="title:^UpgradePrimary$",internal=0,client=0,action="set"}))')
+        time.sleep(.3)
+        print("PASS: client maximize/unmaximize echoes retain exclusive fullscreen", flush=True)
+        # Native fullscreen has its own layout recovery. Reset this fixture's
+        # valid stacking box before exercising minimize's exact restoration;
+        # an out-of-bounds box would intentionally be clamped on restore.
+        evaluate('local w=hl.get_window("title:^UpgradePrimary$"); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"geometry",' +
+            ','.join(str(v) for v in [*normal["at"], *normal["size"]]) + ')')
+        time.sleep(.3)
+
+        # Delay only the workspace hand-off, beyond the visual animation's end.
+        # The final offscreen image must stay in effect during this gap.
+        evaluate('hyprstack_layouts.action("maximize-unset",hl.get_window("title:^UpgradePrimary$").address)')
+        time.sleep(.3)
+        normal = clients()["UpgradePrimary"]
+        point = (round(normal["at"][0]+normal["size"][0]*.4),
+                 round(normal["at"][1]+normal["size"][1]*.6))
+        before = base / "before-minimize.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(before)], env=env, check=True)
+        original_pixel = Image.open(before).convert("RGB").getpixel(point)
+        assert original_pixel[2] > original_pixel[0]*1.5 and original_pixel[2] > 70, (point, original_pixel)
+        evaluate('local w=hl.get_window("title:^UpgradePrimary$"); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"to",550,820,180,32,800)')
+        time.sleep(.35)
+        assert ctl("repl", 'local w=hl.get_window("title:^UpgradePrimary$"); '
+            'return hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"busy")') == "false"
+        frame = base / "completed-minimize-before-handoff.png"
+        subprocess.run(["grim", "-o", "WAYLAND-1", str(frame)], env=env, check=True)
+        pixel = Image.open(frame).convert("RGB").getpixel(point)
+        require(not (pixel[2] > pixel[0]*1.5 and pixel[2] > 70),
+            "a finished minimize never exposes the original full-size window", (point, pixel))
+        evaluate('local w=hl.get_window("title:^UpgradePrimary$"); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"clear")')
+        for cycle in range(3):
+            request("UpgradePrimary", "minimize")
+            wait(lambda: clients()["UpgradePrimary"]["workspace"]["type"] == "special", "minimized workspace")
+            evaluate('hyprstack_layouts.action("restore",hl.get_window("title:^UpgradePrimary$").address)')
+            time.sleep(.35)
+            require(box(clients()["UpgradePrimary"]) == box(normal),
+                "minimize/restore retains stacking geometry", (cycle,box(normal),box(clients()["UpgradePrimary"])))
+        request("UpgradePrimary", "minimize")
+        time.sleep(.04)
+        ctl("reload")
+        require(clients()["UpgradePrimary"]["workspace"]["type"] == "special",
+            "reload completes a pending minimize")
+        evaluate('hyprstack_layouts.action("restore",hl.get_window("title:^UpgradePrimary$").address)')
+        time.sleep(.04)
+        ctl("reload")
+        time.sleep(.35)
+        require(box(clients()["UpgradePrimary"]) == box(normal) and ctl("configerrors") == "",
+            "reload during restore removes the transformer and preserves the window")
+        if not failures:
+            print("PASS: minimize holds its final image until hand-off; restore and reload keep exact geometry", flush=True)
+        (base / "stacking-regressions.json").write_text(json.dumps(failures, indent=2))
+        assert not failures, failures
+        evaluate('hyprstack_layouts.toggle()')
+        time.sleep(.5)
+        ctl("plugin", "unload", str(native / "hyprstack-bars.so"))
+        ctl("plugin", "load", str(native / "hyprstack-bars.so"))
+        time.sleep(.5)
+        regions = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.damage("UpgradePrimary")'))
+        assert regions["bounded"] == [0, 0, 17, 13] and ctl("configerrors") == "", regions
+        print("PASS: module replacement without restarting the compositor preserves client damage", flush=True)
+    finally:
+        for process in reversed(children):
+            if process.poll() is None:
+                os.killpg(process.pid, signal.SIGTERM)
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGKILL)
+        if focused.get("address"):
+            ctl("eval", 'hl.dispatch(hl.dsp.focus({window=' + json.dumps("address:" + focused["address"]) + '}))', host=True)
+
+
+if __name__ == "__main__":
+    main()

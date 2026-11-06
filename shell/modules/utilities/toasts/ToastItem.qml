@@ -11,12 +11,15 @@ StyledRect {
     id: root
 
     required property Toast modelData
+    readonly property bool compact: modelData.compact
 
     anchors.left: parent.left
     anchors.right: parent.right
-    implicitHeight: layout.implicitHeight + Tokens.padding.large
+    implicitWidth: compact ? Math.max(88 * Tokens.scale, compactRow.implicitWidth + Tokens.padding.medium * 2) : 0
+    implicitHeight: compact ? Math.max(36 * Tokens.scale, compactRow.implicitHeight + Tokens.padding.small * 2)
+        : layout.implicitHeight + Tokens.padding.large
 
-    radius: Tokens.rounding.large
+    radius: compact ? implicitHeight / 2 : Tokens.rounding.large
     color: {
         if (root.modelData.type === Toast.Success)
             return Colours.palette.m3successContainer;
@@ -50,6 +53,7 @@ StyledRect {
     RowLayout {
         id: layout
 
+        visible: !root.compact
         anchors.fill: parent
         anchors.margins: Tokens.padding.small
         anchors.leftMargin: Tokens.padding.medium
@@ -127,6 +131,25 @@ StyledRect {
                 opacity: 0.8
                 elide: Text.ElideRight
             }
+        }
+    }
+
+    RowLayout {
+        id: compactRow
+
+        visible: root.compact
+        anchors.centerIn: parent
+        spacing: Tokens.spacing.small
+
+        MaterialIcon {
+            text: root.modelData.icon
+            fontStyle: Tokens.font.icon.small
+            color: Colours.palette.m3primary
+        }
+
+        StyledText {
+            text: root.modelData.title
+            font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
         }
     }
 

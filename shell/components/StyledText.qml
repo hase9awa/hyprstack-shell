@@ -9,7 +9,8 @@ Text {
 
     property bool animate: false
 
-    renderType: Text.NativeRendering
+    // Distance-field glyphs stay sharp during fractional movement and scaling.
+    renderType: Text.QtRendering
     textFormat: Text.PlainText
     color: Colours.palette.m3onSurface
     font: Tokens.font.body.small

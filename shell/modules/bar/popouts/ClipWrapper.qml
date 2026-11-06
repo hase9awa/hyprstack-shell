@@ -50,9 +50,10 @@ Item {
     implicitHeight: Math.max(0, content.implicitHeight * (1 - offsetScale))
 
     // A detached panel keeps growing from the centre, so it follows its
-    // animated size rather than the settled one.
-    x: content.isDetached ? (parent.width - width) / 2 : targetX
-    y: content.isDetached ? (parent.height - height) / 2 : atBottom ? parent.height - height : 0
+    // animated size rather than the settled one, rounded to whole pixels
+    // or it renders blurred between two of them.
+    x: content.isDetached ? Math.round((parent.width - width) / 2) : targetX
+    y: content.isDetached ? Math.round((parent.height - height) / 2) : atBottom ? parent.height - height : 0
 
     Behavior on offsetScale {
         NumberAnimation { duration: 240; easing.type: Easing.OutCubic }

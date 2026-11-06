@@ -143,10 +143,6 @@ Item {
         RowButton {
             id: openButton
 
-            transform: Matrix4x4 {
-                matrix: dialogBg.deformMatrix
-            }
-
             anchors.left: parent.left
             anchors.right: parent.right
             height: Math.min(implicitHeight, parent.height) // Clamp to parent height due to overshoot anim
@@ -160,10 +156,6 @@ Item {
 
         Loader {
             id: dialogContent
-
-            transform: Matrix4x4 {
-                matrix: dialogBg.deformMatrix
-            }
 
             anchors.fill: parent
 

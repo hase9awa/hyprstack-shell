@@ -8,14 +8,15 @@ namespace hyprstack {
 
 using Qt::StringLiterals::operator""_s;
 
-Toast::Toast(QString title, QString message, QString icon, Type type, int timeout, QObject* parent)
+Toast::Toast(QString title, QString message, QString icon, Type type, int timeout, bool compact, QObject* parent)
     : QObject(parent)
     , m_closed(false)
     , m_title(std::move(title))
     , m_message(std::move(message))
     , m_icon(std::move(icon))
     , m_type(type)
-    , m_timeout(timeout) {
+    , m_timeout(timeout)
+    , m_compact(compact) {
     QTimer::singleShot(timeout, this, &Toast::close);
 
     if (m_icon.isEmpty()) {
@@ -74,6 +75,10 @@ Toast::Type Toast::type() const {
     return m_type;
 }
 
+bool Toast::compact() const {
+    return m_compact;
+}
+
 void Toast::close() {
     if (!m_closed) {
         m_closed = true;
@@ -116,8 +121,15 @@ QQmlListProperty<Toast> Toaster::toasts() {
     return { this, &m_toasts };
 }
 
-void Toaster::toast(const QString& title, const QString& message, const QString& icon, Toast::Type type, int timeout) {
-    auto* const toast = new Toast(title, message, icon, type, timeout, this);
+void Toaster::toast(const QString& title, const QString& message, const QString& icon, Toast::Type type, int timeout, bool compact) {
+    if (compact) {
+        // Replace the previous language indication instead of stacking them
+        // when the user cycles layouts quickly. close() may change m_toasts.
+        const auto previous = m_toasts;
+        for (const auto old : previous)
+            if (old->compact()) old->close();
+    }
+    auto* const toast = new Toast(title, message, icon, type, timeout, compact, this);
     QObject::connect(toast, &Toast::finishedClose, this, [toast, this] {
         if (m_toasts.removeOne(toast)) {
             emit toastsChanged();

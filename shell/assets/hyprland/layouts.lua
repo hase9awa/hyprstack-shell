@@ -40,7 +40,10 @@ local tiling_preferences = read(config_dir .. "/tiling.json")
 tiling_preferences.focusOnHover = tiling_preferences.focusOnHover ~= false
 tiling_preferences.focusHoverDelay = math.max(0, math.min(1000,
     math.floor(tonumber(tiling_preferences.focusHoverDelay) or 200)))
+tiling_preferences.edgeScroll = tiling_preferences.edgeScroll ~= false
 local theme_palette = {}
+local window_effects = dofile(debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "effects.lua")
+local effects_game_mode = false
 local border_color_roles = { primary = true, secondary = true, tertiary = true,
     error = true, success = true, onSurface = true, outline = true }
 for index = 0, 15 do border_color_roles["term" .. index] = true end
@@ -74,6 +77,7 @@ if tiled_focus == nil or preferences.mode == "scrolling" then
         focus_on_activate = hl.get_config("misc.focus_on_activate") }
 end
 if tiled_focus.focus_on_activate == nil then tiled_focus.focus_on_activate = hl.get_config("misc.focus_on_activate") end
+if tiled_focus.follow_min_visible == nil then tiled_focus.follow_min_visible = hl.get_config("scrolling.follow_min_visible") end
 local last_rounding, last_border, last_tiling_gaps
 local last_gaps_in, last_gaps_out
 local touching_tiles_rule
@@ -139,7 +143,7 @@ function layouts.effects(options)
 end
 
 local function key(workspace)
-    return workspace.id > 0 and tostring(workspace.id) or "name:" .. workspace.name
+    return workspace.addressable_name
 end
 
 local function monitor_for(monitor)
@@ -249,6 +253,9 @@ function layouts.focus_column(direction)
 end
 
 local function save()
+    -- Config verification has no live desktop and must not replace session
+    -- records or preferences with the verifier's empty workspace state.
+    if not hl.get_active_monitor() then return end
     write(config_dir .. "/layouts.json", preferences)
     write(runtime_path, { windows = records, tiled_views = tiled_views, tiled_no_warps = tiled_no_warps,
         tiled_resize_on_border = tiled_resize_on_border, tiled_border_grab = tiled_border_grab, tiled_focus = tiled_focus,
@@ -381,7 +388,7 @@ local function set_geometry(window, value)
     assert(value.width > 0 and value.height > 0, "Invalid floating geometry for " .. window.title .. ": " .. json.encode(value))
     local plugin = hl.plugin.hyprbars
     if plugin and plugin.animate_window and plugin.animate_window(window.address,
-        string.format("%x", window.stable_id), "geometry", value.x, value.y, value.width, value.height) then return end
+        window.stable_id, "geometry", value.x, value.y, value.width, value.height) then return end
     hl.dispatch(hl.dsp.window.resize({ window = window, x = value.width, y = value.height, relative = false }))
     hl.dispatch(hl.dsp.window.move({ window = window, x = value.x, y = value.y, relative = false }))
 end
@@ -470,7 +477,7 @@ local function restore_focus(active, focused, visible)
             if monitor and (not monitor.active_workspace or key(monitor.active_workspace) ~= entry.workspace) then
                 local workspace = hl.get_workspace(entry.workspace)
                 if workspace then
-                    monitor:set_workspace({ workspace = workspace.name })
+                    monitor:set_workspace(workspace)
                 else
                     hl.dispatch(hl.dsp.focus({ monitor = monitor }))
                     hl.dispatch(hl.dsp.focus({ workspace = entry.workspace }))
@@ -503,7 +510,7 @@ end
 local function visual_animation(window, operation, box)
     local plugin = hl.plugin.hyprbars
     if not plugin or not plugin.animate_window then return false end
-    return plugin.animate_window(window.address, string.format("%x", window.stable_id), operation,
+    return plugin.animate_window(window.address, window.stable_id, operation,
         box and box.x, box and box.y, box and (box.width or box.w), box and (box.height or box.h),
         box and box.bar_top)
 end
@@ -549,7 +556,7 @@ end
 
 local function task_target(window)
     for _, target in ipairs(task_targets[window.monitor.name] or {}) do
-        if target.address == window.address and target.id == string.format("%x", window.stable_id) then
+        if target.address == window.address and target.id == window.stable_id then
             return { x = target.x, y = target.y, w = target.w, h = target.h, bar_top = target.barTop }
         end
     end
@@ -624,6 +631,7 @@ local function stack(workspace, prepared)
         elseif not record.maximized then
             hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 0, action = "set" }))
         end
+        visual_animation(window, "client-state")
     end
 end
 
@@ -728,7 +736,11 @@ local function pointer_focus()
     hl.config({ input = { follow_mouse = (hover and not dwell) and 1 or 2,
         float_switch_override_focus = hover and tiled_focus.float_switch_override_focus or 0 },
         misc = { mouse_move_focuses_monitor = hover and tiled_focus.mouse_move_focuses_monitor or false,
-            focus_on_activate = scrolling and tiled_focus.focus_on_activate or false } })
+            focus_on_activate = scrolling and tiled_focus.focus_on_activate or false },
+        -- Soft pointer focus may select an exposed tile without moving the
+        -- tape. Native click and keyboard focus still bring it fully into view.
+        scrolling = { follow_min_visible = tiling_preferences.edgeScroll == false and 1
+            or tiled_focus.follow_min_visible } })
     if hl.plugin.hyprbars and hl.plugin.hyprbars.tiling_hover then
         hl.plugin.hyprbars.tiling_hover("focus_on_hover", tiling_preferences.focusOnHover == true)
     end
@@ -757,6 +769,7 @@ function layouts.tiling(options)
         tiling_preferences.focusHoverDelay = math.max(0, math.min(1000,
             math.floor(tonumber(options.focusHoverDelay) or 200)))
     end
+    if options.edgeScroll ~= nil then tiling_preferences.edgeScroll = options.edgeScroll ~= false end
     pointer_focus()
     if options.gaps ~= nil then tiling_preferences.gaps = options.gaps ~= false end
     if options.gapsIn ~= nil then
@@ -810,6 +823,12 @@ function layouts.shadows(options)
     } } })
 end
 
+function layouts.window_effects(options, game_mode)
+    if type(options) == "string" then options = json.decode(options) end
+    if game_mode ~= nil then effects_game_mode = game_mode == true end
+    return window_effects.apply(options or read(config_dir .. "/effects.json"), effects_game_mode, theme_palette)
+end
+
 function layouts.toggle_gaps()
     if layouts.mode() ~= "scrolling" then return end
     tiling_preferences = read(config_dir .. "/tiling.json")
@@ -819,8 +838,18 @@ function layouts.toggle_gaps()
 end
 
 local script_dir = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
-local plugin_path = os.getenv("HYPRSTACK_TITLEBAR_PLUGIN") or read(config_dir .. "/titlebars.json").path or
-    (os.getenv("HYPRSTACK_DATA_DIR") or (os.getenv("XDG_DATA_HOME") or os.getenv("HOME") .. "/.local/share") .. "/hyprstack") .. "/native/hyprstack-bars.so"
+local native_dir = (os.getenv("HYPRSTACK_DATA_DIR") or
+    (os.getenv("XDG_DATA_HOME") or os.getenv("HOME") .. "/.local/share") .. "/hyprstack") .. "/native/"
+local plugin_override = os.getenv("HYPRSTACK_TITLEBAR_PLUGIN")
+local plugin_path = plugin_override or read(config_dir .. "/titlebars.json").path or native_dir .. "hyprstack-bars.so"
+-- Older local installations pinned a versioned snapshot inside this directory.
+-- Updates rebuild the canonical module, so loading that snapshot after a
+-- Hyprland upgrade leaves all native navigation and decoration policies absent.
+-- Keep explicit external builds, including the environment override, intact.
+if not plugin_override and plugin_path:sub(1, #native_dir) == native_dir
+    and plugin_path:sub(#native_dir + 1):match("^hyprstack%-bars%-[^/]+%.so$") then
+    plugin_path = native_dir .. "hyprstack-bars.so"
+end
 local plugin_file = io.open(plugin_path, "r")
 if plugin_file then plugin_file:close(); hl.plugin.load(plugin_path) end
 -- Loading is deferred until the config has been parsed. The plugin requests a
@@ -828,8 +857,9 @@ if plugin_file then plugin_file:close(); hl.plugin.load(plugin_path) end
 local no_titlebar = hl.plugin.hyprbars and hl.plugin.hyprbars.clear_buttons and true or nil
 
 function layouts.theme(palette)
-    palette = palette or {}
+    palette = palette or theme_palette
     theme_palette = palette
+    layouts.window_effects()
     local hex = (palette.outline or "808080"):gsub("#", "")
     local grey = math.floor((tonumber(hex:sub(1,2),16) or 128)*0.2126
         + (tonumber(hex:sub(3,4),16) or 128)*0.7152
@@ -846,13 +876,33 @@ function layouts.theme(palette)
         hl.plugin.hyprbars.tiling_hover("theme", palette.primary or "#7e9cd8", palette.surfaceContainerLow or "#1f2335")
     end
     local function color(name, fallback) return "rgb(" .. (palette[name] or fallback):gsub("#", "") .. ")" end
+    local function luminance(value)
+        local hex = value:gsub("#", "")
+        local function linear(start)
+            local channel = (tonumber(hex:sub(start, start + 1), 16) or 0) / 255
+            return channel <= 0.04045 and channel / 12.92 or ((channel + 0.055) / 1.055)^2.4
+        end
+        return linear(1)*0.2126 + linear(3)*0.7152 + linear(5)*0.0722
+    end
+    -- Lowest containers are dark in dark schemes; surfaceDim is darker in
+    -- light schemes. Select a scheme colour below the application's surface.
+    local header = palette.surface or "#24242c"
+    for _, role in ipairs({ "surfaceContainerLowest", "surfaceDim", "background" }) do
+        if palette[role] and luminance(palette[role]) < luminance(header) then header = palette[role] end
+    end
+    if luminance(header) >= luminance(palette.surface or "#24242c") then
+        header = header:gsub("#", ""):gsub("%x%x", function(channel)
+            return string.format("%02x", math.floor(tonumber(channel, 16) * 0.85))
+        end)
+    end
+    local header_color = "rgb(" .. header:gsub("#", "") .. ")"
     -- Address and stable ID come from the decoration's owning window, so a
     -- button always acts on that window even when another one has the focus.
     local command = "python3 " .. string.format("%q", script_dir .. "window-action.py") .. " "
     hl.config({ plugin = { hyprbars = {
         enabled = layouts.mode() == "stacking", bar_height = titlebar_height,
-        bar_color = color("surfaceContainerLow", "2a2a37"), col = { text = color("onSurface", "dcd7ba") },
-        inactive_button_color = color("surfaceContainerLow", "2a2a37"),
+        bar_color = header_color, col = { text = color("onSurface", "dcd7ba") },
+        inactive_button_color = header_color,
         bar_text_font = "Noto Sans", bar_text_size = 12, bar_text_weight = 400, bar_text_align = "center",
         bar_padding = 8, bar_button_padding = 4, bar_part_of_window = true,
         bar_precedence_over_border = true, bar_blur = false, icon_on_hover = false,
@@ -861,7 +911,7 @@ function layouts.theme(palette)
         on_maximize = command,
     } } })
     hl.window_rule({ name = "hyprstack-active-title", match = { focus = true },
-        ["hyprbars:bar_color"] = color("surfaceContainerHigh", "363646"),
+        ["hyprbars:bar_color"] = header_color,
         ["hyprbars:title_color"] = color("primary", "7e9cd8") })
     hl.window_rule({ name = "hyprstack-client-decorations", match = {
         class = "(?i)^(thorium(-browser)?|chromium(-browser)?|google-chrome.*|firefox|librewolf|zen(-browser)?|com\\.ayugram\\.desktop|AyugramDesktop|org\\.telegram\\.desktop|TelegramDesktop|discord|org\\.gnome\\..*)$"
@@ -1147,7 +1197,7 @@ end
 function layouts.snap(address, stable_id, zone, monitor_name)
     if layouts.mode() ~= "stacking" then return false end
     local window = hl.get_window("address:" .. address)
-    if not window or window.stable_id ~= tonumber(stable_id,16) or not eligible(window) or window.fullscreen == 2 then return false end
+    if not window or window.stable_id ~= stable_id or not eligible(window) or window.fullscreen == 2 then return false end
     local zones = {
         full={0,0,1,1}, left={0,0,0.5,1}, right={0.5,0,1,1}, top={0,0,1,0.5}, bottom={0,0.5,1,1},
         ["top-left"]={0,0,0.5,0.5}, ["top-right"]={0.5,0,1,0.5},
@@ -1205,13 +1255,22 @@ function layouts.set_overview(active)
     end
 end
 
+local native_module_error = "Hyprstack overview requires the native module built for the running Hyprland. Rebuild Hyprstack and log in again; run hyprstack-doctor for details."
+
 function layouts.overview_scene(action, value)
     local renderer = hl.plugin.hyprbars and hl.plugin.hyprbars.overview_scene
-    if not renderer then error("Hyprstack overview requires the current native shell module") end
+    if not renderer then
+        if action == "status" then return json.encode({ active = false, available = false, error = native_module_error }) end
+        if action == "input" or action == "geometry" then return json.encode({}) end
+        return false
+    end
     return renderer(action, value)
 end
 
 function layouts.overview_snapshot(name)
+    if not (hl.plugin.hyprbars and hl.plugin.hyprbars.overview_scene) then
+        return json.encode({ error = native_module_error, renderer = { active = false, available = false } })
+    end
     local monitor = hl.get_monitor(name)
     if not monitor or not monitor.active_workspace then return json.encode({}) end
     local width, height = monitor_size(monitor)
@@ -1239,7 +1298,7 @@ function layouts.overview_snapshot(name)
             local box = hidden and hidden.geometry or visible_geometry[window.address] or geometry(window)
             local scroll = not window.floating and scroll_position(window) or {}
             result.windows[#result.windows + 1] = { address = window.address,
-                identity = string.format("%x", window.stable_id), title = window.title,
+                identity = window.stable_id, title = window.title,
                 appId = window.class, workspace = hidden and (tonumber(hidden.workspace) or monitor.active_workspace.id) or window.workspace.id,
                 minimized = hidden ~= nil, floating = window.floating,
                 column = scroll.column, row = scroll.row, columnWidth = scroll.width,
@@ -1273,7 +1332,7 @@ function layouts.overview_close(address, identity, name)
     if not overview_active then return end
     local window = address and hl.get_window("address:" .. address)
     local monitor = hl.get_monitor(name)
-    if not window or not window.mapped or not monitor or tonumber(identity, 16) ~= window.stable_id then return end
+    if not window or not window.mapped or not monitor or identity ~= window.stable_id then return end
     local record = record_for(window)
     if window.monitor ~= monitor and not (record and record.minimized and record.minimized.monitor == name) then return end
     hl.dispatch(hl.dsp.window.close({ window = window }))
@@ -1281,7 +1340,7 @@ end
 
 function layouts.overview_activate(address, identity, workspace, name)
     local window = address ~= "" and hl.get_window("address:" .. address) or nil
-    if window and window.mapped and tonumber(identity, 16) == window.stable_id then
+    if window and window.mapped and identity == window.stable_id then
         if layouts.mode() == "stacking" then
             layouts.action("activate", address, identity)
         else
@@ -1375,7 +1434,7 @@ end
 function layouts.action(operation, address, stable_id)
     local window = address and hl.get_window("address:" .. address) or hl.get_active_window()
     if not window or not window.mapped then return end
-    if stable_id and tonumber(stable_id, 16) ~= window.stable_id then return end
+    if stable_id and stable_id ~= window.stable_id then return end
     if operation == "toggle-floating" then layouts.toggle_floating(window); return end
     if layouts.mode() ~= "stacking" then return end
     local record = record_for(window) or { id = window.stable_id, workspace = key(window.workspace) }
@@ -1493,7 +1552,7 @@ local function prepare_workspace_banks()
     if #connected >= 2 then workspace_config.secondary_monitor = connected[2].name end
     for _, workspace in ipairs(hl.get_workspaces()) do
         local monitor = workspace.monitor
-        if workspace.id > 0 and monitor then
+        if workspace.id and workspace.id > 0 and monitor then
             local base = layouts.workspace_base(monitor)
             if workspace.id <= base or workspace.id > base + workspace_count then
                 local owner
@@ -1573,7 +1632,7 @@ local function remember_workspace_views()
     for _, monitor in ipairs(hl.get_monitors()) do
         local base = layouts.workspace_base(monitor)
         local workspace = monitor.active_workspace
-        if workspace and workspace.id > base and workspace.id <= base + workspace_count
+        if workspace and workspace.id and workspace.id > base and workspace.id <= base + workspace_count
             and (workspace.windows > 0 or workspace_bank_views[tostring(base)] == nil) then
             workspace_bank_views[tostring(base)] = workspace.id
         end
@@ -1602,7 +1661,7 @@ local function secondary_transition(action)
             action()
             for _, view in ipairs(views) do
                 local monitor = hl.get_monitor(view.monitor)
-                if monitor then monitor:set_workspace({ workspace = view.workspace }) end
+                if monitor then monitor:set_workspace(view.workspace) end
             end
         end)
     end)
@@ -1628,6 +1687,8 @@ local function restore_secondary_windows(overlay)
     end)
     for _, entry in ipairs(windows) do
         local window, state = entry.window, entry.state
+        local returning = hl.plugin.hyprbars and hl.plugin.hyprbars.secondary_return
+        if returning then returning(window.address, window.stable_id) end
         hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 0, action = "set" }))
         hl.dispatch(hl.dsp.window.move({ window = window, workspace = state.workspace, follow = false }))
         if window.floating ~= state.floating then float(window, state.floating) end
@@ -1657,11 +1718,13 @@ function layouts.close_secondary_overlay(refocus)
     if secondary_overlay_timer then secondary_overlay_timer:set_enabled(false) end
     secondary_transition(function()
         local monitor = hl.get_monitor(overlay.monitor)
+        -- Keep the source workspace visible while moving its windows. Hyprland
+        -- records that monitor for the native cross-output flight only then.
+        restore_secondary_windows(overlay)
         if monitor and monitor.active_special_workspace
             and monitor.active_special_workspace.name == "special:" .. secondary_overlay_name then
-            monitor:set_special_workspace({})
+            monitor:set_special_workspace(nil)
         end
-        restore_secondary_windows(overlay)
         secondary_overlay = nil
     end)
     local monitor = hl.get_monitor(overlay.monitor)
@@ -1788,7 +1851,7 @@ local function place_telegram_webview(window)
     if record and record.webview then return end
     local plugin = hl.plugin.hyprbars
     if not plugin or not plugin.animate_window then return end
-    local parent_address = plugin.animate_window(window.address, string.format("%x", window.stable_id), "telegram-webview-parent")
+    local parent_address = plugin.animate_window(window.address, window.stable_id, "telegram-webview-parent")
     if not parent_address then return end
     local parent
     for _, candidate in ipairs(hl.get_windows()) do
@@ -1810,7 +1873,7 @@ local function place_telegram_webview(window)
     box.width = math.min(box.width, math.floor(width * 0.82))
     box.height = math.min(box.height, math.floor(height * 0.82))
     set_geometry(window, box)
-    plugin.animate_window(window.address, string.format("%x", window.stable_id), "center", true)
+    plugin.animate_window(window.address, window.stable_id, "center", true)
     if record.origin then record.origin = { workspace = key(window.workspace), monitor = window.monitor.name } end
     save()
 end
@@ -1858,7 +1921,7 @@ local function place_telegram_media(window)
             set_geometry(window, fit_geometry(window, box, 0))
             local plugin = hl.plugin.hyprbars
             if plugin and plugin.animate_window then
-                plugin.animate_window(window.address, string.format("%x", window.stable_id), "center", true)
+                plugin.animate_window(window.address, window.stable_id, "center", true)
             end
         end
     end
@@ -1882,7 +1945,7 @@ local function schedule_float_center(window)
         local plugin = hl.plugin.hyprbars
         if window.mapped and window.floating and plugin and plugin.animate_window then
             local record = record_for(window)
-            local placed = plugin.animate_window(window.address, string.format("%x", window.stable_id), "center",
+            local placed = plugin.animate_window(window.address, window.stable_id, "center",
                 telegram_auxiliary(window) or (record and record.webview) or false)
             -- A parentless Qt window can first map on the focused output.
             -- Stacking must remember its originating application's workspace
@@ -2174,6 +2237,9 @@ if per_monitor then
     hl.on("monitor.focused", remember_navigation)
     hl.on("config.reloaded", function()
         apply_workspace_bank_rules()
+        -- Verification has no outputs or event loop. Hyprland 0.57 cannot
+        -- destroy Lua timers created in that mode, and there is no bank to fix.
+        if not hl.get_active_monitor() then return end
         reload_focus_pending = true
         hl.timer(function()
             reload_focus_pending = false
@@ -2214,11 +2280,13 @@ for _, window in ipairs(hl.get_windows()) do
         local record = record_for(window)
         hl.dispatch(hl.dsp.window.set_prop({ window = window, prop = "rounding",
             value = layouts.mode() == "stacking" and record and record.maximized and "0" or "unset" }))
+        visual_animation(window, "client-state")
     end
 end
 if normalized_columns then save() end
 layouts.effects()
 layouts.tiling()
 layouts.shadows()
+layouts.window_effects()
 
 return layouts

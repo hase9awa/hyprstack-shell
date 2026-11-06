@@ -348,7 +348,10 @@ def read_current() -> dict:
 
 
 def refresh_current() -> dict:
-    """Upgrade an installed builtin without changing the user's selection."""
+    """Initialize the first palette or upgrade the selected builtin in place."""
+    if not (STATE / "scheme.json").exists():
+        apply_theme("hyprstack-catppuccin", "dark")
+        return {"updated": True}
     current = read_current()
     if current.get("paletteVersion") == PALETTE_VERSION:
         return {"updated": False}

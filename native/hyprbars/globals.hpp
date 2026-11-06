@@ -1,4 +1,9 @@
 #pragma once
+#include <hyprland/src/desktop/view/window/Window.hpp>
+#include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
+#include <hyprland/src/desktop/view/window/WindowFullscreenPolicy.hpp>
+#include <hyprland/src/desktop/view/window/WindowEffectsController.hpp>
+#include <hyprland/src/render/transformer/TransformerList.hpp>
 
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/render/Texture.hpp>

@@ -20,6 +20,7 @@ class Toast : public QObject {
     Q_PROPERTY(QString icon READ icon CONSTANT)
     Q_PROPERTY(int timeout READ timeout CONSTANT)
     Q_PROPERTY(Type type READ type CONSTANT)
+    Q_PROPERTY(bool compact READ compact CONSTANT)
 
 public:
     enum class Type : quint8 {
@@ -30,7 +31,8 @@ public:
     };
     Q_ENUM(Type)
 
-    explicit Toast(QString title, QString message, QString icon, Type type, int timeout, QObject* parent = nullptr);
+    explicit Toast(QString title, QString message, QString icon, Type type, int timeout, bool compact = false,
+        QObject* parent = nullptr);
 
     [[nodiscard]] bool closed() const;
     [[nodiscard]] QString title() const;
@@ -38,6 +40,7 @@ public:
     [[nodiscard]] QString icon() const;
     [[nodiscard]] int timeout() const;
     [[nodiscard]] Type type() const;
+    [[nodiscard]] bool compact() const;
 
     Q_INVOKABLE void close();
     Q_INVOKABLE void lock(QObject* sender);
@@ -56,6 +59,7 @@ private:
     QString m_icon;
     Type m_type;
     int m_timeout;
+    bool m_compact;
 };
 
 class Toaster : public QObject {
@@ -72,7 +76,7 @@ public:
     [[nodiscard]] QQmlListProperty<Toast> toasts();
 
     Q_INVOKABLE void toast(const QString& title, const QString& message, const QString& icon = {},
-        hyprstack::Toast::Type type = Toast::Type::Info, int timeout = 5000);
+        hyprstack::Toast::Type type = Toast::Type::Info, int timeout = 5000, bool compact = false);
 
 signals:
     void toastsChanged();
