@@ -923,31 +923,6 @@ msgstr ""
 
 #. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
 #: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid ""
-"Caps lock and Num lock are ON.\n"
-"Keyboard layout: %1"
-msgstr ""
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Caps lock is ON. Keyboard layout: %1"
-msgstr ""
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Num lock is ON. Keyboard layout: %1"
-msgstr ""
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Keyboard layout: %1"
-msgstr ""
-
-#: modules/lock/center/StateMessage.qml
 msgid "Caps lock and Num lock are ON."
 msgstr ""
 

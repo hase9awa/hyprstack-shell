@@ -959,30 +959,6 @@ msgstr "Исчерпано число попыток отпечатка паль
 msgid "Maximum face attempts reached. Please use password."
 msgstr "Исчерпано число попыток распознавания лица. Введите пароль."
 
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Caps lock and Num lock are ON.\nKeyboard layout: %1"
-msgstr "Caps Lock и Num Lock включены.\nРаскладка клавиатуры: %1"
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Caps lock is ON. Keyboard layout: %1"
-msgstr "Caps Lock включён. Раскладка клавиатуры: %1"
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Num lock is ON. Keyboard layout: %1"
-msgstr "Num Lock включён. Раскладка клавиатуры: %1"
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Keyboard layout: %1"
-msgstr "Раскладка клавиатуры: %1"
-
 #: modules/lock/center/StateMessage.qml
 msgid "Caps lock and Num lock are ON."
 msgstr "Caps Lock и Num Lock включены."
