@@ -27,7 +27,7 @@ def checks():
     version_text = capture(["Hyprland", "--version-json"])
     try: version = json.loads(version_text or "{}")
     except ValueError: version = {}
-    result = [{"check": "Hyprland 0.57.0", "ok": version.get("version") == "0.57.0", "value": version.get("version", "missing")}]
+    result = [{"check": "Hyprland 0.57.0 / 0.57.1", "ok": version.get("version") in ("0.57.0", "0.57.1"), "value": version.get("version", "missing")}]
     qs = capture(["qs", "--version"]) or ""
     match = re.search(r"Quickshell (\d+)\.(\d+)\.(\d+)", qs)
     result.append({"check": "Quickshell >= 0.3.1", "ok": bool(match and tuple(map(int, match.groups())) >= (0, 3, 1)), "value": qs or "missing"})

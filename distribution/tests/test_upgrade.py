@@ -47,6 +47,7 @@ def main():
         "monitor_bases": {"WAYLAND-1": 0, "UPGRADE-2": 20},
         "secondary_monitor": "UPGRADE-2", "secondary_on_special": True, "initialized": True}))
     (prefs / "layouts.json").write_text('{"mode":"scrolling"}\n')
+    (prefs / "tiling.json").write_text('{"focusOnHover":false,"edgeScroll":false}\n')
     (prefs / "hypr-user.lua").write_text(
         'dofile(' + json.dumps(str(ROOT / "assets/hyprland/layouts.lua")) + ')\n'
         'hl.monitor({output="",mode="1280x800@60",position="0x0",scale=1})\n'
@@ -91,6 +92,11 @@ def main():
 
     def evaluate(code):
         return ctl("eval", code)
+
+    def toggle_overlay():
+        # Host pointer events must not choose the other nested output while a
+        # fixture is exercising a flight from WAYLAND-1.
+        return evaluate('hl.dispatch(hl.dsp.focus({monitor="WAYLAND-1"})); hyprstack_layouts.toggle_special()')
 
     def clients():
         return {w["title"]: w for w in json.loads(ctl("-j", "clients"))}
@@ -161,7 +167,7 @@ def main():
         original = clients()["UpgradeSecondary"]
         original_float = clients()["UpgradeFloating"]
         for cycle in range(20):
-            evaluate('hyprstack_layouts.toggle_special()')
+            toggle_overlay()
             wait(lambda: clients()["UpgradeSecondary"]["workspace"]["type"] == "special", "secondary overlay")
             if cycle == 10:
                 ctl("reload")
@@ -169,7 +175,7 @@ def main():
             else:
                 if cycle == 0:
                     time.sleep(.45)
-                evaluate('hyprstack_layouts.toggle_special()')
+                toggle_overlay()
                 if cycle == 0:
                     frames = []
                     until = time.monotonic() + .5
@@ -193,33 +199,36 @@ def main():
         assert ctl("configerrors") == "", ctl("configerrors")
         print("PASS: 20 overlay cycles, reload while open, exact geometry restore and no Lua errors", flush=True)
         print("PASS: the return flight keeps the source-monitor presentation and moves smoothly to the original box", flush=True)
-        evaluate('hyprstack_layouts.toggle_special()')
+        toggle_overlay()
         time.sleep(.45)
-        evaluate('hyprstack_layouts.toggle_special()')
+        toggle_overlay()
         time.sleep(.04)
         before_reopen = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))
-        evaluate('hyprstack_layouts.toggle_special()')
+        toggle_overlay()
         after_reopen = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))
         assert abs(before_reopen["current"][0]-after_reopen["current"][0]) < 120, (before_reopen, after_reopen)
         time.sleep(.5)
         assert clients()["UpgradeSecondary"]["workspace"]["type"] == "special"
-        evaluate('hyprstack_layouts.toggle_special()')
+        toggle_overlay()
         wait(lambda: clients()["UpgradeSecondary"]["workspace"].get("id") == 21, "restore after reversing flight")
         ctl("reload")
         assert clients()["UpgradeFloating"]["workspace"].get("id") == 21
         print("PASS: reversing the flight preserves position; reload recovers tiled and floating windows", flush=True)
-        evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"})); hl.dispatch(hl.dsp.layout("colresize 1.0"))')
+        evaluate('hl.dispatch(hl.dsp.focus({monitor="WAYLAND-1"})); hl.dispatch(hl.dsp.focus({workspace="1"})); '
+            'hl.dispatch(hl.dsp.focus({window=hl.get_window("title:^UpgradePrimary$")})); hl.dispatch(hl.dsp.layout("colresize 1.0"))')
         time.sleep(.5)
         before = base / "covering-window.png"
         subprocess.run(["grim", "-o", "WAYLAND-1", str(before)], env=env, check=True)
         background = Image.open(before).convert("RGB").getpixel((400, 600))
+        (base / "covering-state.json").write_text(json.dumps({"clients":clients(),
+            "monitors":json.loads(ctl("-j","monitors")),"focused":json.loads(ctl("-j","activewindow"))},indent=2))
         assert background[2] > background[0]*1.5, background
-        evaluate('hyprstack_layouts.toggle_special()')
+        toggle_overlay()
         time.sleep(.5)
         # Slow only this fixture's native movement, so the sampled point stays
         # inside both overlapping windows while the compositor captures a frame.
         evaluate('hl.animation({leaf="windowsMove",enabled=true,speed=20,bezier="windowGeometry"})')
-        evaluate('hyprstack_layouts.toggle_special()')
+        toggle_overlay()
         position = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry("UpgradeSecondary")'))["current"]
         point = (round(position[0]+position[2]*.4), round(position[1]+position[3]*.6))
         frame = base / "return-over-covering-window.png"
@@ -285,6 +294,25 @@ def main():
         if not failures:
             print("PASS: stacking sends real client state and respects distinct set/unset maximize requests", flush=True)
 
+        evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window="title:^UpgradePrimary$",internal=2,client=2,action="set"}))')
+        time.sleep(.3)
+        for value in (True, False):
+            request("UpgradePrimary", "maximize", value)
+            time.sleep(.15)
+            current = clients()["UpgradePrimary"]
+            require(current["fullscreen"] == 2 and current["fullscreenClient"] == 2,
+                "client maximize echoes preserve exclusive fullscreen", (value, current["fullscreen"], current["fullscreenClient"]))
+        evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window="title:^UpgradePrimary$",internal=0,client=0,action="set"}))')
+        time.sleep(.3)
+        print("PASS: client maximize/unmaximize echoes retain exclusive fullscreen", flush=True)
+        # Native fullscreen has its own layout recovery. Reset this fixture's
+        # valid stacking box before exercising minimize's exact restoration;
+        # an out-of-bounds box would intentionally be clamped on restore.
+        evaluate('local w=hl.get_window("title:^UpgradePrimary$"); '
+            'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"geometry",' +
+            ','.join(str(v) for v in [*normal["at"], *normal["size"]]) + ')')
+        time.sleep(.3)
+
         # Delay only the workspace hand-off, beyond the visual animation's end.
         # The final offscreen image must stay in effect during this gap.
         evaluate('hyprstack_layouts.action("maximize-unset",hl.get_window("title:^UpgradePrimary$").address)')
@@ -314,7 +342,7 @@ def main():
             evaluate('hyprstack_layouts.action("restore",hl.get_window("title:^UpgradePrimary$").address)')
             time.sleep(.35)
             require(box(clients()["UpgradePrimary"]) == box(normal),
-                "minimize/restore retains stacking geometry", cycle)
+                "minimize/restore retains stacking geometry", (cycle,box(normal),box(clients()["UpgradePrimary"])))
         request("UpgradePrimary", "minimize")
         time.sleep(.04)
         ctl("reload")

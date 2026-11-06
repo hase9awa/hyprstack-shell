@@ -100,7 +100,10 @@ CHyprBar::CHyprBar(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
         const auto toplevel = clientToplevel(window);
         if (maximized && toplevel && toplevel->m_state.requestsMaximize.has_value())
             maximized = toplevel->m_state.requestsMaximize;
-        if (maximized) runDecorationAction(window, *maximized ? "maximize-set" : "maximize-unset");
+        // Keep exclusive fullscreen when a client echoes a maximize request,
+        // matching the policy restored in Hyprland 0.57.1.
+        if (maximized && Fullscreen::controller()->getFullscreenModes(window).internal != Fullscreen::FSMODE_FULLSCREEN)
+            runDecorationAction(window, *maximized ? "maximize-set" : "maximize-unset");
         if (request.minimized.value_or(false)) runDecorationAction(window, "minimize");
     });
 

@@ -87,11 +87,10 @@ MouseArea {
             Math.max(200 * Tokens.scale, column.implicitWidth + column.anchors.margins * 2))
         implicitHeight: column.implicitHeight + column.anchors.margins * 2
 
-        transform: Scale {
-            yScale: root.expanded ? 1 : 0.97
-            origin.y: root.thisSideY === Menu.Bottom ? menu.height : 0
+        transform: Translate {
+            y: root.expanded ? 0 : (root.thisSideY === Menu.Bottom ? -4 : 4) * root.Tokens.scale
 
-            Behavior on yScale {
+            Behavior on y {
                 NumberAnimation { duration: 90; easing.type: Easing.OutCubic }
             }
         }

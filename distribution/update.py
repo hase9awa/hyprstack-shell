@@ -124,8 +124,8 @@ def preflight():
     if missing:
         raise ValueError("Не найдены зависимости: " + ", ".join(missing) + ". См. INSTALL.md.")
     hypr = json.loads(capture(["Hyprland", "--version-json"]) or "{}")
-    if hypr.get("version") != "0.57.0" or not hypr.get("abiHash"):
-        raise ValueError("Нужен Hyprland 0.57.0 с совместимыми заголовками. См. INSTALL.md.")
+    if hypr.get("version") not in ("0.57.0", "0.57.1") or not hypr.get("abiHash"):
+        raise ValueError("Нужен Hyprland 0.57.0 или 0.57.1 с совместимыми заголовками. См. INSTALL.md.")
     subprocess.run([sys.executable, str(ROOT / "distribution/check_headers.py"), hypr["abiHash"]], check=True)
     for command, minimum, label in ((["qs", "--version"], (0, 3, 1), "Quickshell"),
             (["pkg-config", "--modversion", "Qt6Core"], (6, 9, 0), "Qt")):

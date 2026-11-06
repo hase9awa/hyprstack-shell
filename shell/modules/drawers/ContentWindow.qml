@@ -298,32 +298,8 @@ StyledWindow {
             bar: bar
             borderThickness: root.borderThickness
 
-            utilities.deformMatrix: utilities.followSidebar ? sidebarBg.rawDeformMatrix : utilsBg.rawDeformMatrix
-
-            dashboard.transform: Matrix4x4 {
-                matrix: dashBg.deformMatrix
-            }
-            launcher.transform: Matrix4x4 {
-                matrix: launcherBg.deformMatrix
-            }
-            session.transform: Matrix4x4 {
-                matrix: sessionBg.deformMatrix
-            }
-            sidebar.transform: Matrix4x4 {
-                matrix: sidebarBg.deformMatrix
-            }
-            osd.transform: Matrix4x4 {
-                matrix: osdBg.deformMatrix
-            }
-            notifications.transform: Matrix4x4 {
-                matrix: notifsBg.deformMatrix
-            }
-            utilities.transform: Matrix4x4 {
-                matrix: panels.utilities.followSidebar ? sidebarBg.deformMatrix : utilsBg.deformMatrix
-            }
-            popouts.transform: Matrix4x4 {
-                matrix: popoutBg.deformMatrix
-            }
+            // Spring deformation belongs to the background surface. Keep
+            // text, icons, previews and their hit targets at their normal size.
         }
 
         BarWrapper {
