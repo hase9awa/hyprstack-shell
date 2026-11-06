@@ -175,14 +175,15 @@ CustomMouseArea {
 
             delegate: StyledText {
                 required property var model
+                readonly property int dayOfWeek: model.day % 7
 
                 width: (daysRow.availableWidth - daysRow.spacing * 6) / 7
                 height: root.dayHeight
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
-                text: model.shortName
+                text: Tr.locale.standaloneDayName(dayOfWeek, Locale.ShortFormat)
                 font: Tokens.font.body.builders.small.weight(Font.Medium).build()
-                color: (model.day === 0 || model.day === 6) ? Colours.palette.m3tertiary : Colours.palette.m3onSurface
+                color: (dayOfWeek === 0 || dayOfWeek === 6) ? Colours.palette.m3tertiary : Colours.palette.m3onSurface
             }
         }
 
@@ -204,7 +205,8 @@ CustomMouseArea {
                 anchors.fill: parent
 
                 spacing: 3 * Tokens.scale
-                locale: Tr.locale
+                // Keep the week Monday-first; labels and numbers use the UI locale.
+                locale: Qt.locale("en_GB")
                 implicitHeight: root.dayHeight * 6 + spacing * 5
 
                 delegate: Item {
@@ -221,7 +223,7 @@ CustomMouseArea {
                         anchors.centerIn: parent
 
                         horizontalAlignment: Text.AlignHCenter
-                        text: grid.locale.toString(dayItem.model.day)
+                        text: Tr.locale.toString(dayItem.model.day)
                         color: {
                             const dayOfWeek = dayItem.model.date.getDay();
                             if (dayOfWeek === 0 || dayOfWeek === 6)
