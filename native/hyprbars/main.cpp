@@ -39,6 +39,7 @@ extern "C" {
 #include "overview-scene.hpp" // HYPRSTACK_OVERVIEW_SCENE
 #include "autoscroll.hpp"
 #include "tiling-hover.hpp"
+#include "hover-focus.hpp"
 #include "shader-warmup.hpp"
 
 // Do NOT change this function.
@@ -397,6 +398,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprstackSnap::install(PHANDLE); // HYPRSTACK_SNAP_ZONES
     HyprstackAutoscroll::install(PHANDLE);
     HyprstackTilingHover::install(PHANDLE);
+    HyprstackHoverFocus::install(PHANDLE);
     HyprstackInitialGeometry::install(PHANDLE);
 
     // add deco to existing windows
@@ -415,6 +417,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 APICALL EXPORT void PLUGIN_EXIT() {
     HyprstackInitialGeometry::remove(PHANDLE);
     HyprstackTilingHover::remove();
+    HyprstackHoverFocus::remove();
     HyprstackShaders::remove();
     HyprstackAutoscroll::remove();
     HyprstackOverview::remove(PHANDLE);
