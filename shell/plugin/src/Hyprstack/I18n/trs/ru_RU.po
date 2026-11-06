@@ -5839,8 +5839,8 @@ msgstr "Пересоберите Hyprstack для установленной в�
 
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
-msgid "Scrolling: 0 hides the border. Stacking: always 1 px."
-msgstr "Тайловый режим: 0 скрывает рамку. Стакинг: всегда 1 px."
+msgid "Scrolling: 0 hides the border. Stacking: 1 px; maximized windows have no border."
+msgstr "Тайловый режим: 0 скрывает рамку. Стакинг: 1 px, без рамки у развёрнутых окон."
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Gradient focus border"

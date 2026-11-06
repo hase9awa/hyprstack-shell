@@ -281,7 +281,7 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             objectName: "appearanceFocusBorderWidth"
             label: Tr.tr("Window border width")
-            subtext: Tr.tr("Scrolling: 0 hides the border. Stacking: always 1 px.")
+            subtext: Tr.tr("Scrolling: 0 hides the border. Stacking: 1 px; maximized windows have no border.")
             value: Tiling.focusBorderWidth
             from: 0
             to: 10

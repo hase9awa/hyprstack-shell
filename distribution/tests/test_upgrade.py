@@ -201,6 +201,7 @@ def main():
         wait(lambda: "UpgradeFocus" not in clients(), "focus fixture cleanup")
         evaluate('hyprstack_layouts.focus(1,"UPGRADE-2")')
         print("PASS: horizontal Shift navigation crosses empty and occupied outputs without wrapping in both layouts", flush=True)
+        ctl("plugin", "load", str(probe))
 
         # Legacy effect files cannot re-enable the removed inner glow.
         evaluate('hyprstack_layouts.window_effects({windowGlow=true,glowOpacity=1,glowSize=100})')
@@ -223,10 +224,76 @@ def main():
         subprocess.run(["grim", "-o", "WAYLAND-1", str(base / "gradient-focused.png")], env=env, check=True)
         evaluate('hyprstack_layouts.action("maximize",hl.get_window("title:^UpgradePrimary$").address)')
         time.sleep(.4)
-        maximized = clients()["UpgradePrimary"]
-        assert maximized["at"][0] == 1 and sum((maximized["at"][0], maximized["size"][0])) == 1279, maximized
+        evaluate('hyprstack_layouts.tiling({focusBorderWidth=3})')
+
+        def window_border(title):
+            return json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.geometry(' + json.dumps(title) + ')'))["borderSize"]
+
+        def maximize_cycles(title):
+            enlarged = clients()[title]
+            assert window_border(title) == 0, title
+            cycles = []
+            for delay in (0, .06, .5):
+                if delay == 0:
+                    evaluate('hyprstack_layouts.toggle(); hyprstack_layouts.toggle()')
+                else:
+                    evaluate('hyprstack_layouts.toggle()')
+                    assert window_border(title) == 3, "Tiling must recover its own border width"
+                    time.sleep(delay)
+                    evaluate('hyprstack_layouts.toggle()')
+                time.sleep(.55)
+                restored = clients()[title]
+                cycles.append({"delay": delay, "before": [enlarged["at"], enlarged["size"]],
+                    "after": [restored["at"], restored["size"]], "client": restored["fullscreenClient"],
+                    "border": window_border(title)})
+            (base / (title + "-maximized-mode-cycles.json")).write_text(json.dumps(cycles, indent=2))
+            assert all(item["before"] == item["after"] and item["client"] == 1 and item["border"] == 0 for item in cycles), cycles
+            return enlarged
+
+        maximized = maximize_cycles("UpgradePrimary")
+        assert maximized["at"][0] == 0 and maximized["size"][0] == 1280, maximized
         subprocess.run(["grim", "-o", "WAYLAND-1", str(base / "gradient-maximized.png")], env=env, check=True)
         evaluate('hyprstack_layouts.action("maximize",hl.get_window("title:^UpgradePrimary$").address)')
+        time.sleep(.3)
+        assert window_border("UpgradePrimary") == 1
+        launch(["kitty", "--class", "thorium-browser", "--title", "UpgradeCSD",
+            "-o", "confirm_os_window_close=0", "-e", "sleep", "300"], "csd")
+        wait(lambda: clients().get("UpgradeCSD"), "client-decorated maximize fixture")
+        evaluate('hyprstack_layouts.action("maximize-set",hl.get_window("title:^UpgradeCSD$").address)')
+        time.sleep(.4)
+        csd = maximize_cycles("UpgradeCSD")
+        assert csd["at"] == [0, 0] and csd["size"] == [1280, 800], csd
+
+        # Match the shell's asynchronous reservations: a top bar and outer frame
+        # in scrolling, then a bottom bar without the frame in stacking.
+        panel_dir = base / "reservation-shell"
+        panel_dir.mkdir()
+        zones = "\n".join('PanelWindow { screen: root.output; anchors.' + edge + ': true; '
+            'implicitWidth: 1; implicitHeight: 1; color: "transparent"; '
+            'exclusiveZone: root.mode === "stacking" ? ' + str(stacked) + ' : ' + str(tiled) + '; }'
+            for edge, stacked, tiled in (("top", 0, 60), ("left", 0, 10), ("right", 0, 10), ("bottom", 40, 10)))
+        (panel_dir / "shell.qml").write_text('import QtQuick\nimport Quickshell\nimport Quickshell.Io\n'
+            'ShellRoot { id: root; property string mode: "stacking"; '
+            'readonly property ShellScreen output: Quickshell.screens.find(s => s.name === "WAYLAND-1") ?? null; '
+            'FileView { path: ' + json.dumps(str(prefs / "layouts.json")) + '; watchChanges: true; '
+            'onFileChanged: reload(); onLoaded: root.mode = JSON.parse(text()).mode; }\n' + zones + '\n}\n')
+        panels = launch(["qs", "--path", str(panel_dir)], "reservation-shell")
+
+        def reservations():
+            return next(m["reserved"] for m in json.loads(ctl("-j", "monitors")) if m["name"] == "WAYLAND-1")
+
+        wait(lambda: reservations() == [0, 0, 0, 40], "stacking panel reservations")
+        for title in ("UpgradeCSD", "UpgradePrimary"):
+            evaluate('hyprstack_layouts.action("maximize-set",hl.get_window("title:^' + title + '$").address)')
+            time.sleep(.4)
+            maximize_cycles(title)
+        evaluate('hyprstack_layouts.action("maximize-unset",hl.get_window("title:^UpgradePrimary$").address)')
+        panels.terminate()
+        panels.wait(timeout=5)
+        wait(lambda: reservations() == [0, 0, 0, 0], "reservation fixture cleanup")
+        evaluate('hl.dispatch(hl.dsp.window.close({window=hl.get_window("title:^UpgradeCSD$")}))')
+        wait(lambda: "UpgradeCSD" not in clients(), "CSD fixture cleanup")
+        print("PASS: maximized windows with native and client decorations keep their full area and no border through layout cycles", flush=True)
         focus_window("UpgradeSecondary")
         time.sleep(.4)
         subprocess.run(["grim", "-o", "WAYLAND-1", str(base / "gradient-inactive.png")], env=env, check=True)
@@ -243,7 +310,7 @@ def main():
             'hyprstack_layouts.theme({})')
         assert json.loads(ctl("-j", "getoption", "general:border_size"))["int"] == 1
         assert len(json.loads(ctl("-j", "getoption", "general:col.active_border"))["gradient"].split()) == 2
-        print("PASS: stacking borders stay 1 px; focus gradients follow theme colours and angle; inner glow stays disabled", flush=True)
+        print("PASS: normal stacking borders stay 1 px; focus gradients follow theme colours and angle; inner glow stays disabled", flush=True)
 
         launch(["kitty", "--class", "upgrade-floating", "--title", "UpgradeFloating", "-e", "sleep", "300"], "floating")
         wait(lambda: clients().get("UpgradeFloating"), "floating secondary window")
@@ -252,7 +319,6 @@ def main():
             'hl.plugin.hyprbars.animate_window(w.address,w.stable_id,"geometry",1350,180,440,330)')
         time.sleep(.4)
         print("PASS: legacy snapshot pin loads the current module; terminals open at half width", flush=True)
-        ctl("plugin", "load", str(probe))
         time.sleep(.5)
         regions = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.damage("UpgradePrimary")'))
         assert regions["full"][2] > 100 and regions["full"][3] > 100, regions

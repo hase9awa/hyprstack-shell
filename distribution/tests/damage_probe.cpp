@@ -56,7 +56,8 @@ static int geometry(lua_State* L) {
         const auto goalPos = window->positionAnimation()->goal(), goalSize = window->sizeAnimation()->goal();
         const auto value = nlohmann::json{{"current", {pos.x, pos.y, size.x, size.y}},
             {"goal", {goalPos.x, goalPos.y, goalSize.x, goalSize.y}},
-            {"movingFromMonitor", window->presentation().movingFromMonitor()}}.dump();
+            {"movingFromMonitor", window->presentation().movingFromMonitor()},
+            {"borderSize", window->presentation().borderSize()}}.dump();
         lua_pushlstring(L, value.data(), value.size()); return 1;
     }
     return luaL_error(L, "Test window is missing");

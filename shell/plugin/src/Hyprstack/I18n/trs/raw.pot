@@ -4583,7 +4583,7 @@ msgstr ""
 
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
-msgid "Scrolling: 0 hides the border. Stacking: always 1 px."
+msgid "Scrolling: 0 hides the border. Stacking: 1 px; maximized windows have no border."
 msgstr ""
 
 #: modules/nexus/pages/WallpaperAndStyle.qml

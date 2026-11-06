@@ -431,7 +431,7 @@ function layouts.toggle_width()
     if record then record.scroll = scroll_position(window); save() end
 end
 
-local function fit_geometry(window, value, index)
+local function available_geometry(window)
     local monitor = window.monitor
     local width, height = monitor_size(monitor)
     local reserved = monitor.reserved
@@ -444,6 +444,12 @@ local function fit_geometry(window, value, index)
     width = width - reserved.left - reserved.right
     height = height - top - bottom
     local x, y = monitor.x + reserved.left, monitor.y + top
+    return { x = x, y = y, width = width, height = height }
+end
+
+local function fit_geometry(window, value, index)
+    local bounds = available_geometry(window)
+    local x, y, width, height = bounds.x, bounds.y, bounds.width, bounds.height
     if layouts.mode() == "stacking" and not client_decorated(window) then
         y, height = y + titlebar_height, height - titlebar_height
     end
@@ -530,16 +536,22 @@ local function visual_animation(window, operation, box)
 end
 
 local function maximized_geometry(window)
-    local monitor = window.monitor
-    local width, height = monitor_size(monitor)
-    local reserved = monitor.reserved
-    local top = changing and 0 or reserved.top
-    local bottom = changing and 40 or reserved.bottom
+    local bounds = available_geometry(window)
     local bar = client_decorated(window) and 0 or titlebar_height
-    -- Keep the 1 px stacking border inside the available workspace edges.
-    return { x = monitor.x + reserved.left + 1, y = monitor.y + top + bar + 1,
-        width = width - reserved.left - reserved.right - 2,
-        height = height - top - bottom - bar - 2 }
+    return { x = bounds.x, y = bounds.y + bar, width = bounds.width, height = bounds.height - bar }
+end
+
+local function reflow_maximized()
+    if layouts.mode() ~= "stacking" then return end
+    for _, window in ipairs(hl.get_windows()) do
+        local record = record_for(window)
+        if eligible(window) and record and record.maximized and not record.minimized and window.fullscreen == 0 then
+            local current, target = geometry(window), maximized_geometry(window)
+            if current.x ~= target.x or current.y ~= target.y or current.width ~= target.width or current.height ~= target.height then
+                set_geometry(window, target)
+            end
+        end
+    end
 end
 
 local function set_maximized(window, enabled)
@@ -549,11 +561,13 @@ local function set_maximized(window, enabled)
         -- Client-side maximize state is independent of the compositor's exclusive
         -- fullscreen layer. All stacking windows share one visual/input Z order.
         record.maximized = record.maximized or { geometry = geometry(window) }
+        hl.dispatch(hl.dsp.window.set_prop({ window = window, prop = "border_size", value = "0" }))
         hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 1, action = "set" }))
         set_geometry(window, maximized_geometry(window))
     else
         local normal = record.maximized and record.maximized.geometry
         record.maximized = nil
+        hl.dispatch(hl.dsp.window.set_prop({ window = window, prop = "border_size", value = "unset" }))
         hl.dispatch(hl.dsp.window.fullscreen_state({ window = window, internal = 0, client = 0, action = "set" }))
         if normal then set_geometry(window, fit_geometry(window, normal, 0)) end
     end
@@ -679,6 +693,7 @@ local function tile(workspace, prepared)
         hl.dispatch(hl.dsp.window.fullscreen_state({ window = entry.window, internal = 0, client = 0, action = "set" }))
         entry.record.maximized, entry.record.tiled_fullscreen = nil, nil
         hl.dispatch(hl.dsp.window.set_prop({ window = entry.window, prop = "rounding", value = "unset" }))
+        hl.dispatch(hl.dsp.window.set_prop({ window = entry.window, prop = "border_size", value = "unset" }))
         float(entry.window, true)
     end
     local previous
@@ -725,6 +740,9 @@ local function settle_animation()
     animation_timer = hl.timer(function()
         animation_timer = nil
         workspace_animation()
+        -- Quickshell has now applied the new panel reservations. Rapid layout
+        -- reversals need this even when the monitor layout itself never changes.
+        reflow_maximized()
     end, { timeout = 420, type = "oneshot" })
 end
 
@@ -982,6 +1000,7 @@ local function change(action, views, transition)
     changing = false
     if not animation_timer then workspace_animation() end
     if transition then refresh_decorations(true) end
+    reflow_maximized()
     save()
     if not ok then error(err) end
 end
@@ -2310,12 +2329,15 @@ for _, window in ipairs(hl.get_windows()) do
         local record = record_for(window)
         hl.dispatch(hl.dsp.window.set_prop({ window = window, prop = "rounding",
             value = layouts.mode() == "stacking" and record and record.maximized and "0" or "unset" }))
+        hl.dispatch(hl.dsp.window.set_prop({ window = window, prop = "border_size",
+            value = layouts.mode() == "stacking" and record and record.maximized and "0" or "unset" }))
         visual_animation(window, "client-state")
     end
 end
 if normalized_columns then save() end
 layouts.effects()
 layouts.tiling()
+reflow_maximized()
 layouts.shadows()
 layouts.window_effects()
 
