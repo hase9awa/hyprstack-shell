@@ -4863,3 +4863,36 @@ msgstr ""
 msgctxt "button"
 msgid "Pair"
 msgstr ""
+
+#: modules/network/SecretDialog.qml
+#, qt-format
+msgid "Password for %1"
+msgstr ""
+
+#: modules/network/SecretDialog.qml
+msgid "Password required"
+msgstr ""
+
+#: modules/network/SecretDialog.qml
+msgid "The modem is asking for its PIN."
+msgstr ""
+
+#: modules/network/SecretDialog.qml
+msgid "The private key is locked."
+msgstr ""
+
+#: modules/network/SecretDialog.qml
+msgid "The Wi-Fi network is asking for its password."
+msgstr ""
+
+#: modules/network/SecretDialog.qml
+msgid "The network is asking for your account password."
+msgstr ""
+
+#: modules/network/SecretDialog.qml
+msgid "The VPN is asking for its password."
+msgstr ""
+
+#: modules/network/SecretDialog.qml
+msgid "NetworkManager needs a password to bring the connection up."
+msgstr ""

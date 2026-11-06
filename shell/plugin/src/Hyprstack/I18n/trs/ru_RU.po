@@ -6018,3 +6018,36 @@ msgstr "PIN"
 msgctxt "button"
 msgid "Pair"
 msgstr "Сопряжение"
+
+#: modules/network/SecretDialog.qml
+#, qt-format
+msgid "Password for %1"
+msgstr "Пароль для %1"
+
+#: modules/network/SecretDialog.qml
+msgid "Password required"
+msgstr "Требуется пароль"
+
+#: modules/network/SecretDialog.qml
+msgid "The modem is asking for its PIN."
+msgstr "Модем запрашивает PIN-код."
+
+#: modules/network/SecretDialog.qml
+msgid "The private key is locked."
+msgstr "Закрытый ключ защищён паролем."
+
+#: modules/network/SecretDialog.qml
+msgid "The Wi-Fi network is asking for its password."
+msgstr "Сеть Wi-Fi запрашивает пароль."
+
+#: modules/network/SecretDialog.qml
+msgid "The network is asking for your account password."
+msgstr "Сеть запрашивает пароль вашей учётной записи."
+
+#: modules/network/SecretDialog.qml
+msgid "The VPN is asking for its password."
+msgstr "VPN запрашивает пароль."
+
+#: modules/network/SecretDialog.qml
+msgid "NetworkManager needs a password to bring the connection up."
+msgstr "NetworkManager нужен пароль, чтобы поднять подключение."
