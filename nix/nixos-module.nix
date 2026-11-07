@@ -19,7 +19,13 @@ in {
     }];
 
     programs.hyprland.enable = true;
-    programs.hyprland.package = lib.mkDefault package.hyprland;
+    # nixpkgs overrides this package with the xwayland and UWSM options as
+    # soon as it takes both arguments, which Hyprland 0.57 does, and builds a
+    # Hyprland apart from the one the shell was built against. An override
+    # that names no arguments keeps the package as it is.
+    programs.hyprland.package = lib.mkDefault (package.hyprland // {
+      override = args: package.hyprland.override args;
+    });
     programs.hyprlock.enable = true;
     environment.systemPackages = [ package ];
     environment.sessionVariables = {
