@@ -609,6 +609,12 @@ static void drawSceneRect(Render::GL::CHyprOpenGLImpl* renderer, Render::CRender
     Render::GL::CHyprOpenGLImpl::SRectRenderData data) {
     auto& render = ctx.m_data;
     const auto original = reinterpret_cast<RectDraw>(rectHook->m_original);
+    // The trampoline holds renderRect's first instructions, and Hyprland fixes
+    // only %rip operands there: its short jump for a missing damage region then
+    // lands in the next hook's trampoline, the fadeout one, which crashes on
+    // these arguments. Blurred rectangles come without damage, so default it
+    // here as renderRect would and that jump is never taken.
+    if (!data.damage) data.damage = &render.damage;
     if (!scene || !scene->runningFor(render.pMonitor.lock()) || render.renderModif.modifs.empty()) {
         original(renderer, ctx, source, colour, data); return;
     }
