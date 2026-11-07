@@ -82,7 +82,7 @@ Singleton {
 
     function hasFullscreen(): bool {
         for (const monitor of Hypr.monitors.values) {
-            if (monitor?.activeWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1))
+            if (Hypr.hasFullscreen(monitor?.activeWorkspace))
                 return true;
         }
         return false;

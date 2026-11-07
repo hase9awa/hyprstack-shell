@@ -77,10 +77,13 @@ StyledClippingRect {
             const button = taskRepeater.itemAt(i);
             if (!button) continue;
             const p = button.mapToItem(QsWindow.window.contentItem, 0, buttonInset);
-            for (const window of button.windows)
-                targets.push({ address: window.lastIpcObject.address, id: window.lastIpcObject.stableId,
+            for (const window of button.windows) {
+                const client = Hypr.clientData(window);
+                if (!client) continue;
+                targets.push({ address: client.address, id: client.stableId,
                     x: Math.round(originX + p.x), y: Math.round(originY + p.y),
                     w: Math.round(button.width), h: buttonHeight, barTop: Math.round(barTop) });
+            }
         }
         const data = JSON.stringify(targets);
         if (data !== lastTargets) {
@@ -109,9 +112,9 @@ StyledClippingRect {
     readonly property var groups: {
         const groups = new Map();
         const windows = Hypr.taskWindows(screen).slice().sort((a, b) =>
-            a.lastIpcObject.stableId.localeCompare(b.lastIpcObject.stableId));
+            Hypr.clientData(a).stableId.localeCompare(Hypr.clientData(b).stableId));
         for (const window of windows) {
-            const app = window.lastIpcObject.class;
+            const app = Hypr.clientData(window).class;
             const entry = lookup(app);
             const key = entry?.id ?? app.toLowerCase();
             if (!groups.has(key))

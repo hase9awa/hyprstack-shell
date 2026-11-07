@@ -15,8 +15,10 @@ Singleton {
     property int index
     property ShellScreen screen
     readonly property var selected: windows[index] ?? null
-    readonly property var candidates: Hypr.toplevels.values.filter(w => w.lastIpcObject.mapped
-        && (!w.workspace?.name.startsWith("special:") || Hypr.isMinimized(w)))
+    readonly property var candidates: Hypr.toplevels.values.filter(w => {
+        const client = Hypr.clientData(w);
+        return client?.mapped && (!client.workspace?.name.startsWith("special:") || Hypr.isMinimized(w));
+    })
 
     function remember(): void {
         const id = Hypr.activeToplevel?.lastIpcObject.stableId;

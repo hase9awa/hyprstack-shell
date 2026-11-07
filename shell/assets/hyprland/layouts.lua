@@ -2107,15 +2107,6 @@ for _, direction in ipairs({ { "J", "r+1" }, { "K", "r-1" }, { "H", "left" }, { 
     end, { repeating = true, description = "Workspaces: " .. ({ J = "Next workspace", K = "Previous workspace",
         H = "Previous column", L = "Next column" })[direction[1]] })
 end
-for _, direction in ipairs({ { "Left", -1 }, { "Right", 1 } }) do
-    hl.bind("SHIFT + " .. direction[1], function()
-        if overview_active then
-            hl.dispatch(hl.dsp.global("hyprstack:overview" .. (direction[2] == -1 and "H" or "L")))
-            return
-        end
-        layouts.focus_column(direction[2], true)
-    end, { repeating = true, description = "Windows: Focus " .. (direction[2] == -1 and "left" or "right") .. " including empty monitors" })
-end
 for _, direction in ipairs({ { "H", "l" }, { "L", "r" } }) do
     local shortcut = "SUPER + SHIFT + " .. direction[1]
     hl.unbind(shortcut)

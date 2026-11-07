@@ -18,12 +18,16 @@ class HyprExtras : public QObject {
     Q_PROPERTY(QVariantHash options READ options NOTIFY optionsChanged)
     Q_PROPERTY(hyprstack::services::hypr::HyprDevices* devices READ devices CONSTANT)
     Q_PROPERTY(bool usingLua MEMBER m_usingLua NOTIFY usingLuaChanged)
+    Q_PROPERTY(QVariantHash clients READ clients NOTIFY clientsChanged)
+    Q_PROPERTY(bool clientsReady READ clientsReady NOTIFY clientsChanged)
 
 public:
     explicit HyprExtras(QObject* parent = nullptr);
 
     [[nodiscard]] QVariantHash options() const;
     [[nodiscard]] HyprDevices* devices() const;
+    [[nodiscard]] QVariantHash clients() const;
+    [[nodiscard]] bool clientsReady() const;
 
     Q_INVOKABLE void message(const QString& message);
     Q_INVOKABLE void batchMessage(const QStringList& messages);
@@ -31,10 +35,12 @@ public:
 
     Q_INVOKABLE void refreshOptions();
     Q_INVOKABLE void refreshDevices();
+    Q_INVOKABLE void refreshClients();
 
 signals:
     void optionsChanged();
     void usingLuaChanged();
+    void clientsChanged();
 
 private:
     using SocketPtr = QPointer<QLocalSocket>;
@@ -50,6 +56,10 @@ private:
 
     SocketPtr m_optionsRefresh;
     SocketPtr m_devicesRefresh;
+    SocketPtr m_clientsRefresh;
+    QVariantHash m_clients;
+    bool m_clientsReady = false;
+    bool m_clientsPending = false;
 
     void socketError(QLocalSocket::LocalSocketError error) const;
     void socketStateChanged(QLocalSocket::LocalSocketState state);

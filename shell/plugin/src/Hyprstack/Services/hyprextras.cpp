@@ -2,6 +2,7 @@
 
 #include <qdir.h>
 #include <qjsonarray.h>
+#include <qjsonobject.h>
 #include <qlocalsocket.h>
 #include <qloggingcategory.h>
 #include <qvariant.h>
@@ -47,6 +48,7 @@ HyprExtras::HyprExtras(QObject* parent)
 
     refreshOptions();
     refreshDevices();
+    refreshClients();
 
     m_socket = new QLocalSocket(this);
 
@@ -63,6 +65,47 @@ QVariantHash HyprExtras::options() const {
 
 HyprDevices* HyprExtras::devices() const {
     return m_devices;
+}
+
+QVariantHash HyprExtras::clients() const {
+    return m_clients;
+}
+
+bool HyprExtras::clientsReady() const {
+    return m_clientsReady;
+}
+
+void HyprExtras::refreshClients() {
+    if (m_clientsRefresh) {
+        m_clientsPending = true;
+        return;
+    }
+    m_clientsPending = false;
+    m_clientsRefresh = makeRequestJson(u"clients"_s, [this](bool success, const QJsonDocument& response) {
+        m_clientsRefresh = nullptr;
+        if (success && response.isArray()) {
+            QVariantHash clients;
+            for (const auto& value : response.array()) {
+                const auto client = value.toObject().toVariantMap();
+                const auto address = client.value(u"address"_s).toString();
+                if (!address.isEmpty()) {
+                    clients.insert(address, client);
+                }
+            }
+            // Replace the entire snapshot: disappeared windows must be removed,
+            // even if an older Quickshell reply recreated their model objects.
+            if (!m_clientsReady || clients != m_clients) {
+                m_clients = std::move(clients);
+                m_clientsReady = true;
+                emit clientsChanged();
+            }
+        }
+        // An event received during the query needs a fresh request, rather than
+        // another fixed-delay request that can also be dropped while busy.
+        if (m_clientsPending) {
+            refreshClients();
+        }
+    });
 }
 
 void HyprExtras::message(const QString& message) {

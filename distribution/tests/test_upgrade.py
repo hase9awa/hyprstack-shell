@@ -138,9 +138,8 @@ def main():
             assert w["fullscreen"] == 0 and w["fullscreenClient"] == 0, w
 
         bindings = json.loads(ctl("-j", "binds"))
-        assert {b["key"].lower() for b in bindings if b["modmask"] == 1
-                and "including empty monitors" in b.get("description", "")} == {"left", "right"}
-        assert not any(b["modmask"] == 1 and b["key"].lower() in ("h", "l") for b in bindings)
+        assert not any(b["modmask"] == 1 and b["key"].lower() in ("h", "l", "left", "right")
+                       for b in bindings), "Shift must remain available for typing and text selection"
 
         def focused_title():
             return json.loads(ctl("-j", "activewindow")).get("title")
@@ -200,7 +199,7 @@ def main():
             'hl.dispatch(hl.dsp.window.close({window=hl.get_window("title:^UpgradeFocus$")}))')
         wait(lambda: "UpgradeFocus" not in clients(), "focus fixture cleanup")
         evaluate('hyprstack_layouts.focus(1,"UPGRADE-2")')
-        print("PASS: horizontal Shift navigation crosses empty and occupied outputs without wrapping in both layouts", flush=True)
+        print("PASS: horizontal focus crosses outputs without wrapping; Shift typing and selection shortcuts remain free", flush=True)
         ctl("plugin", "load", str(probe))
 
         # Legacy effect files cannot re-enable the removed inner glow.

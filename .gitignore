@@ -35,6 +35,8 @@
 /distribution/tests/*
 !/distribution/tests/test_upgrade.py
 !/distribution/tests/damage_probe.cpp
+!/distribution/tests/test_client_snapshot.py
+!/distribution/tests/client_snapshot.cpp
 
 !/native/
 /native/*

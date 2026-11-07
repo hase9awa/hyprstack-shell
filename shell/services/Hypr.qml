@@ -9,6 +9,7 @@ import Hyprstack.Services
 import qs.components.misc
 import qs.utils
 import "KeyboardLayouts.js" as KeyboardLayouts
+import "ClientSnapshot.js" as ClientSnapshot
 
 Singleton {
     id: root
@@ -17,9 +18,12 @@ Singleton {
     readonly property var workspaces: Hyprland.workspaces
     readonly property var monitors: Hyprland.monitors
     readonly property bool usingLua: Hyprland.usingLua
+    readonly property var clientSnapshot: extras.clients
+    readonly property bool clientSnapshotReady: extras.clientsReady
 
     readonly property HyprlandToplevel activeToplevel: {
         const t = Hyprland.activeToplevel;
+        if (!clientData(t)) return null;
         return t?.workspace?.name.startsWith("special:") || Hyprland.focusedWorkspace?.toplevels.values.length > 0 ? t : null;
     }
     readonly property HyprlandWorkspace focusedWorkspace: Hyprland.focusedWorkspace
@@ -65,7 +69,7 @@ Singleton {
     }
 
     function isMaximized(toplevel: HyprlandToplevel): bool {
-        return !!windowState(toplevel).maximized || toplevel?.lastIpcObject.fullscreen === 1;
+        return !!windowState(toplevel).maximized || clientData(toplevel)?.fullscreen === 1;
     }
 
     function setTaskTargets(monitor: string, targets: var): void {
@@ -76,18 +80,26 @@ Singleton {
     function taskWindows(screen: ShellScreen): list<HyprlandToplevel> {
         const monitor = monitorFor(screen);
         return toplevels.values.filter(t => {
-            const ipc = t?.lastIpcObject;
+            const ipc = clientData(t);
             if (!ipc?.mapped || !ipc.class)
                 return false;
             const hidden = windowState(t).minimized;
             if (hidden)
                 return hidden.monitor === screen.name;
-            return !t.workspace?.name.startsWith("special:") && ipc.monitor === monitor?.id;
+            return !ipc.workspace?.name.startsWith("special:") && ipc.monitor === monitor?.id;
         });
     }
 
+    function clientData(toplevel: var): var {
+        return ClientSnapshot.clientData(toplevel, clientSnapshot, clientSnapshotReady);
+    }
+
+    function hasFullscreen(workspace: var): bool {
+        return !!workspace && ClientSnapshot.hasFullscreen(workspace.id, clientSnapshot, clientSnapshotReady, toplevels.values);
+    }
+
     function windowAction(action: string, toplevel: HyprlandToplevel): void {
-        const ipc = toplevel?.lastIpcObject;
+        const ipc = clientData(toplevel);
         if (usingLua && ipc?.address && ipc?.stableId)
             extras.message(`eval hyprstack_layouts.action(${JSON.stringify(action)}, ${JSON.stringify(ipc.address)}, ${JSON.stringify(ipc.stableId)})`);
     }
@@ -182,7 +194,7 @@ Singleton {
     function activeToplevelFor(screen: ShellScreen): HyprlandToplevel {
         const monitor = monitorFor(screen);
         const window = activeToplevel;
-        return monitor && window?.lastIpcObject.monitor === monitor.id && !isMinimized(window) ? window : null;
+        return monitor && clientData(window)?.monitor === monitor.id && !isMinimized(window) ? window : null;
     }
 
     function trimWsName(name: string): string {
@@ -190,11 +202,11 @@ Singleton {
     }
 
     function toplevelsForWs(ws: int, ignoredTags = []): list<HyprlandToplevel> {
-        return toplevels.values.filter(t => t.workspace && t.workspace.id === ws && !isToplevelIgnored(t, ignoredTags));
+        return toplevels.values.filter(t => clientData(t)?.workspace?.id === ws && !isToplevelIgnored(t, ignoredTags));
     }
 
     function isToplevelIgnored(toplevel: HyprlandToplevel, ignoredTags = []): bool {
-        const ipc = toplevel?.lastIpcObject;
+        const ipc = clientData(toplevel);
         if (!ipc?.class || !ipc.mapped)
             return true;
 
@@ -210,6 +222,7 @@ Singleton {
     }
 
     function refreshToplevels(): void {
+        extras.refreshClients();
         Hyprland.refreshToplevels();
         // Quickshell drops refresh requests while its previous query is in flight.
         // Read once more after the event burst so an older reply cannot leave the
