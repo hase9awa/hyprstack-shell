@@ -43,6 +43,10 @@
 !/distribution/tests/test_portal_contracts.py
 !/distribution/tests/portal_contracts.cpp
 !/distribution/tests/test_nixos_module.nix
+!/distribution/tests/test_notification_images.py
+!/distribution/tests/test_screenshots.py
+!/distribution/tests/screenshot_shell.qml
+!/distribution/tests/wayland_test_pointer.c
 
 !/native/
 /native/*

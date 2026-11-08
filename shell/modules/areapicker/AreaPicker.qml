@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -16,12 +17,11 @@ Scope {
     signal regionPicked(output: string, region: rect)
     signal regionAbandoned
 
-    function openPicker(frozen: bool, clipboardOnly: bool): void {
+    function openPicker(frozen: bool): void {
         if (root.active || clipboardCopy.running)
             return;
         root.freeze = frozen;
         root.closing = false;
-        root.clipboardOnly = clipboardOnly;
         root.regionOnly = false;
         root.activeAsync = true;
     }
@@ -33,19 +33,17 @@ Scope {
             return false;
         root.freeze = false;
         root.closing = false;
-        root.clipboardOnly = false;
         root.regionOnly = true;
         root.activeAsync = true;
         return true;
     }
 
     // This process outlives the picker windows and finishes copying before
-    // opening the editor or reporting that the screenshot is ready.
+    // reporting that the screenshot is ready. A preview opens only on demand.
     Process {
         id: clipboardCopy
 
         property string imagePath
-        property bool clipboardOnly
         stdout: StdioCollector { id: copyOutput }
         onExited: (code, status) => {
             if (code !== 0) {
@@ -56,15 +54,16 @@ Scope {
                 }
                 return;
             }
-            if (clipboardOnly) {
-                Quickshell.execDetached(["notify-send", "-a", "hyprstack", "-i", "image-x-generic-symbolic",
-                    "-h", "string:image-path:" + imagePath, "-h", "boolean:x-hyprstack-screenshot:true",
-                    Tr.tr("Screenshot taken"), Tr.tr("Screenshot copied to clipboard")]);
-                return;
-            }
-            // The capture lives in a temporary file until it is kept, so
-            // the preview is where that decision is made.
-            preview.path = imagePath;
+            Quickshell.execDetached(["notify-send", "-a", "hyprstack", "-i", "image-x-generic-symbolic",
+                "-h", "string:image-path:" + imagePath, "-h", "boolean:x-hyprstack-screenshot:true",
+                Tr.tr("Screenshot taken"), Tr.tr("Screenshot copied to clipboard")]);
+        }
+    }
+
+    Connections {
+        target: Notifs
+        function onScreenshotRequested(path: string): void {
+            preview.path = path;
             preview.active = true;
         }
     }
@@ -88,7 +87,6 @@ Scope {
 
         property bool freeze
         property bool closing
-        property bool clipboardOnly
         property bool regionOnly
         property bool regionReported
 
@@ -99,7 +97,6 @@ Scope {
 
         function completeCapture(path: string): void {
             clipboardCopy.imagePath = path;
-            clipboardCopy.clipboardOnly = clipboardOnly;
             clipboardCopy.command = ["python3", Notifs.imageHelper, "action", "copy", path, path];
             clipboardCopy.running = true;
         }
@@ -149,19 +146,19 @@ Scope {
 
     IpcHandler {
         function open(): void {
-            pickerScope.openPicker(false, false);
+            pickerScope.openPicker(false);
         }
 
         function openFreeze(): void {
-            pickerScope.openPicker(true, false);
+            pickerScope.openPicker(true);
         }
 
         function openClip(): void {
-            pickerScope.openPicker(false, true);
+            pickerScope.openPicker(false);
         }
 
         function openFreezeClip(): void {
-            pickerScope.openPicker(true, true);
+            pickerScope.openPicker(true);
         }
 
         target: "picker"
@@ -172,7 +169,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "screenshot"
         description: "Open screenshot tool"
-        onPressed: pickerScope.openPicker(false, false)
+        onPressed: pickerScope.openPicker(false)
     }
 
     // qmllint disable unresolved-type
@@ -180,7 +177,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "screenshotFreeze"
         description: "Open screenshot tool (freeze mode)"
-        onPressed: pickerScope.openPicker(true, false)
+        onPressed: pickerScope.openPicker(true)
     }
 
     // qmllint disable unresolved-type
@@ -188,7 +185,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "screenshotClip"
         description: "Open screenshot tool (clipboard)"
-        onPressed: pickerScope.openPicker(false, true)
+        onPressed: pickerScope.openPicker(false)
     }
 
     // qmllint disable unresolved-type
@@ -196,6 +193,6 @@ Scope {
         // qmllint enable unresolved-type
         name: "screenshotFreezeClip"
         description: "Open screenshot tool (freeze mode, clipboard)"
-        onPressed: pickerScope.openPicker(true, true)
+        onPressed: pickerScope.openPicker(true)
     }
 }

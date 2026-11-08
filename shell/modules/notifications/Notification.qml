@@ -82,7 +82,14 @@ StyledRect {
             }
         }
         onClicked: event => {
-            if (!GlobalConfig.notifs.actionOnClick || event.button !== Qt.LeftButton)
+            if (event.button !== Qt.LeftButton)
+                return;
+
+            if (root.modelData?.screenshot) {
+                root.modelData.activate();
+                return;
+            }
+            if (!GlobalConfig.notifs.actionOnClick)
                 return;
 
             const actions = root.modelData?.actions ?? [];

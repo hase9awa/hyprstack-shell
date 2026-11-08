@@ -39,15 +39,17 @@ DialogWindow {
     // The screenshots folder is the one the command line tool writes to, so
     // both ways of taking one end up together.
     function keep(): void {
-        saveProc.target = `${Paths.shotsdir}/${root.fileName}`;
-        saveProc.command = ["sh", "-c", 'mkdir -p "$(dirname "$2")" && cp -- "$1" "$2" && chmod 600 "$2"',
-            "sh", root.path, saveProc.target];
+        if (saveProc.running)
+            return;
+        saveProc.command = ["python3", Notifs.imageHelper, "action", "save", root.path, root.path];
         saveProc.running = true;
     }
 
     function saveAs(target: string): void {
-        if (!CUtils.copyFile(Paths.fileUrl(root.path), Paths.fileUrl(target)))
+        if (!CUtils.copyFile(Paths.fileUrl(root.path), Paths.fileUrl(target))) {
             Notifs.lastError = "Unable to save the screenshot";
+            return;
+        }
         root.dismissed();
     }
 
@@ -55,7 +57,13 @@ DialogWindow {
     dialogWidth: viewWidth + Tokens.padding.large * 2
     dialogHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 96 * Tokens.scale)
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    WlrLayershell.keyboardFocus: dialog.active ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
+
+    Shortcut {
+        sequence: "Escape"
+        context: Qt.WindowShortcut
+        onActivated: root.dismissed()
+    }
 
     Image {
         id: metrics
@@ -68,8 +76,6 @@ DialogWindow {
 
     Process {
         id: saveProc
-
-        property string target
 
         onExited: code => { // qmllint disable signal-handler-parameters
             if (code !== 0) {
@@ -88,12 +94,6 @@ DialogWindow {
         border.width: 1
         border.color: Colours.palette.m3outlineVariant
 
-        focus: true
-        Keys.onEscapePressed: event => {
-            root.dismissed();
-            event.accepted = true;
-        }
-
         ColumnLayout {
             id: contents
 
@@ -101,26 +101,37 @@ DialogWindow {
             anchors.margins: Tokens.padding.large
             spacing: Tokens.spacing.medium
 
-            ColumnLayout {
+            RowLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: Tokens.spacing.small
 
-                StyledText {
-                    objectName: "screenshotTitle"
+                ColumnLayout {
                     Layout.fillWidth: true
-                    text: Tr.tr("Screenshot taken")
-                    font: Tokens.font.title.medium
-                    elide: Text.ElideRight
+                    spacing: 0
+
+                    StyledText {
+                        objectName: "screenshotTitle"
+                        Layout.fillWidth: true
+                        text: Tr.tr("Screenshot taken")
+                        font: Tokens.font.title.medium
+                        elide: Text.ElideRight
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Tr.tr("Copied to the clipboard")
+                        color: Colours.palette.m3onSurfaceVariant
+                        font: Tokens.font.body.small
+                        elide: Text.ElideRight
+                    }
                 }
 
-                StyledText {
-                    Layout.fillWidth: true
-                    // It is on the clipboard already; keeping it is what
-                    // the buttons below are for.
-                    text: Tr.tr("Copied to the clipboard")
-                    color: Colours.palette.m3onSurfaceVariant
-                    font: Tokens.font.body.small
-                    elide: Text.ElideRight
+                IconButton {
+                    objectName: "closeScreenshot"
+                    icon: "close"
+                    type: IconButton.Text
+                    onClicked: root.dismissed()
+                    Accessible.name: Tr.trCtx("Close", "button")
                 }
             }
 
@@ -144,6 +155,7 @@ DialogWindow {
                 Item { Layout.fillWidth: true }
 
                 IconTextButton {
+                    objectName: "copyScreenshot"
                     type: IconTextButton.Tonal
                     verticalPadding: Tokens.padding.extraSmall
                     icon: "content_copy"
@@ -152,6 +164,7 @@ DialogWindow {
                 }
 
                 IconTextButton {
+                    objectName: "saveScreenshotAs"
                     type: IconTextButton.Tonal
                     verticalPadding: Tokens.padding.extraSmall
                     icon: "save_as"
@@ -160,6 +173,7 @@ DialogWindow {
                 }
 
                 IconTextButton {
+                    objectName: "saveScreenshot"
                     verticalPadding: Tokens.padding.extraSmall
                     icon: "download"
                     text: Tr.trCtx("Save", "button")

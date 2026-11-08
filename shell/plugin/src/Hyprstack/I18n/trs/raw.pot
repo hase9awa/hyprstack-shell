@@ -3607,6 +3607,11 @@ msgid "Save as"
 msgstr ""
 
 #: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Close"
+msgstr ""
+
+#: modules/areapicker/ScreenshotPreview.qml
 msgid "Save the screenshot"
 msgstr ""
 

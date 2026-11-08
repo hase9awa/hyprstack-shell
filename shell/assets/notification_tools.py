@@ -77,9 +77,10 @@ def screenshot_action(action: str, primary: str, fallback: str) -> dict:
     path, data, kind = resolve_image(primary, fallback)
     if action == "copy":
         subprocess.run(["wl-copy", "--type", "image/" + kind], input=data, check=True)
-    elif action == "open":
-        subprocess.Popen(["xdg-open", str(path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                         start_new_session=True)
+    elif action in ("open", "preview"):
+        if action == "open":
+            subprocess.Popen(["xdg-open", str(path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             start_new_session=True)
     elif action == "reveal":
         subprocess.Popen(["xdg-open", str(path.parent)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True)
@@ -90,7 +91,7 @@ def screenshot_action(action: str, primary: str, fallback: str) -> dict:
                 pictures = subprocess.check_output(["xdg-user-dir", "PICTURES"], text=True).strip()
             except (OSError, subprocess.CalledProcessError):
                 pictures = str(Path.home() / "Pictures")
-        directory = Path(pictures) / "Screenshots"
+        directory = Path(os.environ.get("HYPRSTACK_SCREENSHOTS_DIR") or Path(pictures) / "Screenshots")
         directory.mkdir(parents=True, exist_ok=True)
         name = "Screenshot-" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f") + "." + kind
         path = directory / name
@@ -122,7 +123,7 @@ def main() -> int:
     cache = sub.add_parser("cache")
     cache.add_argument("path")
     action = sub.add_parser("action")
-    action.add_argument("action", choices=("open", "copy", "save", "reveal"))
+    action.add_argument("action", choices=("open", "preview", "copy", "save", "reveal"))
     action.add_argument("path")
     action.add_argument("fallback")
     sub.add_parser("prune")

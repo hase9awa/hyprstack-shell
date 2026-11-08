@@ -82,7 +82,14 @@ QtObject {
         if (actionProcess.running)
             return;
         read = true;
-        actionProcess.command = ["python3", Notifs.imageHelper, "action", action, screenshotPath, image];
+        if (action === "open") {
+            popup = false;
+            ShellState.closeDrawers();
+        }
+        // Resolve the original or cached image before asking the shell to
+        // open its preview, rather than launching an external image viewer.
+        actionProcess.command = ["python3", Notifs.imageHelper, "action",
+            action === "open" ? "preview" : action, screenshotPath, image];
         actionProcess.running = true;
     }
 
@@ -133,6 +140,8 @@ QtObject {
                     const result = JSON.parse(text);
                     if (result.error)
                         Notifs.lastError = result.error;
+                    else if (result.action === "preview")
+                        Notifs.screenshotRequested(result.path);
                     else if (result.action === "save")
                         notif.screenshotPath = result.path;
                 } catch (err) {

@@ -229,13 +229,28 @@ local function shell_dialog_open()
     return mark == "1"
 end
 
-bind_variable("kbCloseWindow", function()
-    if shell_dialog_open() then
-        hl.dispatch(hl.dsp.global("hyprstack:closeDialog"))
-    else
-        hl.dispatch(hl.dsp.window.close())
+local function close_window_action()
+    local dialog_release = false
+    return function()
+        -- A global shortcut asks Hyprland to invoke this callback again on
+        -- release. Keep that release with the dialog even if it has already
+        -- disappeared; checking the flag again would close the app underneath.
+        if dialog_release then
+            dialog_release = false
+            hl.dispatch(hl.dsp.global("hyprstack:closeDialog"))
+        elseif shell_dialog_open() then
+            dialog_release = true
+            hl.dispatch(hl.dsp.global("hyprstack:closeDialog"))
+        else
+            hl.dispatch(hl.dsp.window.close())
+        end
     end
-end)
+end
+
+-- Each configured chord owns its press/release pair independently.
+for _, key in ipairs(flatten_keybinds(vars.kbCloseWindow)) do
+    create_bind(key, close_window_action(), nil, descriptions.kbCloseWindow)
+end
 
 -- Special workspace toggles
 bind_variable("kbSpecialWs", fn.toggle("specialws"))

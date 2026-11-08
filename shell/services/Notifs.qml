@@ -26,6 +26,10 @@ Singleton {
 
     property bool loaded
 
+    // The area picker owns the preview; notification history can request it
+    // even when the sending process and original capture are long gone.
+    signal screenshotRequested(path: string)
+
     function scheduleSave(): void {
         if (loaded)
             saveTimer.restart();

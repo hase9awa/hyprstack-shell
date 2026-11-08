@@ -5883,6 +5883,11 @@ msgid "Copied to the clipboard"
 msgstr "Скопировано в буфер обмена"
 
 #: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Close"
+msgstr "Закрыть"
+
+#: modules/areapicker/ScreenshotPreview.qml
 msgid "Save the screenshot"
 msgstr "Сохранить снимок"
 
