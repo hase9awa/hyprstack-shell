@@ -4,6 +4,8 @@
 HYPRSTACK_TEST_PREFIX must point at a staged installation. Requires Hyprland,
 an existing Wayland session, wayland-scanner, wayland-protocols, a C compiler,
 grim and Pillow. All captured pixels belong to the synthetic nested desktop.
+Set HYPRSTACK_TEST_BACKGROUND_ONLY=1 for fullscreen background/layer checks;
+that mode additionally requires Quickshell.
 """
 import json
 import os
@@ -91,6 +93,92 @@ def main():
                 + json.dumps("address:" + focused["address"]) + '}))', host=True)
         fixture = launch([str(client)], "client", subprocess.PIPE)
         wait(lambda: clients().get("AyuGram"), "chat")
+        if os.environ.get("HYPRSTACK_TEST_BACKGROUND_ONLY") == "1":
+            # Start a shell background while a real fullscreen client exists.
+            # Older compositors leave that layer permanently at fade alpha 0.
+            evaluate('hl.config({layers={allow_new_top_layers_over_existing_fullscreen=false}})')
+            fixture.stdin.write(b"o"); fixture.stdin.flush()
+            wait(lambda: clients().get("Media viewer", {}).get("fullscreen") == 2, "fullscreen viewer")
+            shell_dir = base / "background-shell"
+            shell_dir.mkdir()
+            (shell_dir / "shell.qml").write_text('''import QtQuick
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+ShellRoot {
+    settings.watchFiles: false
+    PanelWindow {
+        id: backgroundWindow
+        screen: Quickshell.screens[0]
+        anchors { top: true; bottom: true; left: true; right: true }
+        color: "#204020"
+        WlrLayershell.namespace: "hyprstack-background"
+        WlrLayershell.layer: WlrLayer.Background
+        WlrLayershell.exclusionMode: ExclusionMode.Ignore
+    }
+    PanelWindow {
+        screen: Quickshell.screens[0]
+        anchors { top: true; left: true; right: true }
+        implicitHeight: 20
+        color: "#d08020"
+        WlrLayershell.namespace: "test-background-top"
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.exclusionMode: ExclusionMode.Ignore
+    }
+    PanelWindow {
+        id: dialog
+        screen: Quickshell.screens[0]
+        visible: false
+        implicitWidth: 400
+        implicitHeight: 200
+        color: "#cccccc"
+        WlrLayershell.namespace: "test-background-dialog"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+        WlrLayershell.exclusionMode: ExclusionMode.Ignore
+    }
+    IpcHandler {
+        target: "backgroundTest"
+        function open(): void { dialog.visible = true; }
+        function close(): void { dialog.visible = false; }
+        function wallpaper(enabled: bool): void {
+            backgroundWindow.WlrLayershell.layer = enabled ? WlrLayer.Background : WlrLayer.Bottom;
+        }
+    }
+}
+''')
+            qs = os.environ.get("HYPRSTACK_TEST_QS", "qs")
+            launch([qs, "--path", str(shell_dir), "--no-duplicate", "--no-color"], "background-shell")
+            def layer(name):
+                return next((dict(layer, level=key) for monitor in json.loads(ctl("-j", "layers")).values()
+                    for key,level in monitor["levels"].items() for layer in level if layer["namespace"] == name), None)
+            def shell_call(method, *args):
+                return run(qs, "ipc", "-p", str(shell_dir), "call", "--", "backgroundTest", method, *args)
+            wait(lambda: layer("hyprstack-background"), "background layer")
+            time.sleep(.6)
+            assert layer("hyprstack-background")["alpha"] == 1, "background stays invisible after mapping during fullscreen"
+            assert layer("test-background-top")["alpha"] == 0, "TOP panel must stay hidden during fullscreen"
+            print("PASS: background mapped during fullscreen is visible; TOP panels stay hidden", flush=True)
+            shell_call("wallpaper", "false")
+            wait(lambda: layer("hyprstack-background")["level"] == "1", "bottom layer")
+            shell_call("wallpaper", "true")
+            wait(lambda: layer("hyprstack-background")["level"] == "0" and layer("hyprstack-background")["alpha"] == 1,
+                 "wallpaper re-enabled during fullscreen")
+            print("PASS: enabling the wallpaper during fullscreen restores its layer", flush=True)
+            shell_call("open")
+            wait(lambda: layer("test-background-dialog") and layer("test-background-dialog")["alpha"] == 1, "exclusive dialog")
+            assert layer("test-background-top")["alpha"] == 0
+            shell_call("close")
+            print("PASS: exclusive overlay dialogs stay visible while TOP panels remain hidden", flush=True)
+            fixture.stdin.write(b"c"); fixture.stdin.flush()
+            wait(lambda: "Media viewer" not in clients(), "closed fullscreen viewer")
+            evaluate('hl.dispatch(hl.dsp.focus({workspace="3"}))')
+            time.sleep(.6)
+            assert layer("hyprstack-background")["alpha"] == 1
+            pixel = image("wallpaper-after-fullscreen").getpixel((640,400))
+            assert max(abs(a-b) for a,b in zip(pixel,(32,64,32))) < 5, pixel
+            print("PASS: wallpaper pixels remain visible on the desktop after fullscreen closes", flush=True)
+            return
         for mode in ["scrolling", "stacking"]:
             evaluate('if hyprstack_layouts.mode()~=' + json.dumps(mode) + ' then hyprstack_layouts.toggle() end')
             if mode == "scrolling": evaluate('hl.dispatch(hl.dsp.layout("colresize 1.0"))')

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(hyprstack VERSION 1.4.4 LANGUAGES CXX)
+project(hyprstack VERSION 1.4.5 LANGUAGES CXX)
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_DATADIR}/hyprstack/lib" CACHE PATH "Private runtime libraries" FORCE)
 
