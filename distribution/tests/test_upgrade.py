@@ -131,6 +131,13 @@ def main():
         print("PASS: module reload resolves symbols after a package upgrade unlinks the executable", flush=True)
         wait(lambda: any(w["pid"] == compositor.pid for w in json.loads(ctl("-j", "clients", host=True))), "host window")
         fit_outputs()
+        if os.environ.get("HYPRSTACK_TEST_RECT_ONLY") == "1":
+            ctl("plugin", "load", str(probe))
+            evaluate('hl.plugin.upgrade_probe.rectangle("request")')
+            wait(lambda: ctl("repl", 'return hl.plugin.upgrade_probe.rectangle("status")') == "3",
+                 "opaque and blurred rectangle rendering")
+            print("PASS: implicit and explicit rectangle damage, including blur", flush=True)
+            return
         ctl("output", "create", "wayland", "UPGRADE-2")
         wait(lambda: len(json.loads(ctl("-j", "monitors"))) == 2, "two outputs")
         fit_outputs()
@@ -333,6 +340,10 @@ def main():
         assert regions["full"][2] > 100 and regions["full"][3] > 100, regions
         assert regions["bounded"] == [0, 0, 17, 13] and regions["empty"] == [0, 0, 0, 0], regions
         print("PASS: full, partial and empty client damage regions retain their exact bounds", flush=True)
+        evaluate('hl.plugin.upgrade_probe.rectangle("request")')
+        wait(lambda: ctl("repl", 'return hl.plugin.upgrade_probe.rectangle("status")') == "3",
+             "opaque and blurred rectangles with implicit and explicit damage")
+        print("PASS: rectangle hooks preserve explicit damage and safely default missing damage with blur", flush=True)
         assert json.loads(ctl("-j", "getoption", "binds:drag_center_window"))["bool"] is False
         evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"}))')
         time.sleep(.4)
@@ -598,6 +609,8 @@ Scope {
         assert regions["bounded"] == [0, 0, 17, 13] and ctl("configerrors") == "", regions
         print("PASS: module replacement after unlinking the running executable preserves client damage", flush=True)
     finally:
+        if "compositor" in locals():
+            (base / "process-status.json").write_text(json.dumps({"compositorExit": compositor.poll()}))
         for process in reversed(children):
             if process.poll() is None:
                 os.killpg(process.pid, signal.SIGTERM)

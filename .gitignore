@@ -42,6 +42,7 @@
 !/distribution/tests/client_snapshot.cpp
 !/distribution/tests/test_portal_contracts.py
 !/distribution/tests/portal_contracts.cpp
+!/distribution/tests/test_nixos_module.nix
 
 !/native/
 /native/*

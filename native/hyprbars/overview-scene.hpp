@@ -610,6 +610,11 @@ static void drawSceneRect(Render::GL::CHyprOpenGLImpl* renderer, Render::CRender
     Render::GL::CHyprOpenGLImpl::SRectRenderData data) {
     auto& render = ctx.m_data;
     const auto original = reinterpret_cast<RectDraw>(rectHook->m_original);
+    // Some builds put renderRect's null-damage branch inside the trampoline.
+    // Hyprland relocates RIP operands but not that relative jump, which can
+    // escape into another hook's slot. Apply renderRect's own default first
+    // so the unsafe branch is never taken, including for blurred rectangles.
+    if (!data.damage) data.damage = &render.damage;
     if (!scene || !scene->runningFor(render.pMonitor.lock()) || render.renderModif.modifs.empty()) {
         original(renderer, ctx, source, colour, data); return;
     }

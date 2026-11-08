@@ -34,6 +34,8 @@
 Модуль предоставляет Hyprland, Quickshell, Qt, PAM и службы Hyprstack.
 Не переопределяйте `programs.hyprland.package` другим пакетом: нативное расширение
 должно совпадать с композитором по ABI.
+Параметры сборки Hyprland задавайте через пакет `programs.hyprstack.package`:
+модуль сохраняет выбранную сборку, а не пересобирает её по опциям XWayland/UWSM.
 
 Панель сети использует NetworkManager, звук — PipeWire/WirePlumber. Если они
 ещё не настроены, добавьте в свой системный модуль:

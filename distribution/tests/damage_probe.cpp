@@ -1,6 +1,7 @@
 // Only loaded by test_upgrade.py in its disposable compositor.
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
+#include <hyprland/src/desktop/state/FocusState.hpp>
 #include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
 #include <hyprland/src/desktop/view/WLSurface.hpp>
@@ -9,6 +10,9 @@
 #include <hyprland/src/layout/LayoutManager.hpp>
 #include <hyprland/src/managers/input/InputManager.hpp>
 #include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
+#include <hyprland/src/render/Renderer.hpp>
+#include <hyprland/src/render/OpenGL.hpp>
+#include <hyprland/src/event/EventBus.hpp>
 #include <nlohmann/json.hpp>
 extern "C" {
 #include <lua.h>
@@ -126,6 +130,20 @@ static int requestState(lua_State* L) {
     return luaL_error(L, "Test window is missing");
 }
 
+static bool rectRequested = false;
+static int rectDrawn = 0;
+static CHyprSignalListener rectRender;
+static int rectangle(lua_State* L) {
+    const std::string action = luaL_checkstring(L, 1);
+    if (action == "request") {
+        rectDrawn = 0;
+        rectRequested = true;
+        if (const auto monitor = Desktop::focusState()->monitor()) g_pHyprRenderer->damageMonitor(monitor);
+    }
+    lua_pushinteger(L, rectDrawn);
+    return 1;
+}
+
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     if (std::string(__hyprland_api_get_hash()) != __hyprland_api_get_client_hash())
         throw std::runtime_error("Damage probe: compositor/header ABI mismatch");
@@ -134,6 +152,21 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addLuaFunction(handle, "upgrade_probe", "drag", drag);
     HyprlandAPI::addLuaFunction(handle, "upgrade_probe", "client_state", clientState);
     HyprlandAPI::addLuaFunction(handle, "upgrade_probe", "request_state", requestState);
+    HyprlandAPI::addLuaFunction(handle, "upgrade_probe", "rectangle", rectangle);
+    rectRender = Event::bus()->m_events.render.stage.listen([](Event::SRenderStageEvent event) {
+        if (!rectRequested || event.stage != RENDER_POST_WINDOWS) return;
+        rectRequested = false;
+        auto& context = g_pHyprRenderer->context();
+        // Use the real renderRect path, outside overview. Both implicit and
+        // explicit damage must work, including the nullable blurred path.
+        for (int index = 0; index < 3; ++index) {
+            Render::GL::CHyprOpenGLImpl::SRectRenderData data;
+            data.blur = index == 1;
+            if (index == 2) data.damage = &context.m_data.damage;
+            Render::GL::g_pHyprOpenGL->renderRect(context, CBox{30, 40, 160, 120}, CHyprColor{0.3, 0.5, 0.7, 0.7}, data);
+            ++rectDrawn;
+        }
+    });
     return {"upgrade-damage-probe", "Disposable surface damage verification", "Hyprstack tests", "1"};
 }
-APICALL EXPORT void PLUGIN_EXIT() {}
+APICALL EXPORT void PLUGIN_EXIT() { rectRender.reset(); }

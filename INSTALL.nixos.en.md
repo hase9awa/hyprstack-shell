@@ -34,6 +34,8 @@ Add the `hyprstack` input and module. Replace `YOUR_HOST` with your configuratio
 The module provides Hyprland, Quickshell, Qt, PAM and the Hyprstack services.
 Do not override `programs.hyprland.package` with another package: the native
 extension must match the compositor's ABI.
+Set Hyprland build options through `programs.hyprstack.package`: the module
+preserves that compositor instead of rebuilding it with XWayland/UWSM options.
 
 The network panel uses NetworkManager, and audio uses PipeWire/WirePlumber.
 If they are not configured yet, add to your system module:

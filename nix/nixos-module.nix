@@ -19,7 +19,12 @@ in {
     }];
 
     programs.hyprland.enable = true;
-    programs.hyprland.package = lib.mkDefault package.hyprland;
+    # nixpkgs adjusts this option through override when it exposes both
+    # enableXWayland and withUWSM. Keep the exact compositor used to compile
+    # the native extension; overrides belong on the shell package instead.
+    programs.hyprland.package = lib.mkDefault (package.hyprland // {
+      override = args: package.hyprland.override args;
+    });
     environment.systemPackages = [ package ];
 
     # The lock screen is the shell's own and authenticates through the PAM
