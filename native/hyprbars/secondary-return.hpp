@@ -1,6 +1,7 @@
 // Keep borrowed windows above the source desktop throughout their native flight.
 #pragma once
 #include "function-lookup.hpp"
+#include "media-viewer.hpp"
 #include <hyprland/src/desktop/state/WindowState.hpp>
 #include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
@@ -95,6 +96,31 @@ static void renderWindow(Render::IHyprRenderer* renderer, Render::CRenderContext
     PHLMONITOR monitor, const Render::SWindowRenderPresentation& presentation, const Time::steady_tp& now,
     bool decorate, Render::eRenderPassMode pass, bool ignorePosition, bool standalone) {
     if (!standalone && desktopContext(ctx) && controller && controller->deferred(window, monitor)) return;
+    if (!standalone && desktopContext(ctx)) {
+        // A floating chat must not be drawn again above its own fullscreen
+        // viewer in stacking. Draw it exactly once, directly below the viewer,
+        // without changing the compositor's fullscreen or input state.
+        if (HyprstackMediaViewer::isBackdrop(window)) return;
+        if (const auto parent = HyprstackMediaViewer::backdropFor(window)) {
+            auto backdrop = parent->presentation().renderPresentation();
+            const auto& appearance = parent->presentation();
+            const bool transferring = appearance.movingFromMonitor() && !parent->m_workspace->visible();
+            const bool pinned = static_cast<bool>(parent->m_state & Desktop::View::WINDOW_STATE_PINNED);
+            // Rebuild just the fade product without its fullscreen factor;
+            // the other opacity channels and workspace motion stay intact.
+            backdrop.fadeAlpha = appearance.alphaValue(Desktop::View::WINDOW_ALPHA_FADE)
+                * appearance.alphaValue(Desktop::View::WINDOW_ALPHA_LAYOUT)
+                * (pinned || transferring ? 1.F : backdrop.workspaceAlpha)
+                * (transferring ? appearance.alphaValue(Desktop::View::WINDOW_ALPHA_MOVE_TO_WORKSPACE) : 1.F)
+                * appearance.alphaValue(Desktop::View::WINDOW_ALPHA_MOVE_FROM_WORKSPACE);
+            backdrop.alphaVisible = backdrop.fadeAlpha * backdrop.alpha > 0.F;
+            reinterpret_cast<WindowRender>(renderHook->m_original)(renderer, ctx, parent, monitor, backdrop,
+                now, true, Render::RENDER_PASS_ALL, false, false);
+        }
+    }
+    // This also keeps a cancelled, still-unready preview out of its closing
+    // snapshot. No input state, alpha channel or animation clock is changed.
+    if (HyprstackMediaViewer::holding(window)) return;
     reinterpret_cast<WindowRender>(renderHook->m_original)(renderer, ctx, window, monitor, presentation,
         now, decorate, pass, ignorePosition, standalone);
 }

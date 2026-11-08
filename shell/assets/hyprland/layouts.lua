@@ -1957,6 +1957,10 @@ local function place_telegram_media(window)
     local record = record_for(window)
     if record then record.stacked, record.maximized = false, nil end
     if parent then
+        local plugin = hl.plugin.hyprbars
+        if not telegram_pip(window) and plugin and plugin.animate_window then
+            plugin.animate_window(window.address, window.stable_id, "media-viewer", parent.address, parent.stable_id)
+        end
         if window.workspace ~= parent.workspace then move_to_workspace(window, key(parent.workspace)) end
         -- Fullscreen/maximized playback keeps the client's requested mode.
         -- Windowed media stays on the originating chat's output, centered in
