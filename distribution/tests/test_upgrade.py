@@ -3,6 +3,7 @@
 
 Run with HYPRSTACK_TEST_PREFIX pointing at a pristine staged installation.
 Requires Hyprland 0.57, kitty, grim, Pillow and an existing Wayland session.
+Set HYPRSTACK_TEST_OVERVIEW_ONLY=1 for the 18 preview-corner image checks.
 """
 import json
 import os
@@ -153,6 +154,56 @@ def main():
             monitor = next(m for m in json.loads(ctl("-j", "monitors")) if m["id"] == w["monitor"])
             assert .35 * monitor["width"] < w["size"][0] < .6 * monitor["width"], w
             assert w["fullscreen"] == 0 and w["fullscreenClient"] == 0, w
+
+        if os.environ.get("HYPRSTACK_TEST_OVERVIEW_ONLY") == "1":
+            evaluate('hl.dispatch(hl.dsp.focus({window="title:^UpgradePrimary$"}))')
+            cases = [(mode, radius, zoom) for mode in ["scrolling", "stacking"]
+                     for radius in [0, 15, 40] for zoom in [.4, .6, .85]]
+            for mode, radius, zoom in cases:
+                name = mode + "-" + str(radius) + "-" + str(zoom)
+                evaluate('if hyprstack_layouts.mode() ~= ' + json.dumps(mode) + ' then hyprstack_layouts.toggle() end')
+                evaluate('hyprstack_layouts.tiling({windowRounding=' + str(radius) +
+                    ',focusBorderWidth=3,focusBorderGradient=false}); '
+                    'hyprstack_layouts.theme({primary="ff0000",outline="ff0000"})')
+                # Keep both contours at least two physical pixels wide even
+                # in small stacking previews, so the colour probe is stable.
+                evaluate('hl.dispatch(hl.dsp.window.set_prop({window="title:^UpgradePrimary$",prop="border_size",value="4"}))')
+                time.sleep(.35)
+                window = clients()["UpgradePrimary"]
+                world = dict(zip(("x", "y", "width", "height"), [*window["at"], *window["size"]]))
+                camera = {"x": 140, "y": 100, "zoom": zoom}
+                destination = {"x": camera['x'] + world['x'] * zoom, "y": camera['y'] + world['y'] * zoom,
+                               "width": world['width'] * zoom, "height": world['height'] * zoom}
+                data = {"monitor": "WAYLAND-1", "mode": mode, "selected": window["address"],
+                        "workspace": 1, "originalWorkspace": 1, "camera": camera, "originCamera": camera,
+                        "colour": [0, 1, 1], "windows": [{"address": window["address"],
+                        "identity": window["stableId"], "workspace": 1, "frame": destination, "world": world}]}
+                evaluate('hl.plugin.hyprbars.overview_scene("show",' + json.dumps(json.dumps(data)) + ')')
+                time.sleep(.4)
+                subprocess.run(["grim", "-o", "WAYLAND-1", str(base / ("overview-" + name + ".png"))], env=env, check=True)
+                status = json.loads(ctl("repl", 'return hl.plugin.hyprbars.overview_scene("status")'))
+                (base / ("overview-" + name + ".json")).write_text(json.dumps(status, indent=2))
+                if os.environ.get("HYPRSTACK_TEST_OVERVIEW_CHECK", "1") != "0":
+                    image = Image.open(base / ("overview-" + name + ".png")).convert("RGB")
+                    visual = status['frames'][0]['visual']
+                    for right, bottom in [(0, 0), (1, 0), (0, 1), (1, 1)]:
+                        x = visual['x'] + (visual['width'] - 1) * right
+                        y = visual['y'] + (visual['height'] - 1) * bottom
+                        cyan, red = [], []
+                        for distance in range(-4, 50):
+                            rgb = image.getpixel((round(x + (1 - 2 * right) * distance),
+                                                  round(y + (1 - 2 * bottom) * distance)))
+                            r, g, b = rgb
+                            if g > r + 10 and b > r + 10 and abs(g - b) < 15: cyan.append(distance)
+                            if r > g + 60 and r > b + 40: red.append(distance)
+                        assert cyan, (name, right, bottom, cyan, red)
+                        if radius == 0:
+                            assert min(cyan) <= 0, (name, right, bottom, cyan, red)
+                        else:
+                            assert red and 0 <= min(red) - max(cyan) <= 3, (name, right, bottom, cyan, red)
+                evaluate('hl.plugin.hyprbars.overview_scene("reset")')
+            print("PASS: overview corner fixtures captured", flush=True)
+            return
 
         bindings = json.loads(ctl("-j", "binds"))
         assert not any(b["modmask"] == 1 and b["key"].lower() in ("h", "l", "left", "right")
@@ -349,8 +400,10 @@ def main():
         time.sleep(.4)
         w = clients()["UpgradePrimary"]
         x, y = w["at"][0] + round(w["size"][0]*.2), w["at"][1] + round(w["size"][1]*.25)
-        evaluate('hl.dispatch(hl.dsp.cursor.move({x=' + str(x) + ',y=' + str(y) + '}))')
-        grabbed = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.drag("UpgradePrimary")'))
+        # A host pointer event must not replace the fixture's grab point
+        # between separate IPC requests in the nested compositor.
+        grabbed = json.loads(ctl("repl", 'hl.dispatch(hl.dsp.cursor.move({x=' + str(x) + ',y=' + str(y) + '})); '
+            'return hl.plugin.upgrade_probe.drag("UpgradePrimary")'))
         assert grabbed["floating"] and max(abs(a-b) for a,b in zip(grabbed["before"], grabbed["after"])) < .01, grabbed
         print("PASS: tiled drag keeps an off-centre grab point under the cursor", flush=True)
         time.sleep(.4)

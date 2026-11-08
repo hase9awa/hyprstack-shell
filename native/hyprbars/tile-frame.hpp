@@ -23,11 +23,21 @@ using BorderDraw = void (*)(void*, Render::CRenderContext&, WP<CBorderPassElemen
 
 static void drawBorder(void* renderer, Render::CRenderContext& ctx, WP<CBorderPassElement> element, const CRegion& damage) {
     const auto original = reinterpret_cast<BorderDraw>(borderHook->m_original);
+    if (element && hyprstackOverviewRendering()) {
+        // Hyprland transforms the border box and width, but its corner radii
+        // stay in source pixels. Match the scaled client and titlebar masks.
+        auto data = element->m_data;
+        const auto scale = ctx.m_data.renderModif.combinedScale();
+        data.round = std::round(data.round * scale);
+        if (data.outerRound >= 0) data.outerRound = std::round(data.outerRound * scale);
+        original(renderer, ctx, makeShared<CBorderPassElement>(data), damage);
+        return;
+    }
     const auto window = element ? element->m_data.window.lock() : nullptr;
     const auto monitor = ctx.m_data.pMonitor.lock();
     if (!window || !monitor || !window->mapped() || window->isFloating() || (window->m_state & Desktop::View::WINDOW_STATE_PINNED) ||
         !window->m_workspace || !window->m_workspace->space() || (window->m_workspace->type() == Workspace::eWorkspaceType::SPECIAL) ||
-        !radii.contains(monitor->m_name) || radii.at(monitor->m_name) <= 0 || hyprstackOverviewRendering() ||
+        !radii.contains(monitor->m_name) || radii.at(monitor->m_name) <= 0 ||
         Fullscreen::controller()->getFullscreenModes(window).internal != Fullscreen::FSMODE_NONE) {
         original(renderer, ctx, element, damage); return;
     }

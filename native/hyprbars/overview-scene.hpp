@@ -541,10 +541,18 @@ class Scene {
         const double p = m_stacking ? phase() : std::clamp((1-currentCamera().zoom)/.6,0.0,1.0);
         auto colour=m_colour; colour.a=static_cast<float>(p*.8);
         CBorderPassElement::SBorderData border;
-        border.box = b.copy().scale(monitor->m_scale);
+        // Pixel-aligned bounds also keep sharp right/bottom edges inside the
+        // integer damage region used by Hyprland's border renderer.
+        border.box = b.copy().scale(monitor->m_scale).round();
         border.grad1 = Config::CGradientValueData(colour);
         border.borderSize = 2;
-        border.round = std::round(std::max(12.0, static_cast<double>(window->presentation().rounding())) * scale * monitor->m_scale);
+        const auto radius = window->presentation().rounding();
+        const auto extents = window->getWindowExtentsUnified(Desktop::View::INPUT_EXTENTS | Desktop::View::RESERVED_EXTENTS);
+        const auto edge = std::max(0.0, std::min({extents.topLeft.x, extents.bottomRight.x, extents.bottomRight.y}));
+        const auto correction = edge * (M_SQRT2 - 1) * std::max(2.0 - window->presentation().roundingPower(), 0.0);
+        // This box already includes the native border. Its inner contour must
+        // follow that border's outer radius, including square-corner windows.
+        border.round = radius > 0 ? std::round((radius + edge - correction) * scale * monitor->m_scale) : 0;
         border.roundingPower = window->presentation().roundingPower();
         r->addPassElement(g_pHyprRenderer->context(), makeUnique<CBorderPassElement>(border));
     }
