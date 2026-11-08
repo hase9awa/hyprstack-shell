@@ -2,14 +2,14 @@
 , hyprland, quickshell, python3, libqalculate, lm_sensors, pixman, libdrm
 , libinput, systemd, wayland, libxkbcommon, pango, cairo, nlohmann_json
 , fuzzel, btop, pavucontrol, wl-clipboard, cliphist
-, grim, slurp, wf-recorder, swappy, libnotify, brightnessctl, networkmanager
+, grim, slurp, wf-recorder, libnotify, brightnessctl, networkmanager
 , pipewire, wireplumber, polkit, hyprlock, hyprpicker, xdg-utils, xdg-user-dirs
 , libxml2, adwaita-icon-theme, xkeyboard_config, src
 }:
 let
   python = python3.withPackages (packages: [ packages.pillow ]);
   runtime = [ quickshell hyprland python fuzzel btop pavucontrol
-    wl-clipboard cliphist grim slurp wf-recorder swappy libnotify brightnessctl
+    wl-clipboard cliphist grim slurp wf-recorder libnotify brightnessctl
     networkmanager pipewire wireplumber polkit hyprlock hyprpicker xdg-utils
     xdg-user-dirs libxml2 systemd libqalculate ];
 in
@@ -18,7 +18,7 @@ assert lib.assertMsg (lib.versionAtLeast quickshell.version "0.3.1") "Hyprstack 
 assert lib.assertMsg (lib.versionAtLeast qt6.qtbase.version "6.9") "Hyprstack requires Qt >= 6.9";
 (hyprland.stdenv or stdenv).mkDerivation {
   pname = "hyprstack";
-  version = "1.3.8";
+  version = "1.4.0";
   inherit src;
 
   nativeBuildInputs = [ cmake ninja pkg-config gettext makeWrapper qt6.wrapQtAppsHook python hyprland ];
@@ -40,7 +40,7 @@ assert lib.assertMsg (lib.versionAtLeast qt6.qtbase.version "6.9") "Hyprstack re
   '';
 
   postInstall = ''
-    for program in hyprstack hyprstack-shell hyprstack-session hyprstack-session-runner hyprstack-doctor hyprstack-vpn; do
+    for program in hyprstack hyprstack-shell hyprstack-session hyprstack-session-runner hyprstack-doctor hyprstack-vpn hyprstack-share-picker; do
       wrapProgram "$out/bin/$program" \
         --set HYPRSTACK_DATA_DIR "$out/share/hyprstack" \
         --set HYPRSTACK_TITLEBAR_PLUGIN "$out/share/hyprstack/native/hyprstack-bars.so" \

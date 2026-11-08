@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Polkit
+import Hyprstack.Config
 import qs.services
 
 Scope {
@@ -17,7 +18,7 @@ Scope {
     LazyLoader {
         id: agentLoader
 
-        active: Quickshell.env("HYPRSTACK_NESTED") !== "1"
+        active: Quickshell.env("HYPRSTACK_NESTED") !== "1" && GlobalConfig.services.polkitAgent
 
         Scope {
             id: agentScope

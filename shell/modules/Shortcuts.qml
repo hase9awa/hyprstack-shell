@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Hyprstack
+import Hyprstack.Config
 import qs.components.misc
 import qs.services
 import qs.modules.nexus
@@ -73,7 +74,7 @@ Scope {
             if (!root.hasFullscreen) {
                 const screenState = ShellState.forActive();
                 if (screenState)
-                    ShellState.setLauncher(screenState, !screenState.launcher);
+                    ShellState.setLauncher(screenState, !screenState.launcher, "");
             }
         }
     }
@@ -119,12 +120,22 @@ Scope {
                     return;
                 const screenState = ShellState.forActive();
                 if (drawer === "launcher")
-                    ShellState.setLauncher(screenState, !screenState.launcher);
+                    ShellState.setLauncher(screenState, !screenState.launcher, "");
                 else
                     screenState[drawer] = !screenState[drawer];
             } else {
                 console.warn(lc, `Drawer "${drawer}" does not exist`);
             }
+        }
+
+        // Opens the launcher already in one of its modes, such as the
+        // clipboard history, instead of on the application list.
+        function openLauncher(mode: string): void {
+            if (root.hasFullscreen)
+                return;
+            const screenState = ShellState.forActive();
+            ShellState.setLauncher(screenState, true,
+                mode ? `${GlobalConfig.launcher.actionPrefix}${mode} ` : "");
         }
 
         function list(): string {

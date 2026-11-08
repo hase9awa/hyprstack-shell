@@ -1,5 +1,6 @@
 // Keep borrowed windows above the source desktop throughout their native flight.
 #pragma once
+#include "function-lookup.hpp"
 #include <hyprland/src/desktop/state/WindowState.hpp>
 #include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
@@ -111,7 +112,7 @@ static int registerReturn(lua_State* L) {
     return 0;
 }
 static void install(HANDLE handle) {
-    const auto matches = HyprlandAPI::findFunctionsByName(handle, "renderWindow");
+    const auto matches = HyprstackSymbols::findFunctions(handle, "renderWindow");
     const auto found = std::ranges::find_if(matches, [](const auto& match) {
         return match.demangled.starts_with("Render::IHyprRenderer::renderWindow(");
     });

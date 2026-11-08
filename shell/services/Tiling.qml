@@ -31,6 +31,9 @@ Singleton {
     readonly property var borderColorRoles: borderColorChoices.map(choice => choice.role)
     property int windowRounding: 15
     property bool focusOnHover: true
+    // How long the pointer has to rest on a window before the focus follows
+    // it, in milliseconds.
+    property int focusHoverDelay: 200
     property bool edgeScroll: true
     property bool autoscroll: true
     property bool loaded: false
@@ -68,6 +71,7 @@ Singleton {
         else if (option === "focusBorderGradientAngle") focusBorderGradientAngle = Math.max(0, Math.min(360, Math.round(value)));
         else if (option === "windowRounding") windowRounding = Math.max(0, Math.min(60, Math.round(value)));
         else if (option === "focusOnHover") focusOnHover = !!value;
+        else if (option === "focusHoverDelay") focusHoverDelay = Math.max(0, Math.min(1000, Math.round(value)));
         else if (option === "edgeScroll") edgeScroll = !!value;
         else if (option === "autoscroll") autoscroll = !!value;
         else return;
@@ -75,13 +79,14 @@ Singleton {
             gapsOut: gapsOut, focusBorderWidth: focusBorderWidth, focusBorderColor: focusBorderColor,
             focusBorderGradient: focusBorderGradient, focusBorderGradientEndColor: focusBorderGradientEndColor,
             focusBorderGradientAngle: focusBorderGradientAngle,
-            windowRounding: windowRounding, focusOnHover: focusOnHover, edgeScroll: edgeScroll, autoscroll: autoscroll}));
+            windowRounding: windowRounding, focusOnHover: focusOnHover, focusHoverDelay: focusHoverDelay,
+            edgeScroll: edgeScroll, autoscroll: autoscroll}));
         apply();
     }
 
     function apply(): void {
         if (loaded && Hypr.usingLua)
-            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},focusBorderColor=${JSON.stringify(focusBorderColor)},focusBorderGradient=${focusBorderGradient},focusBorderGradientEndColor=${JSON.stringify(focusBorderGradientEndColor)},focusBorderGradientAngle=${focusBorderGradientAngle},windowRounding=${windowRounding},focusOnHover=${focusOnHover},edgeScroll=${edgeScroll},autoscroll=${autoscroll}}) end`);
+            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},focusBorderColor=${JSON.stringify(focusBorderColor)},focusBorderGradient=${focusBorderGradient},focusBorderGradientEndColor=${JSON.stringify(focusBorderGradientEndColor)},focusBorderGradientAngle=${focusBorderGradientAngle},windowRounding=${windowRounding},focusOnHover=${focusOnHover},focusHoverDelay=${focusHoverDelay},edgeScroll=${edgeScroll},autoscroll=${autoscroll}}) end`);
     }
 
     FileView {
@@ -104,6 +109,7 @@ Singleton {
                 root.focusBorderGradientAngle = Math.max(0, Math.min(360, Math.round(data.focusBorderGradientAngle ?? 45)));
                 root.windowRounding = Math.max(0, Math.min(60, Math.round(data.windowRounding ?? 15)));
                 root.focusOnHover = data.focusOnHover !== false;
+                root.focusHoverDelay = Math.max(0, Math.min(1000, Math.round(data.focusHoverDelay ?? 200)));
                 root.edgeScroll = data.edgeScroll !== false;
                 root.autoscroll = data.autoscroll !== false;
             } catch (error) {

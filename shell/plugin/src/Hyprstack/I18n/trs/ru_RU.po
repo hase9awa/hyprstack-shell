@@ -41,7 +41,7 @@ msgstr "Не удалось пройти авторизацию. Попробу�
 msgid "Waiting for authentication..."
 msgstr "Ожидание авторизации…"
 
-#: modules/polkit/AuthDialog.qml
+#: modules/polkit/AuthDialog.qml modules/askpass/AskpassDialog.qml
 msgid "Caps Lock is on"
 msgstr "Caps Lock включён"
 
@@ -959,30 +959,6 @@ msgstr "Исчерпано число попыток отпечатка паль
 msgid "Maximum face attempts reached. Please use password."
 msgstr "Исчерпано число попыток распознавания лица. Введите пароль."
 
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Caps lock and Num lock are ON.\nKeyboard layout: %1"
-msgstr "Caps Lock и Num Lock включены.\nРаскладка клавиатуры: %1"
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Caps lock is ON. Keyboard layout: %1"
-msgstr "Caps Lock включён. Раскладка клавиатуры: %1"
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Num lock is ON. Keyboard layout: %1"
-msgstr "Num Lock включён. Раскладка клавиатуры: %1"
-
-#. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
-#: modules/lock/center/StateMessage.qml
-#, qt-format
-msgid "Keyboard layout: %1"
-msgstr "Раскладка клавиатуры: %1"
-
 #: modules/lock/center/StateMessage.qml
 msgid "Caps lock and Num lock are ON."
 msgstr "Caps Lock и Num Lock включены."
@@ -1875,7 +1851,7 @@ msgstr "Команда отключения"
 msgid "Delete"
 msgstr "Удалить"
 
-#: modules/nexus/pages/network/AddVpnPage.qml
+#: modules/nexus/pages/network/AddVpnPage.qml modules/areapicker/ScreenshotPreview.qml
 msgctxt "button"
 msgid "Save"
 msgstr "Сохранить"
@@ -3334,11 +3310,11 @@ msgstr "Вернуть в тайлинг"
 msgid "Float"
 msgstr "Сделать плавающим"
 
-#: modules/windowinfo/Buttons.qml
+#: modules/windowinfo/Buttons.qml modules/launcher/items/ClipItem.qml
 msgid "Unpin"
 msgstr "Открепить"
 
-#: modules/windowinfo/Buttons.qml
+#: modules/windowinfo/Buttons.qml modules/launcher/items/ClipItem.qml
 msgid "Pin"
 msgstr "Закрепить"
 
@@ -5735,6 +5711,384 @@ msgstr "Размер загрузки слишком велик"
 msgid "Install the VPN core using your package manager"
 msgstr "Установите сетевое ядро VPN через менеджер пакетов"
 
+#: components/filedialog/FileDialog.qml
+msgctxt "button"
+msgid "Select folder"
+msgstr "Выбрать папку"
+
+#: components/filedialog/DialogButtons.qml
+msgctxt "button"
+msgid "Replace"
+msgstr "Заменить"
+
+#: components/filedialog/DialogButtons.qml
+msgctxt "file name field"
+msgid "Name:"
+msgstr "Имя:"
+
+#: components/filedialog/DialogButtons.qml
+msgid "File name"
+msgstr "Имя файла"
+
+#: components/filedialog/CurrentItem.qml
+#, qt-plural-format
+msgid "%n file selected"
+msgid_plural "%n files selected"
+msgstr[0] "Выбран %n файл"
+msgstr[1] "Выбрано %n файла"
+msgstr[2] "Выбрано %n файлов"
+
+#: modules/portals/AccessDialog.qml
+msgid "Permission request"
+msgstr "Запрос разрешения"
+
+#. TRANSLATORS: %1 = name of the application asking for the permission
+#: modules/portals/AccessDialog.qml
+#, qt-format
+msgid "Requested by %1"
+msgstr "Запрашивает %1"
+
+#: modules/portals/AccessDialog.qml
+msgctxt "button"
+msgid "Deny"
+msgstr "Запретить"
+
+#: modules/portals/AccessDialog.qml
+msgctxt "button"
+msgid "Allow"
+msgstr "Разрешить"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "Open with"
+msgstr "Открыть с помощью"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "No applications available"
+msgstr "Подходящих приложений нет"
+
+#: modules/portals/AppChooserDialog.qml
+msgctxt "button"
+msgid "Open"
+msgstr "Открыть"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "All applications"
+msgstr "Все приложения"
+
+#: modules/portals/AppChooserDialog.qml
+msgid "Make it the default for this type"
+msgstr "Сделать приложением по умолчанию"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgctxt "launcher action"
+msgid "Clipboard"
+msgstr "Буфер обмена"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgid "Paste something copied earlier"
+msgstr "Вставить скопированное ранее"
+
+#: modules/launcher/ClipboardList.qml
+msgid "Clear history"
+msgstr "Очистить историю"
+
+#: modules/launcher/ContentList.qml
+msgid "Clipboard is empty"
+msgstr "Буфер обмена пуст"
+
+#: modules/launcher/ContentList.qml
+msgid "Copy something and it will show up here"
+msgstr "Скопируйте что-нибудь, и оно появится здесь"
+
+#: modules/launcher/items/ClipItem.qml services/Emoji.qml
+msgid "Pinned"
+msgstr "Закреплено"
+
+
+
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Delete entry"
+msgstr "Удалить запись"
+
+#: modules/launcher/items/ClipItem.qml
+msgid "Image"
+msgstr "Изображение"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgctxt "launcher action"
+msgid "Emoji"
+msgstr "Смайлики"
+
+#: plugin/src/Hyprstack/Config/launcherconfig.hpp
+msgid "Pick an emoji, a kaomoji or a symbol"
+msgstr "Выбрать смайлик, комодзи или символ"
+
+#: services/Emoji.qml
+msgid "Mine"
+msgstr "Мои"
+
+#: modules/launcher/EmojiList.qml
+msgid "Add what was typed"
+msgstr "Добавить введённое"
+
+#: modules/launcher/EmojiList.qml
+msgid "Type something to add it"
+msgstr "Введите что-нибудь, чтобы добавить"
+
+#. TRANSLATORS: %1 = what the user typed, which becomes a character of their own
+#: modules/launcher/EmojiList.qml
+#, qt-format
+msgid "Add \"%1\""
+msgstr "Добавить «%1»"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Passphrase required"
+msgstr "Требуется пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Passphrase"
+msgstr "Пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Show passphrase"
+msgstr "Показать пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgid "Hide passphrase"
+msgstr "Скрыть пароль"
+
+#: modules/askpass/AskpassDialog.qml
+msgctxt "button"
+msgid "Unlock"
+msgstr "Разблокировать"
+
+#. TRANSLATORS: %1 = name of the application offering the picture
+#: modules/portals/WallpaperDialog.qml
+#, qt-format
+msgid "Set %1 as the wallpaper?"
+msgstr "Поставить обои из «%1»?"
+
+#: modules/portals/WallpaperDialog.qml
+msgid "Set this picture as the wallpaper?"
+msgstr "Поставить это изображение обоями?"
+
+#: modules/portals/WallpaperDialog.qml
+msgctxt "button"
+msgid "Set wallpaper"
+msgstr "Поставить"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgid "Copied to the clipboard"
+msgstr "Скопировано в буфер обмена"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgid "Save the screenshot"
+msgstr "Сохранить снимок"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Copy"
+msgstr "Копировать"
+
+#: modules/areapicker/ScreenshotPreview.qml
+msgctxt "button"
+msgid "Save as"
+msgstr "Сохранить как"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Share your screen"
+msgstr "Показ экрана"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Choose what an application may capture"
+msgstr "Выберите, что приложение сможет захватывать"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Screens"
+msgstr "Экраны"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Windows"
+msgstr "Окна"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "share source"
+msgid "Region"
+msgstr "Область"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "No windows to share"
+msgstr "Нет окон для показа"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "No screens to share"
+msgstr "Нет экранов для показа"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgid "Let it share this again without asking"
+msgstr "Показывать это впредь без вопроса"
+
+#: modules/sharepicker/SharePickerDialog.qml
+msgctxt "button"
+msgid "Share"
+msgstr "Показать"
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-format
+msgid "Pair with %1"
+msgstr "Сопряжение с %1"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Pair with the device"
+msgstr "Сопряжение с устройством"
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-format
+msgid "%1 wants to connect"
+msgstr "%1 запрашивает подключение"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "A device wants to connect"
+msgstr "Устройство запрашивает подключение"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Check that the device shows the same code."
+msgstr "Проверьте, что на устройстве показан тот же код."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "The device is asking to pair with this computer."
+msgstr "Устройство просит сопряжения с этим компьютером."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "It is asking for a service it has not been allowed yet."
+msgstr "Оно запрашивает службу, которая ему ещё не разрешена."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Type this code on the device."
+msgstr "Введите этот код на устройстве."
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Enter the code the device is showing."
+msgstr "Введите код, который показывает устройство."
+
+#: modules/bluetooth/PairDialog.qml
+#, qt-plural-format
+msgid "%n digit entered on the device"
+msgid_plural "%n digits entered on the device"
+msgstr[0] "На устройстве введена %n цифра"
+msgstr[1] "На устройстве введено %n цифры"
+msgstr[2] "На устройстве введено %n цифр"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "Code"
+msgstr "Код"
+
+#: modules/bluetooth/PairDialog.qml
+msgid "PIN"
+msgstr "PIN"
+
+#: modules/bluetooth/PairDialog.qml
+msgctxt "button"
+msgid "Pair"
+msgstr "Сопряжение"
+
+#: modules/network/SecretDialog.qml
+#, qt-format
+msgid "Password for %1"
+msgstr "Пароль для %1"
+
+#: modules/network/SecretDialog.qml
+msgid "Password required"
+msgstr "Требуется пароль"
+
+#: modules/network/SecretDialog.qml
+msgid "The modem is asking for its PIN."
+msgstr "Модем запрашивает PIN-код."
+
+#: modules/network/SecretDialog.qml
+msgid "The private key is locked."
+msgstr "Закрытый ключ защищён паролем."
+
+#: modules/network/SecretDialog.qml
+msgid "The Wi-Fi network is asking for its password."
+msgstr "Сеть Wi-Fi запрашивает пароль."
+
+#: modules/network/SecretDialog.qml
+msgid "The network is asking for your account password."
+msgstr "Сеть запрашивает пароль вашей учётной записи."
+
+#: modules/network/SecretDialog.qml
+msgid "The VPN is asking for its password."
+msgstr "VPN запрашивает пароль."
+
+#: modules/network/SecretDialog.qml
+msgid "NetworkManager needs a password to bring the connection up."
+msgstr "NetworkManager нужен пароль, чтобы поднять подключение."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Answered by the shell"
+msgstr "Отвечает оболочка"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Desktop portals"
+msgstr "Порталы рабочего стола"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Permission prompts, file dialogs, the application chooser and the wallpaper offer. Off hands them to another backend."
+msgstr "Запросы разрешений, файловые диалоги, выбор приложения и предложение обоев. Выключено — отвечает другой backend."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Authorisation requests"
+msgstr "Запросы авторизации"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "The Polkit agent. A session wants one agent, no more."
+msgstr "Агент Polkit. В сеансе нужен один агент, не больше."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Passwords for ssh and sudo"
+msgstr "Пароли для ssh и sudo"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Asked here when the terminal has nowhere to ask. Off leaves both to ask for themselves."
+msgstr "Спрашиваются здесь, когда терминалу негде спросить. Выключено — спрашивают сами."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Bluetooth pairing questions"
+msgstr "Вопросы при сопряжении Bluetooth"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "Codes to compare and PINs to type. With nobody to ask, bluez refuses the pairing."
+msgstr "Сравнить код, ввести PIN. Когда спросить некого, bluez отказывает в сопряжении."
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "NetworkManager passwords"
+msgstr "Пароли NetworkManager"
+
+#: modules/nexus/pages/ServicesPage.qml
+msgid "For a VPN, a network with 802.1x, and connections brought up on their own."
+msgstr "Для VPN, сетей с 802.1x и подключений, которые поднимаются сами."
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "Wait before switching, ms"
+msgstr "Задержка перед переключением, мс"
+
+#: modules/nexus/pages/WallpaperAndStyle.qml
+msgid "How long the pointer has to rest on a window. A pointer merely crossing the screen leaves the focus alone."
+msgstr "Сколько указатель должен пролежать на окне. Указатель, просто пересекающий экран, фокус не трогает."
+
+#: components/filedialog/Sidebar.qml
+msgctxt "file dialog place"
+msgid "Home"
+msgstr "Домашняя папка"
+
+#: components/filedialog/Sidebar.qml
+msgctxt "file dialog sidebar heading"
+msgid "Pinned"
+msgstr "Закреплённые"
 msgid "Kawase"
 msgstr "Кавасэ"
 
@@ -5869,3 +6223,10 @@ msgstr "Угол градиента"
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Direction in degrees"
 msgstr "Направление в градусах"
+
+msgid "Enter the one-time code."
+msgstr "Введите одноразовый код."
+
+msgctxt "button"
+msgid "Next"
+msgstr "Далее"

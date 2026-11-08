@@ -38,6 +38,8 @@ local overview_active = false
 local overview_watchdog
 local tiling_preferences = read(config_dir .. "/tiling.json")
 tiling_preferences.focusOnHover = tiling_preferences.focusOnHover ~= false
+tiling_preferences.focusHoverDelay = math.max(0, math.min(1000,
+    math.floor(tonumber(tiling_preferences.focusHoverDelay) or 200)))
 tiling_preferences.edgeScroll = tiling_preferences.edgeScroll ~= false
 local theme_palette = {}
 local window_effects = dofile(debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "effects.lua")
@@ -758,9 +760,15 @@ end
 local function pointer_focus()
     local scrolling = layouts.mode() == "scrolling"
     local hover = scrolling and tiling_preferences.focusOnHover == true
+    -- The plugin hands the focus over once the pointer has settled on a
+    -- window, so a pointer merely crossing a monitor carries nothing with
+    -- it. The compositor's own follow is instant and knows only distance,
+    -- so it stays off wherever the plugin is there to do it instead.
+    local dwell = hl.plugin.hyprbars and hl.plugin.hyprbars.hover_focus
+    if dwell then dwell(hover, tiling_preferences.focusHoverDelay) end
     -- Scrolling follows the pointer by default; stacking and the optional
     -- click-focus mode keep keyboard focus until a click.
-    hl.config({ input = { follow_mouse = hover and 1 or 2,
+    hl.config({ input = { follow_mouse = (hover and not dwell) and 1 or 2,
         float_switch_override_focus = hover and tiled_focus.float_switch_override_focus or 0 },
         misc = { mouse_move_focuses_monitor = hover and tiled_focus.mouse_move_focuses_monitor or false,
             focus_on_activate = scrolling and tiled_focus.focus_on_activate or false },
@@ -808,6 +816,10 @@ function layouts.tiling(options)
     end
     if appearance_changed then appearance() end
     if options.focusOnHover ~= nil then tiling_preferences.focusOnHover = options.focusOnHover == true end
+    if options.focusHoverDelay ~= nil then
+        tiling_preferences.focusHoverDelay = math.max(0, math.min(1000,
+            math.floor(tonumber(options.focusHoverDelay) or 200)))
+    end
     if options.edgeScroll ~= nil then tiling_preferences.edgeScroll = options.edgeScroll ~= false end
     pointer_focus()
     if options.gaps ~= nil then tiling_preferences.gaps = options.gaps ~= false end

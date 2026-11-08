@@ -32,6 +32,15 @@ Singleton {
     }
 
     function exec(command, workingDirectory = ""): void {
+        // A detached launch reports nothing, so a command that is not
+        // installed leaves a button looking broken. Say it instead.
+        if (command.length > 0 && !CUtils.findExecutable(command[0])) {
+            Toaster.toast(Tr.tr("Cannot open this"),
+                Tr.tr("%1 is not installed. Pick another application in Settings.").arg(command[0]),
+                "error", Toast.Error);
+            return;
+        }
+
         // Quickshell launches children with its startup environment, even after
         // qputenv(). Supply the current overrides explicitly for every launch.
         Quickshell.execDetached({command: command, workingDirectory: workingDirectory,

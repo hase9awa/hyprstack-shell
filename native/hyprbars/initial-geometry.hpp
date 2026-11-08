@@ -1,5 +1,6 @@
 // Give scrolling clients their tile size before they allocate their first buffer.
 #pragma once
+#include "function-lookup.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -113,7 +114,7 @@ static uint32_t setSize(CXDGToplevelResource* toplevel, const Vector2D& size) {
 }
 
 static void install(HANDLE handle) {
-    const auto matches = HyprlandAPI::findFunctionsByName(handle, "setSize");
+    const auto matches = HyprstackSymbols::findFunctions(handle, "setSize");
     const auto found = std::ranges::find_if(matches, [](const auto& match) {
         return match.demangled.starts_with("CXDGToplevelResource::setSize(");
     });

@@ -39,6 +39,8 @@ extern "C" {
 #include "secondary-return.hpp"
 #include "autoscroll.hpp"
 #include "tiling-hover.hpp"
+#include "hover-focus.hpp"
+#include "overlay-dialogs.hpp"
 #include "shader-warmup.hpp"
 
 // Do NOT change this function.
@@ -262,6 +264,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     }
 
     installClientSurfacePolicy(PHANDLE);
+    HyprstackOverlayDialogs::install();
     HyprstackOverview::install(PHANDLE);
     HyprstackSecondaryReturn::install(PHANDLE);
     HyprstackShaders::install();
@@ -345,6 +348,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprstackSnap::install(PHANDLE); // HYPRSTACK_SNAP_ZONES
     HyprstackAutoscroll::install(PHANDLE);
     HyprstackTilingHover::install(PHANDLE);
+    HyprstackHoverFocus::install(PHANDLE);
     HyprstackInitialGeometry::install(PHANDLE);
 
     // add deco to existing windows
@@ -357,13 +361,15 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::reloadConfig();
 
-    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.3.8"};
+    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.4.0"};
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {
+    HyprstackOverlayDialogs::remove();
     HyprstackSecondaryReturn::remove(PHANDLE);
     HyprstackInitialGeometry::remove(PHANDLE);
     HyprstackTilingHover::remove();
+    HyprstackHoverFocus::remove();
     HyprstackShaders::remove();
     HyprstackAutoscroll::remove();
     HyprstackOverview::remove(PHANDLE);

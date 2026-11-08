@@ -18,12 +18,11 @@ import socket
 import subprocess
 import sys
 import time
-import unicodedata
 
 import theme_manager as themes
 from i18n import _, configure_argparse
 
-VERSION = "1.3.8"
+VERSION = "1.4.0"
 ASSETS = Path(__file__).resolve().parent
 CONFIG = themes.CONFIG
 STATE = themes.STATE
@@ -197,28 +196,13 @@ def screenshot_command(args):
 
 
 def clipboard_command(args):
-    history = subprocess.check_output(["cliphist", "list"], timeout=10)
-    selected = subprocess.run(["fuzzel", "--dmenu"], input=history, stdout=subprocess.PIPE)
-    if selected.returncode != 0 or not selected.stdout.strip():
-        return
-    if args.delete:
-        run(["cliphist", "delete"], input=selected.stdout, timeout=10)
-    else:
-        data = subprocess.check_output(["cliphist", "decode"], input=selected.stdout, timeout=10)
-        run(["wl-copy"], input=data, timeout=10)
+    # The history is a launcher mode now, so the shell draws it with
+    # previews, pinning and deletion rather than a one-shot menu.
+    ipc("drawers", "openLauncher", "clipboard")
 
 
 def emoji_command(args):
-    symbols = "😀 😃 😄 😁 😆 😅 😂 🙂 🙃 😉 😊 😍 🥰 😎 🤔 😴 😭 😡 🤯 🥳 😇 🤝 👍 👎 👏 🙌 👋 💪 ❤️ 💛 💚 💙 💜 🖤 🤍 💔 🔥 ✨ ⭐ 🎉 🎊 🎁 🎂 ☕ 🍕 🍔 🍎 🌍 🌞 🌙 🌈 🌻 🐈 🐕 🦊 🐧 🐢 🎮 🎵 🎬 📷 💻 ⌨️ 📱 🔧 ⚙️ 💡 📌 ✅ ❌ ⚠️ 🚀 🏠 🚗 ✈️ 🧠 👀".split()
-    rows = [s + "  " + unicodedata.name(s[0], "emoji").lower() for s in symbols]
-    selection = subprocess.run(["fuzzel", "--dmenu", "--prompt", _("Emoji: ")],
-                               input="\n".join(rows), text=True, stdout=subprocess.PIPE)
-    if selection.returncode or not selection.stdout.strip():
-        return
-    value = selection.stdout.split()[0]
-    run(["wl-copy"], input=value.encode(), timeout=10)
-    if args.paste and shutil.which("wtype"):
-        run(["wtype", value], timeout=10)
+    ipc("drawers", "openLauncher", "emoji")
 
 
 def proc_identity(pid):
@@ -546,10 +530,8 @@ def parser():
     record.add_argument("-p", "--pause", action="store_true")
     record.add_argument("--status", action="store_true")
     record.add_argument("--stop", action="store_true")
-    clip = sub.add_parser("clipboard", help=_("Open clipboard history"))
-    clip.add_argument("-d", "--delete", action="store_true")
-    emoji = sub.add_parser("emoji", help=_("Open emoji picker"))
-    emoji.add_argument("-p", "--paste", action="store_true")
+    sub.add_parser("clipboard", help=_("Open clipboard history"))
+    sub.add_parser("emoji", help=_("Open emoji picker"))
     shell = sub.add_parser("shell", help=_("Manage the shell"))
     shell.add_argument("-d", "--daemon", action="store_true")
     shell.add_argument("-k", "--kill", action="store_true")

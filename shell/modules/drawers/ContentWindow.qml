@@ -18,6 +18,11 @@ StyledWindow {
     readonly property alias bar: bar
     readonly property alias interactionWrapper: interactions
 
+    // A menu the shell has opened in front of the windows, which it holds the
+    // input for while it is up. The key that closes windows closes the menu
+    // first, the way a click outside it does.
+    readonly property bool menuOpen: focusGrab.active || panels.popouts.isDetached
+
     readonly property ScreenState screenState: ShellState.forScreen(screen)
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)

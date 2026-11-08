@@ -114,11 +114,21 @@ def main():
 
     focused = json.loads(ctl("-j", "activewindow", host=True))
     try:
-        compositor = launch(["Hyprland", "-c", str(entry)], "compositor")
+        executable = base / "Hyprland"
+        shutil.copy2(shutil.which("Hyprland"), executable)
+        compositor = launch([str(executable), "-c", str(entry)], "compositor")
         socket = wait(lambda: next((runtime / "hypr").glob("*/.socket.sock"), None), "compositor")
         env["HYPRLAND_INSTANCE_SIGNATURE"] = socket.parent.name
         env["WAYLAND_DISPLAY"] = str(wait(lambda: next((p for p in runtime.glob("wayland-*") if p.is_socket()), None), "display"))
         wait(lambda: any(p["name"] == "hyprstack-hyprbars" for p in json.loads(ctl("-j", "plugin", "list"))), "current native module")
+        # Reproduce a package upgrade: the running inode remains accessible
+        # through /proc, while canonical(/proc/self/exe) starts failing.
+        # The module replacement at the end must continue to load its hooks.
+        executable.unlink()
+        ctl("plugin", "unload", str(native / "hyprstack-bars.so"))
+        loaded = ctl("plugin", "load", str(native / "hyprstack-bars.so"))
+        assert any(p["name"] == "hyprstack-hyprbars" for p in json.loads(ctl("-j", "plugin", "list"))), loaded
+        print("PASS: module reload resolves symbols after a package upgrade unlinks the executable", flush=True)
         wait(lambda: any(w["pid"] == compositor.pid for w in json.loads(ctl("-j", "clients", host=True))), "host window")
         fit_outputs()
         ctl("output", "create", "wayland", "UPGRADE-2")
@@ -536,12 +546,57 @@ def main():
         assert not failures, failures
         evaluate('hyprstack_layouts.toggle()')
         time.sleep(.5)
+        # Match Telegram's floating fullscreen viewer: losing activation while
+        # an exclusive layer maps used to leave that layer at alpha zero.
+        evaluate('hl.dispatch(hl.dsp.focus({monitor="WAYLAND-1"}))')
+        viewer = launch(["kitty", "--class", "com.ayugram.desktop", "--title", "Media viewer",
+                         "-e", "sleep", "300"], "media-viewer")
+        wait(lambda: clients().get("Media viewer"), "floating media viewer")
+        evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window="title:^Media viewer$",internal=2,client=2,action="set"}))')
+        wait(lambda: clients()["Media viewer"]["fullscreen"] == 2, "fullscreen media viewer")
+        evaluate('hl.plugin.hyprbars.hover_focus(true, 100)')
+        modal_dir = base / "modal-shell"
+        modal_dir.mkdir()
+        (modal_dir / "shell.qml").write_text('''import QtQuick
+import Quickshell
+import Quickshell.Wayland
+Scope {
+    PanelWindow {
+        screen: Quickshell.screens.find(s => s.name === "WAYLAND-1")
+        WlrLayershell.namespace: "upgrade-modal-dialog"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+        WlrLayershell.exclusionMode: ExclusionMode.Ignore
+        implicitWidth: 500
+        implicitHeight: 300
+        color: "#304050"
+    }
+}
+''')
+        modal = launch(["qs", "--path", str(modal_dir)], "modal-shell")
+        def modal_layer():
+            return next((layer for monitor in json.loads(ctl("-j", "layers")).values()
+                         for layer in monitor["levels"]["3"]
+                         if layer["namespace"] == "upgrade-modal-dialog"), None)
+        wait(modal_layer, "exclusive save dialog")
+        evaluate('hl.dispatch(hl.dsp.cursor.move({x=640,y=400}))')
+        time.sleep(.3)
+        assert modal_layer()["alpha"] == 1, modal_layer()
+        assert clients()["Media viewer"]["fullscreen"] == 2
+        assert not json.loads(ctl("repl", 'return hl.plugin.hyprbars.hover_focus("status")'))["waiting"]
+        modal.terminate()
+        modal.wait(timeout=5)
+        wait(lambda: modal_layer() is None, "exclusive dialog cleanup")
+        viewer.terminate()
+        viewer.wait(timeout=5)
+        wait(lambda: "Media viewer" not in clients(), "media viewer cleanup")
+        print("PASS: dialogs over fullscreen media remain visible; hover focus respects exclusive dialog input", flush=True)
         ctl("plugin", "unload", str(native / "hyprstack-bars.so"))
         ctl("plugin", "load", str(native / "hyprstack-bars.so"))
         time.sleep(.5)
         regions = json.loads(ctl("repl", 'return hl.plugin.upgrade_probe.damage("UpgradePrimary")'))
         assert regions["bounded"] == [0, 0, 17, 13] and ctl("configerrors") == "", regions
-        print("PASS: module replacement without restarting the compositor preserves client damage", flush=True)
+        print("PASS: module replacement after unlinking the running executable preserves client damage", flush=True)
     finally:
         for process in reversed(children):
             if process.poll() is None:

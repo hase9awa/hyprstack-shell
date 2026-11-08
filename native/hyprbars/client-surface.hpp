@@ -1,6 +1,7 @@
 // Hyprland 0.57 leaves xdg window-geometry cropping disabled. Respect a
 // client's shadow margins and scale the complete image during geometry tweens.
 #pragma once
+#include "function-lookup.hpp"
 
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/plugins/HookSystem.hpp>
@@ -276,7 +277,7 @@ static void removeClientSurfacePolicy(HANDLE handle) {
 
 static void installClientSurfacePolicy(HANDLE handle) {
     const auto install = [&](const char* name, const char* prefix, void* replacement) {
-        const auto matches = HyprlandAPI::findFunctionsByName(handle, name);
+        const auto matches = HyprstackSymbols::findFunctions(handle, name);
         const auto found = std::ranges::find_if(matches, [&](const auto& match) {
             return match.demangled.starts_with(prefix);
         });

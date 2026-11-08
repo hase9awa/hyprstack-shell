@@ -20,14 +20,29 @@ Item {
     required property int rounding
 
     readonly property bool showWallpapers: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}wallpaper `)
-    readonly property var currentList: showWallpapers ? wallpaperList.item : appList.item // Can be either ListView or PathView, so can't type properly
-    property string animState: showWallpapers ? "wallpapers" : "apps"
+    readonly property bool showClipboard: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}clipboard `)
+    readonly property bool showEmoji: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}emoji `)
+    readonly property var currentList: { // Can be a ListView, a GridView or a PathView, so can't type properly
+        if (showWallpapers)
+            return wallpaperList.item;
+        if (showClipboard)
+            return clipList.item;
+        return showEmoji ? emojiList.item : appList.item;
+    }
+    property string animState: {
+        if (showWallpapers)
+            return "wallpapers";
+        if (showClipboard)
+            return "clipboard";
+        return showEmoji ? "emoji" : "apps";
+    }
 
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
 
     clip: true
     state: animState
+
 
     states: [
         State {
@@ -52,10 +67,39 @@ Item {
                 root.implicitHeight: root.Tokens.sizes.launcher.wallpaperHeight
                 wallpaperList.active: true
             }
+        },
+        State {
+            name: "emoji"
+
+            PropertyChanges {
+                root.implicitWidth: root.Tokens.sizes.launcher.itemWidth
+                root.implicitHeight: root.Tokens.sizes.launcher.emojiHeight
+            }
+
+            AnchorChanges {
+                anchors.left: root.parent.left
+                anchors.right: root.parent.right
+            }
+        },
+        State {
+            name: "clipboard"
+
+            PropertyChanges {
+                root.implicitWidth: root.Tokens.sizes.launcher.itemWidth
+                root.implicitHeight: Math.min(root.maxHeight, clipList.implicitHeight > 0 ? clipList.implicitHeight : empty.implicitHeight)
+                clipList.active: true
+            }
+
+            AnchorChanges {
+                anchors.left: root.parent.left
+                anchors.right: root.parent.right
+            }
         }
     ]
 
     Behavior on animState {
+        enabled: root.screenState.launcher
+
         SequentialAnimation {
             Anim {
                 target: root
@@ -110,6 +154,42 @@ Item {
         }
     }
 
+    Loader {
+        id: clipList
+
+        asynchronous: true
+        active: false
+
+        anchors.fill: parent
+
+        sourceComponent: ClipboardList {
+            objectName: "launcherClipboardList"
+
+            search: root.search
+            screenState: root.screenState
+        }
+    }
+
+    Loader {
+        id: emojiList
+
+        asynchronous: true
+        // Built in the background at start rather than on first use: the
+        // grid is the one list whose cells cost enough to be noticed, and
+        // paying for them on the first open showed as a stutter.
+        active: true
+        visible: root.state === "emoji"
+
+        anchors.fill: parent
+
+        sourceComponent: EmojiList {
+            objectName: "launcherEmojiList"
+
+            search: root.search
+            screenState: root.screenState
+        }
+    }
+
     Row {
         id: empty
 
@@ -125,7 +205,13 @@ Item {
 
         MaterialIcon {
             id: emptyIcon
-            text: root.state === "wallpapers" ? "wallpaper_slideshow" : "manage_search"
+            text: {
+                if (root.state === "wallpapers")
+                    return "wallpaper_slideshow";
+                if (root.state === "clipboard")
+                    return "content_paste_off";
+                return root.state === "emoji" ? "mood_bad" : "manage_search";
+            }
             color: Colours.palette.m3onSurfaceVariant
             fontStyle: Tokens.font.icon.extraLarge
 
@@ -139,7 +225,13 @@ Item {
             StyledText {
                 width: parent.width
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                text: root.state === "wallpapers" ? Tr.tr("No wallpapers found") : Tr.tr("No results")
+                text: {
+                    if (root.state === "wallpapers")
+                        return Tr.tr("No wallpapers found");
+                    if (root.state === "clipboard")
+                        return Tr.tr("Clipboard is empty");
+                    return Tr.tr("No results");
+                }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
             }
@@ -147,7 +239,13 @@ Item {
             StyledText {
                 width: parent.width
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                text: root.state === "wallpapers" && Wallpapers.list.length === 0 ? Tr.tr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir)) : Tr.tr("Try searching for something else")
+                text: {
+                    if (root.state === "wallpapers" && Wallpapers.list.length === 0)
+                        return Tr.tr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir));
+                    if (root.state === "clipboard" && Clipboard.entries.length === 0)
+                        return Tr.tr("Copy something and it will show up here");
+                    return Tr.tr("Try searching for something else");
+                }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.medium
             }

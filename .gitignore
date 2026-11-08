@@ -26,17 +26,22 @@
 /distribution/*
 !/distribution/bin/
 !/distribution/check_headers.py
+!/distribution/generate_emoji.py
 !/distribution/update.py
 !/distribution/update_transaction.py
 !/distribution/defaults/
 !/distribution/systemd/
 !/distribution/patches/
+!/distribution/portals/
+!/distribution/dbus/
 !/distribution/tests/
 /distribution/tests/*
 !/distribution/tests/test_upgrade.py
 !/distribution/tests/damage_probe.cpp
 !/distribution/tests/test_client_snapshot.py
 !/distribution/tests/client_snapshot.cpp
+!/distribution/tests/test_portal_contracts.py
+!/distribution/tests/portal_contracts.cpp
 
 !/native/
 /native/*
@@ -69,11 +74,14 @@
 !/shell/services/
 !/shell/utils/
 /shell/assets/*
+!/shell/assets/askpass.py
 !/shell/assets/diagnostics.py
+!/shell/assets/emoji.json
 !/shell/assets/hyprstack_cli.py
 !/shell/assets/i18n.py
 !/shell/assets/notification_tools.py
 !/shell/assets/session_runner.py
+!/shell/assets/share_picker.py
 !/shell/assets/theme_manager.py
 !/shell/assets/theme_sync.py
 !/shell/assets/vpn.py

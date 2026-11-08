@@ -9,9 +9,21 @@ import qs.services
 Singleton {
     property ShellRoot shellRoot
 
-    function setLauncher(state: ScreenState, open: bool): void {
+    // What the search box should start with when the launcher next opens,
+    // so a keybind can land directly in one of its modes.
+    property string launcherPrefill
+
+    // Whether any screen has a menu up. The shell holds the input then, so
+    // the key that closes windows belongs to the shell and not to the
+    // compositor.
+    readonly property bool menuOpen: components.instances.some(c => c.rootWindow?.menuOpen ?? false)
+
+    // prefill is deliberately untyped: a declared string turns a missing
+    // argument into the word "undefined" rather than leaving it empty.
+    function setLauncher(state: ScreenState, open: bool, prefill): void {
         if (!state)
             return;
+        launcherPrefill = open ? (prefill ?? "") : "";
         Overview.close(false);
         for (const other of states.instances)
             if (other !== state)

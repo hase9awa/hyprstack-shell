@@ -99,6 +99,8 @@ public:
     explicit ScaledLauncherTokens(LauncherTokens* source, QObject* parent) : ScaledTokenGroup(source, parent), m_source(source) {}
     SCALED_DIMENSION(itemWidth)
     SCALED_DIMENSION(itemHeight)
+    SCALED_DIMENSION(clipHeight)
+    SCALED_DIMENSION(emojiHeight)
     SCALED_DIMENSION(wallpaperWidth)
     SCALED_DIMENSION(wallpaperHeight)
 private:

@@ -16,6 +16,13 @@ Searcher {
         return search.slice(GlobalConfig.launcher.actionPrefix.length);
     }
 
+    // Names are translated, while what gets typed after the prefix is the
+    // word the action completes to. Matching only the name left every Latin
+    // letter without a single result on a translated desktop.
+    function selector(item: var): string {
+        return item.keyword ? `${item.name} ${item.keyword}` : item.name;
+    }
+
     list: variants.instances
     useFuzzy: GlobalConfig.launcher.useFuzzy.actions
 
@@ -36,6 +43,8 @@ Searcher {
         readonly property string desc: modelData.description ? Tr.trMarked(modelData.description) : Tr.trCtx("No description", "launcher action with no description")
         readonly property string icon: modelData.icon ?? "help_outline"
         readonly property list<string> command: modelData.command ?? []
+        // The word this action fills the search box with, if it fills it.
+        readonly property string keyword: command.length > 1 && command[0] === "autocomplete" ? command[1] : ""
         readonly property bool enabled: modelData.enabled ?? true
         readonly property bool dangerous: modelData.dangerous ?? false
 

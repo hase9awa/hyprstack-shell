@@ -11,7 +11,12 @@ import "modules/areapicker"
 import "modules/lock"
 import "modules/overview" as OverviewModule
 import "modules/switcher" as SwitcherModule
+import "modules/askpass" as AskpassModule
+import "modules/bluetooth" as BluetoothModule
+import "modules/network" as NetworkModule
 import "modules/polkit" as PolkitModule
+import "modules/portals" as PortalsModule
+import "modules/sharepicker" as SharePickerModule
 import QtQuick
 import Quickshell
 import Hyprstack
@@ -33,10 +38,19 @@ ShellRoot {
     GSFLoader {}
     ServiceLoader {}
     PolkitModule.Polkit {}
+    AskpassModule.Askpass {}
+    BluetoothModule.Pairing {}
+    NetworkModule.Secrets {}
+    SharePickerModule.SharePicker {
+        areaPicker: areaPicker
+    }
+    PortalsModule.Portals {}
 
     Background {}
     Drawers {}
-    AreaPicker {}
+    AreaPicker {
+        id: areaPicker
+    }
     Lock {
         id: lock
     }

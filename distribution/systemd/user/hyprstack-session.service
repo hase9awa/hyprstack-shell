@@ -1,6 +1,12 @@
 [Unit]
 Description=Hyprstack desktop session
+# The session is what makes the graphical session exist, so it pulls the
+# target in and settles before it is reached. Without this the target stays
+# dead and everything keyed to it refuses to start: xdg-desktop-portal 1.22
+# and later hold a Requisite= on it, which takes down every portal backend.
 PartOf=graphical-session.target
+Wants=graphical-session.target
+Before=graphical-session.target
 ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
 StartLimitIntervalSec=60
 StartLimitBurst=3

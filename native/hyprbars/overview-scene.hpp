@@ -1,6 +1,7 @@
 // Hyprstack's overview is a compositor scene, not a layer-shell application.
 // Pinned to the same Hyprland 0.57 renderer ABI as the titlebar adaptation.
 #pragma once
+#include "function-lookup.hpp"
 #include "tile-frame.hpp"
 
 #include <hyprland/src/render/Renderer.hpp>
@@ -702,7 +703,7 @@ static void remove(HANDLE handle) {
 }
 static void install(HANDLE handle) {
     const auto function=[&](const char* name,const char* prefix) -> void* {
-        const auto matches=HyprlandAPI::findFunctionsByName(handle,name);
+        const auto matches=HyprstackSymbols::findFunctions(handle,name);
         const auto found=std::ranges::find_if(matches,[&](const auto& f){return f.demangled.starts_with(prefix) && (std::string(name) != "renderAllClientsForWorkspace" || f.demangled.contains("eSceneMode"));});
         if (found==matches.end()) throw std::runtime_error(std::string("[hyprstack] Missing pinned overview function ")+name);
         return found->address;

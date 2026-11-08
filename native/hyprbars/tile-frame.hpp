@@ -1,5 +1,6 @@
 // Square shared tile edges, concentric accent arcs at the desktop frame.
 #pragma once
+#include "function-lookup.hpp"
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/plugins/HookSystem.hpp>
 #include <hyprland/src/render/ElementRenderer.hpp>
@@ -100,7 +101,7 @@ static void remove(HANDLE handle) {
     borderHook = nullptr; radii.clear();
 }
 static void install(HANDLE handle) {
-    const auto matches = HyprlandAPI::findFunctionsByName(handle,"draw");
+    const auto matches = HyprstackSymbols::findFunctions(handle,"draw");
     const auto found = std::ranges::find_if(matches, [](const auto& function) {
         return function.demangled.starts_with("Render::GL::CGLElementRenderer::draw(") &&
             function.demangled.contains("CBorderPassElement");

@@ -213,7 +213,29 @@ bind_variable("kbPinWindow", hl.dsp.window.pin())
 bind_variable("kbWindowFullscreen", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 bind_variable("kbWindowBorderedFullscreen", hl.dsp.window.fullscreen({ mode = "maximized" }))
 bind_variable("kbToggleWindowFloating", hl.dsp.window.float())
-bind_variable("kbCloseWindow", hl.dsp.window.close())
+-- The shell draws its own dialogs and menus as layer surfaces, which the
+-- compositor does not count as windows and so cannot close. The shell leaves
+-- a mark while it has one up; without it the key closes a window as it always
+-- has, whether or not the shell is running.
+local dialog_flag = os.getenv("XDG_RUNTIME_DIR") and os.getenv("HYPRLAND_INSTANCE_SIGNATURE")
+    and (os.getenv("XDG_RUNTIME_DIR") .. "/hyprstack-dialogs-" .. os.getenv("HYPRLAND_INSTANCE_SIGNATURE"))
+
+local function shell_dialog_open()
+    if not dialog_flag then return false end
+    local file = io.open(dialog_flag, "r")
+    if not file then return false end
+    local mark = file:read("*l")
+    file:close()
+    return mark == "1"
+end
+
+bind_variable("kbCloseWindow", function()
+    if shell_dialog_open() then
+        hl.dispatch(hl.dsp.global("hyprstack:closeDialog"))
+    else
+        hl.dispatch(hl.dsp.window.close())
+    end
+end)
 
 -- Special workspace toggles
 bind_variable("kbSpecialWs", fn.toggle("specialws"))
@@ -270,9 +292,8 @@ create_bind(
 bind_variable("kbSleep", hl.dsp.exec_cmd(vars.sleepGestureCmd), locked)
 
 -- Clipboard and emoji picker
-bind_variable("kbClipboard", hl.dsp.exec_cmd("pkill fuzzel || hyprstack clipboard"))
-bind_variable("kbClipboardDel", hl.dsp.exec_cmd("pkill fuzzel || hyprstack clipboard -d"))
-bind_variable("kbEmoji", hl.dsp.exec_cmd("pkill fuzzel || hyprstack emoji -p"))
+bind_variable("kbClipboard", hl.dsp.exec_cmd("hyprstack clipboard"))
+bind_variable("kbEmoji", hl.dsp.exec_cmd("hyprstack emoji"))
 bind_variable("kbClipboardPasteLatest",
     hl.dsp.exec_cmd('sleep 0.5s && ydotool type -d 1 "$(cliphist list | head -1 | cliphist decode)"'),
     locked

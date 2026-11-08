@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.impl.portal.desktop.hyprstack
+Exec=/bin/false
+SystemdService=hyprstack-session.service

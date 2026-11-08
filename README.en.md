@@ -63,7 +63,7 @@ in settings.
 - **Appearance.** 18 built-in colour themes, light and dark modes, accents,
   colour synchronization for GTK, Qt, Java Swing and popular terminals,
   interface scaling, gaps, corners, transparency and animations.
-- **Lock and authentication.** PAM screen lock and a built-in Polkit agent.
+- **Lock and authentication.** PAM screen lock and built-in Polkit, Bluetooth pairing and NetworkManager secret agents.
 
 ## Installation
 

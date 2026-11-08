@@ -3,7 +3,6 @@
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qvariantlist.h>
-#include <qdir.h>
 
 #include "settings/objectnode.hpp"
 #include "util/i18n.hpp"
@@ -20,8 +19,10 @@ class GeneralApps : public settings::ObjectNode {
 
     CONFIG_PROPERTY(QStringList, terminal, { u"kitty"_s })
     CONFIG_PROPERTY(QStringList, audio, { u"pavucontrol"_s })
-    CONFIG_PROPERTY(QStringList, playback, { u"mpv"_s })
-    CONFIG_PROPERTY(QStringList, explorer, DEFAULT_ARG({ u"xdg-open"_s, QDir::homePath() }))
+    // Both are handed what to open, so neither carries a path of its own,
+    // and the desktop's own answer is the one default that is always there.
+    CONFIG_PROPERTY(QStringList, playback, { u"xdg-open"_s })
+    CONFIG_PROPERTY(QStringList, explorer, { u"xdg-open"_s })
 };
 
 class GeneralIdleTimeout : public settings::ObjectNode {

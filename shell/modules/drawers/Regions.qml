@@ -90,7 +90,14 @@ Region {
     }
 
     R {
+        // Claim the place the popout settles into as well as the one it still
+        // covers, so the pointer leaving the bar lands on the shell instead of
+        // falling through to the application below.
         panel: root.panels.popoutsWrapper
+        x: root.panels.x + root.panels.popoutsWrapper.reserved.x
+        y: root.panels.y + root.panels.popoutsWrapper.reserved.y
+        width: root.panels.popoutsWrapper.reserved.width
+        height: root.panels.popoutsWrapper.reserved.height
     }
 
     component R: Region {

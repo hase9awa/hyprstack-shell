@@ -80,6 +80,15 @@ MouseArea {
         }
     }
 
+    // Nothing is captured here: the geometry is the answer, and whatever
+    // reads the screen afterwards is someone else's business.
+    function reportRegion(): void {
+        if (closeAnim.running || loader.closing || sw < 1 || sh < 1)
+            return;
+        closeAnim.start();
+        loader.completeRegion(screen.name, Qt.rect(Math.ceil(rsx), Math.ceil(rsy), Math.floor(sw), Math.floor(sh)));
+    }
+
     function save(): void {
         if (saving || loader.closing || sw < 1 || sh < 1)
             return;
@@ -137,7 +146,9 @@ MouseArea {
         if (closeAnim.running || saving || loader.closing)
             return;
 
-        if (root.loader.freeze) {
+        if (root.loader.regionOnly) {
+            reportRegion();
+        } else if (root.loader.freeze) {
             save();
         } else {
             overlay.visible = border.visible = false;

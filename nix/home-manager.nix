@@ -27,6 +27,8 @@ in {
       source = "${package}/share/hyprstack/shell/assets/hyprland/config";
       recursive = true;
     };
+    xdg.configFile."xdg-desktop-portal/hyprland-portals.conf".source = lib.mkDefault
+      "${package}/share/hyprstack/defaults/xdg-desktop-portal/hyprland-portals.conf";
     # The compositor can start without sourcing hm-session-vars.sh (for example
     # from a display manager). Resolve its runtime from this generation directly.
     xdg.configFile."hyprstack/hypr-user.lua".text = ''
@@ -39,7 +41,11 @@ in {
     systemd.user.services.hyprstack-session = {
       Unit = {
         Description = "Hyprstack desktop session";
+        # See nixos-module.nix: the target refuses a manual start, so the
+        # session is what raises it, and portals depend on it being up.
         PartOf = [ "graphical-session.target" ];
+        Wants = [ "graphical-session.target" ];
+        Before = [ "graphical-session.target" ];
         ConditionEnvironment = "HYPRLAND_INSTANCE_SIGNATURE";
       };
       Service = {

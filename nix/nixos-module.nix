@@ -20,8 +20,28 @@ in {
 
     programs.hyprland.enable = true;
     programs.hyprland.package = lib.mkDefault package.hyprland;
-    programs.hyprlock.enable = true;
     environment.systemPackages = [ package ];
+
+    # The lock screen is the shell's own and authenticates through the PAM
+    # stack of this name, which is all that is wanted here. Switching
+    # programs.hyprlock on instead would also start hypridle beside the
+    # shell, and the shell watches idle itself.
+    security.pam.services.hyprlock = { };
+
+    # The shell answers appearance settings, file dialogs and permission
+    # prompts itself, so applications follow its theme without gsettings and
+    # ask through its own dialogs. Every other interface, screen sharing
+    # included, keeps the backend the session already uses.
+    xdg.portal.enable = lib.mkDefault true;
+    xdg.portal.extraPortals = [ package ];
+    xdg.portal.config.hyprland = {
+      "org.freedesktop.impl.portal.Settings" = lib.mkDefault [ "hyprstack" "gtk" ];
+      "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault [ "hyprstack" "gtk" ];
+      "org.freedesktop.impl.portal.Access" = lib.mkDefault [ "hyprstack" "gtk" ];
+      "org.freedesktop.impl.portal.AppChooser" = lib.mkDefault [ "hyprstack" "gtk" ];
+      "org.freedesktop.impl.portal.Wallpaper" = lib.mkDefault [ "hyprstack" "gtk" ];
+    };
+
     environment.sessionVariables = {
       HYPRSTACK_DATA_DIR = "${package}/share/hyprstack";
       HYPRSTACK_SESSION_COMMAND = "${package}/bin/hyprstack-session";
@@ -29,7 +49,12 @@ in {
 
     systemd.user.services.hyprstack-session = {
       description = "Hyprstack desktop session";
+      # Pull in graphical-session.target and settle before it is reached: it
+      # refuses a manual start, so nothing else raises it, and from 1.22 on
+      # xdg-desktop-portal holds a Requisite= on it.
       partOf = [ "graphical-session.target" ];
+      wants = [ "graphical-session.target" ];
+      before = [ "graphical-session.target" ];
       unitConfig.ConditionEnvironment = "HYPRLAND_INSTANCE_SIGNATURE";
       serviceConfig = {
         Type = "simple";

@@ -27,6 +27,13 @@ StyledWindow {
         return message;
     }
 
+    // The key that closes a window cannot close a layer surface, so the
+    // shell is asked to, and this answers it the way Escape does.
+    signal closeRequested
+
+    Component.onDestruction: Dialogs.unregister(root)
+    onCloseRequested: root.cancel()
+
     name: "polkit"
     Config.screen: screen?.name ?? ""
     Tokens.screen: screen?.name ?? ""
@@ -81,7 +88,10 @@ StyledWindow {
     onFlowChanged: resetInput()
     onAwaitingResponseChanged: focusInput()
     onBackingWindowVisibleChanged: if (backingWindowVisible) focusInput()
-    Component.onCompleted: resetInput()
+    Component.onCompleted: {
+        resetInput();
+        Dialogs.register(root);
+    }
 
     Connections {
         target: root.flow

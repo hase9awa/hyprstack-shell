@@ -216,5 +216,47 @@ PageBase {
             active: root.gpuItems[GlobalConfig.services.gpuType]
             onSelected: item => GlobalConfig.services.gpuType = root.gpuItems.indexOf(item)
         }
+
+        // What the shell answers for on the session's behalf
+        SectionHeader {
+            text: Tr.tr("Answered by the shell")
+        }
+
+        ToggleRow {
+            first: true
+            text: Tr.tr("Desktop portals")
+            subtext: Tr.tr("Permission prompts, file dialogs, the application chooser and the wallpaper offer. Off hands them to another backend.")
+            checked: GlobalConfig.services.portals
+            onToggled: GlobalConfig.services.portals = checked
+        }
+
+        ToggleRow {
+            text: Tr.tr("Authorisation requests")
+            subtext: Tr.tr("The Polkit agent. A session wants one agent, no more.")
+            checked: GlobalConfig.services.polkitAgent
+            onToggled: GlobalConfig.services.polkitAgent = checked
+        }
+
+        ToggleRow {
+            text: Tr.tr("Passwords for ssh and sudo")
+            subtext: Tr.tr("Asked here when the terminal has nowhere to ask. Off leaves both to ask for themselves.")
+            checked: GlobalConfig.services.askpass
+            onToggled: GlobalConfig.services.askpass = checked
+        }
+
+        ToggleRow {
+            text: Tr.tr("Bluetooth pairing questions")
+            subtext: Tr.tr("Codes to compare and PINs to type. With nobody to ask, bluez refuses the pairing.")
+            checked: GlobalConfig.services.bluetoothAgent
+            onToggled: GlobalConfig.services.bluetoothAgent = checked
+        }
+
+        ToggleRow {
+            last: true
+            text: Tr.tr("NetworkManager passwords")
+            subtext: Tr.tr("For a VPN, a network with 802.1x, and connections brought up on their own.")
+            checked: GlobalConfig.services.networkSecrets
+            onToggled: GlobalConfig.services.networkSecrets = checked
+        }
     }
 }

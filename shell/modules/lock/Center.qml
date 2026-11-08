@@ -46,6 +46,10 @@ ColumnLayout {
         lock: root.lock
     }
 
+    KeyboardStatus {
+        Layout.alignment: Qt.AlignHCenter
+    }
+
     StateMessage {
         Layout.fillWidth: true
         pam: root.lock.pam

@@ -20,6 +20,13 @@ Item {
     readonly property int rounding: Tokens.rounding.extraLarge
     function focusSearch(): void { search.forceActiveFocus(); }
 
+    function applyPrefill(): void {
+        if (!ShellState.launcherPrefill)
+            return;
+        search.text = ShellState.launcherPrefill;
+        ShellState.launcherPrefill = "";
+    }
+
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight: search.height + listWrapper.height + padding + search.anchors.bottomMargin
 
@@ -70,6 +77,12 @@ Item {
                         Wallpapers.previewColourLock = true;
                     Wallpapers.setWallpaper(currentItem.modelData.path);
                     root.screenState.launcher = false;
+                } else if (list.showClipboard) {
+                    Clipboard.activate(currentItem.modelData);
+                    root.screenState.launcher = false;
+                } else if (list.showEmoji) {
+                    Emoji.activate(currentItem.modelData);
+                    root.screenState.launcher = false;
                 } else if (text.startsWith(GlobalConfig.launcher.actionPrefix)) {
                     if (text.startsWith(`${GlobalConfig.launcher.actionPrefix}calc `))
                         currentItem.onClicked();
@@ -88,6 +101,19 @@ Item {
         Keys.onEscapePressed: root.screenState.launcher = false
 
         Keys.onPressed: event => {
+            // While a command is still being typed, Tab finishes it rather
+            // than moving the selection.
+            if (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier)
+                && text.startsWith(GlobalConfig.launcher.actionPrefix)
+                && !text.slice(GlobalConfig.launcher.actionPrefix.length).includes(" ")) {
+                const action = list.currentList?.currentItem?.modelData;
+                if (action?.keyword) {
+                    action.onClicked(list.currentList);
+                    event.accepted = true;
+                    return;
+                }
+            }
+
             if (!GlobalConfig.launcher.vimKeybinds)
                 return;
 
@@ -108,7 +134,18 @@ Item {
             }
         }
 
-        Component.onCompleted: forceActiveFocus()
+        Component.onCompleted: {
+            root.applyPrefill();
+            forceActiveFocus();
+        }
+
+        Connections {
+            // The prefill lands before the drawer is told to open, so the
+            // mode is already chosen by the time anything is drawn.
+            function onLauncherPrefillChanged(): void { root.applyPrefill(); }
+
+            target: ShellState
+        }
 
         Connections {
             function onLauncherChanged(): void {

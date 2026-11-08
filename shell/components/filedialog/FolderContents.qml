@@ -19,6 +19,43 @@ Item {
 
     required property var dialog
     readonly property FileEntry currentItem: view.currentItem as FileEntry
+    property list<string> selectedPaths
+
+    function contains(name: string): bool {
+        if (!name)
+            return false;
+        for (const entry of view.model.entries)
+            if (entry.name === name)
+                return true;
+        return false;
+    }
+
+    // What a click means depends on the mode: saving fills the name in,
+    // picking a folder answers with the folder already shown, and opening
+    // builds the selection.
+    function select(file: FileSystemEntry): void {
+        if (dialog.mode === FileDialog.Save) {
+            if (!file.isDir)
+                dialog.saveName = file.name;
+            return;
+        }
+        if (dialog.mode === FileDialog.SelectFolder)
+            return;
+
+        if (!dialog.matchesFilter(file)) {
+            if (!file.isDir)
+                selectedPaths = [];
+            return;
+        }
+
+        if (!dialog.multiple) {
+            selectedPaths = [file.path];
+        } else if (selectedPaths.includes(file.path)) {
+            selectedPaths = selectedPaths.filter(path => path !== file.path);
+        } else {
+            selectedPaths = [...selectedPaths, file.path];
+        }
+    }
 
     StyledRect {
         anchors.fill: parent
@@ -88,27 +125,22 @@ Item {
         currentIndex: -1
         Keys.onEscapePressed: currentIndex = -1
 
-        Keys.onReturnPressed: {
-            if (root.dialog.selectionValid)
-                root.dialog.accepted((currentItem as FileEntry).modelData.path);
-        }
-        Keys.onEnterPressed: {
-            if (root.dialog.selectionValid)
-                root.dialog.accepted((currentItem as FileEntry).modelData.path);
-        }
+        Keys.onReturnPressed: root.dialog.submit()
+        Keys.onEnterPressed: root.dialog.submit()
 
         StyledScrollBar.vertical: StyledScrollBar {
             flickable: view
         }
 
         model: FileSystemModel {
-            path: {
-                if (root.dialog.cwd[0] === "Home")
-                    return Paths.home + `/${root.dialog.cwd.slice(1).join("/")}`;
-                else
-                    return root.dialog.cwd.join("/");
+            path: root.dialog.currentPath
+            // Offering files while the caller asked for a folder only invites
+            // picking the wrong thing.
+            filter: root.dialog.mode === FileDialog.SelectFolder ? FileSystemModel.Dirs : FileSystemModel.NoFilter
+            onPathChanged: {
+                view.currentIndex = -1;
+                root.selectedPaths = [];
             }
-            onPathChanged: view.currentIndex = -1
         }
 
         delegate: FileEntry {}
@@ -152,6 +184,7 @@ Item {
         anchors.margins: Tokens.padding.extraSmall
 
         currentItem: view.currentItem
+        selectedCount: root.selectedPaths.length
     }
 
     component FileEntry: StyledRect {
@@ -159,6 +192,7 @@ Item {
 
         required property int index
         required property FileSystemEntry modelData
+        readonly property bool selected: !!modelData && (root?.selectedPaths ?? []).includes(modelData.path)
 
         readonly property real nonAnimHeight: icon.implicitHeight + name.anchors.topMargin + name.implicitHeight + Tokens.padding.medium * 2
 
@@ -166,17 +200,37 @@ Item {
         implicitHeight: nonAnimHeight
 
         radius: Tokens.rounding.large
-        color: Qt.alpha(Colours.tPalette.m3surfaceContainerHighest, GridView.isCurrentItem ? Colours.tPalette.m3surfaceContainerHighest.a : 0)
+        color: Qt.alpha(Colours.tPalette.m3surfaceContainerHighest, selected || GridView.isCurrentItem ? Colours.tPalette.m3surfaceContainerHighest.a : 0)
         z: GridView.isCurrentItem || implicitHeight !== nonAnimHeight ? 1 : 0
         clip: true
 
         StateLayer {
-            onClicked: view.currentIndex = item.index
+            color: item.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+            onClicked: {
+                view.currentIndex = item.index;
+                root.select(item.modelData);
+            }
             onDoubleClicked: {
                 if (item.modelData.isDir)
                     root.dialog.cwd.push(item.modelData.name);
-                else if (root.dialog.selectionValid)
-                    root.dialog.accepted(item.modelData.path);
+                else
+                    root.dialog.submit();
+            }
+        }
+
+        Loader {
+            asynchronous: true
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Tokens.padding.extraSmall
+
+            active: item.selected && root.dialog.multiple
+            visible: active
+
+            sourceComponent: MaterialIcon {
+                text: "check_circle"
+                color: Colours.palette.m3primary
+                fill: 1
             }
         }
 
@@ -195,10 +249,16 @@ Item {
                     source = Qt.resolvedUrl(file.path);
                 else if (!file.isDir)
                     source = Quickshell.iconPath(file.mimeType.replace("/", "-"), "application-x-zerosize");
-                else if (root.dialog.cwd.length === 1 && ["Desktop", "Documents", "Downloads", "Music", "Pictures", "Public", "Templates", "Videos"].includes(file.name))
-                    source = Quickshell.iconPath(`folder-${file.name.toLowerCase()}`);
-                else
-                    source = Quickshell.iconPath("inode-directory");
+                else {
+                    // The desktop's own folders are known by their paths:
+                    // their names are in the user's language, their icons
+                    // are not.
+                    const kind = [[Paths.desktop, "desktop"], [Paths.documents, "documents"],
+                        [Paths.downloads, "download"], [Paths.music, "music"],
+                        [Paths.pictures, "pictures"], [Paths.videos, "videos"]]
+                        .find(entry => entry[0] && entry[0] === file.path);
+                    source = Quickshell.iconPath(kind ? `folder-${kind[1]}` : "inode-directory", "inode-directory");
+                }
             }
         }
 
@@ -214,6 +274,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             elide: item.GridView.isCurrentItem ? Text.ElideNone : Text.ElideRight
             wrapMode: item.GridView.isCurrentItem ? Text.WrapAtWordBoundaryOrAnywhere : Text.NoWrap
+            color: item.selected ? Colours.palette.m3primary : Colours.palette.m3onSurface
 
             Component.onCompleted: text = item.modelData.name
         }
