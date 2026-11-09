@@ -18,7 +18,9 @@ static void removed(void *data, struct wl_registry *registry, uint32_t name) {}
 static const struct wl_registry_listener listener = {global, removed};
 
 int main(int argc, char **argv) {
-    if (argc != 5) return 2;
+    if (argc != 5 && argc != 6) return 2;
+    const int wheel = argc == 6;
+    if (wheel && strcmp(argv[5], "up") && strcmp(argv[5], "down")) return 2;
     struct wl_display *display = wl_display_connect(NULL);
     if (!display) return 3;
     struct wl_registry *registry = wl_display_get_registry(display);
@@ -29,10 +31,17 @@ int main(int argc, char **argv) {
     zwlr_virtual_pointer_v1_motion_absolute(pointer, 1, atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
     zwlr_virtual_pointer_v1_frame(pointer);
     wl_display_roundtrip(display);
-    zwlr_virtual_pointer_v1_button(pointer, 2, BTN_LEFT, WL_POINTER_BUTTON_STATE_PRESSED);
-    zwlr_virtual_pointer_v1_frame(pointer);
-    wl_display_roundtrip(display);
-    zwlr_virtual_pointer_v1_button(pointer, 3, BTN_LEFT, WL_POINTER_BUTTON_STATE_RELEASED);
+    if (wheel) {
+        const int direction = !strcmp(argv[5], "up") ? -1 : 1;
+        zwlr_virtual_pointer_v1_axis_source(pointer, WL_POINTER_AXIS_SOURCE_WHEEL);
+        zwlr_virtual_pointer_v1_axis_discrete(pointer, 2, WL_POINTER_AXIS_VERTICAL_SCROLL,
+                                            wl_fixed_from_int(direction * 15), direction);
+    } else {
+        zwlr_virtual_pointer_v1_button(pointer, 2, BTN_LEFT, WL_POINTER_BUTTON_STATE_PRESSED);
+        zwlr_virtual_pointer_v1_frame(pointer);
+        wl_display_roundtrip(display);
+        zwlr_virtual_pointer_v1_button(pointer, 3, BTN_LEFT, WL_POINTER_BUTTON_STATE_RELEASED);
+    }
     zwlr_virtual_pointer_v1_frame(pointer);
     wl_display_roundtrip(display);
     zwlr_virtual_pointer_v1_destroy(pointer);

@@ -18,7 +18,7 @@ StyledClippingRect {
     required property bool fullscreen
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)
-    readonly property bool onSpecial: monitor?.lastIpcObject.specialWorkspace?.name !== ""
+    readonly property bool onSpecial: (monitor?.lastIpcObject.specialWorkspace?.name ?? "").length > 0
     readonly property int activeWsId: monitor?.activeWorkspace?.id ?? 1
     readonly property int activeWsIdx: workspaceIndex(activeWsId)
     readonly property int shown: Hypr.perMonitorWorkspaces ? Hypr.workspaceCount : Math.max(1, Config.bar.workspaces.shown)
@@ -164,10 +164,7 @@ StyledClippingRect {
                 const ws = (workspaces.itemAt(event.x, event.y) as Workspace)?.ws;
                 if (!ws)
                     return;
-                if (root.activeWsId !== ws || Hypr.focusedMonitor !== root.monitor)
-                    Hypr.focusWorkspace(ws, root.monitor);
-                else
-                    Hypr.toggleSpecial("special");
+                Hypr.focusWorkspace(ws, root.monitor);
             }
         }
 

@@ -47,6 +47,8 @@
 !/distribution/tests/test_screenshots.py
 !/distribution/tests/screenshot_shell.qml
 !/distribution/tests/wayland_test_pointer.c
+!/distribution/tests/test_workspace_panel.py
+!/distribution/tests/workspace_panel_shell.qml
 !/distribution/tests/test_media_viewer.py
 !/distribution/tests/media_viewer_client.c
 
