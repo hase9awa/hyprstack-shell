@@ -261,10 +261,6 @@ LazyLoader {
                         dialog: root
                     }
 
-                    ViewControls {
-                        Layout.fillWidth: true
-                    }
-
                     FolderContents {
                         id: folderContents
 

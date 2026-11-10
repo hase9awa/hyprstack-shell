@@ -73,5 +73,7 @@ StyledRect {
             checked: root.dialog.showHidden
             onClicked: root.dialog.showHidden = !root.dialog.showHidden
         }
+
+        ViewControls {}
     }
 }

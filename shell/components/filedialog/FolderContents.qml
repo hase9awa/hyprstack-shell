@@ -144,10 +144,50 @@ Item {
         anchors.leftMargin: Tokens.padding.extraSmall + Tokens.padding.medium * 2 + 26 * Tokens.scale + Tokens.spacing.medium
         anchors.rightMargin: Tokens.padding.extraSmall + Tokens.padding.medium * 2
         spacing: Tokens.spacing.medium
-        StyledText { Layout.fillWidth: true; text: Tr.trCtx("Name", "file column"); color: Colours.palette.m3onSurfaceVariant }
-        StyledText { Layout.preferredWidth: root.modifiedWidth; text: Tr.tr("Date modified"); color: Colours.palette.m3onSurfaceVariant }
-        StyledText { Layout.preferredWidth: root.sizeWidth; text: Tr.trCtx("Size", "file column"); color: Colours.palette.m3onSurfaceVariant }
-        StyledText { Layout.preferredWidth: root.typeWidth; text: Tr.trCtx("Type", "file column"); color: Colours.palette.m3onSurfaceVariant }
+        ColumnHeader { Layout.fillWidth: true; field: "name"; label: Tr.trCtx("Name", "file column") }
+        ColumnHeader { Layout.preferredWidth: root.modifiedWidth; field: "modified"; label: Tr.tr("Date modified") }
+        ColumnHeader { Layout.preferredWidth: root.sizeWidth; field: "size"; label: Tr.trCtx("Size", "file column") }
+        ColumnHeader { Layout.preferredWidth: root.typeWidth; field: "type"; label: Tr.trCtx("Type", "file column") }
+    }
+
+    component ColumnHeader: Item {
+        id: header
+        required property string field
+        required property string label
+        readonly property bool active: FileDialogSettings.sortBy === field
+        objectName: "fileDialogSort_" + field
+        implicitHeight: heading.implicitHeight + Tokens.padding.small * 2
+        Accessible.role: Accessible.Button
+        Accessible.name: label
+        Accessible.onPressAction: FileDialogSettings.chooseSort(field)
+
+        StateLayer {
+            anchors.fill: parent
+            radius: Tokens.rounding.small
+            color: header.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+            disabled: !FileDialogSettings.loaded
+            onClicked: FileDialogSettings.chooseSort(header.field)
+        }
+
+        StyledText {
+            id: heading
+            anchors.fill: parent
+            anchors.rightMargin: indicator.visible ? indicator.implicitWidth + Tokens.spacing.extraSmall : 0
+            verticalAlignment: Text.AlignVCenter
+            text: header.label
+            color: header.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+            elide: Text.ElideRight
+        }
+
+        MaterialIcon {
+            id: indicator
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            visible: header.active
+            text: FileDialogSettings.reverse ? "arrow_downward" : "arrow_upward"
+            color: Colours.palette.m3primary
+            fontStyle: Tokens.font.icon.small
+        }
     }
 
     GridView {
