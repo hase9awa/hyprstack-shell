@@ -182,6 +182,7 @@ def main():
 
         click("saveScreenshotAs")
         wait(lambda: "filechooser" in status()["dialogs"], "Save as")
+        wait(lambda: has_layer("hyprstack-filechooser"), "mapped Save as")
         key("-k", "Escape")
         wait(lambda: status()["dialogs"] == ["screenshot"], "cancelled Save as")
         click("saveScreenshot")

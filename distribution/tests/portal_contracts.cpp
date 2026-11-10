@@ -1,10 +1,13 @@
 #include "nmsecretagent.hpp"
 #include "filechooserportal.hpp"
+#include "filevolumes.hpp"
 #include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCallWatcher>
 #include <QDBusArgument>
+#include <QDBusContext>
+#include <QTimer>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
@@ -15,6 +18,7 @@
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
 
 using namespace hyprstack::services;
 using namespace hyprstack::portals;
@@ -84,6 +88,109 @@ public slots:
     }
 };
 
+class FakeDisks : public QObject {
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.freedesktop.DBus.ObjectManager")
+public:
+    VolumeObjects objects;
+public slots:
+    VolumeObjects GetManagedObjects() { return objects; }
+signals:
+    void InterfacesAdded(const QDBusObjectPath& path, const VolumeInterfaces& interfaces);
+};
+
+class FakeMount : public QObject, protected QDBusContext {
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.freedesktop.UDisks2.Filesystem")
+public:
+    QString path;
+    bool deny = false;
+    int calls = 0;
+public slots:
+    QString Mount(const QVariantMap& options) {
+        ++calls;
+        require(options.isEmpty(), "Mount forced filesystem options");
+        if (deny) {
+            sendErrorReply("org.freedesktop.UDisks2.Error.NotAuthorized", "Test: permission denied");
+            return {};
+        }
+        const auto call = message();
+        const auto bus = connection();
+        setDelayedReply(true);
+        QTimer::singleShot(100, this, [this, call, bus] {
+            bus.send(call.createReply(path));
+        });
+        return {};
+    }
+};
+
+static void checkVolumes() {
+    auto bus = QDBusConnection::connectToBus(qEnvironmentVariable("DBUS_SYSTEM_BUS_ADDRESS"), "fake-udisks");
+    FileVolumes volumes; // Registers the wire types used by the fake service too.
+    FakeDisks disks;
+    FakeMount mount;
+    QTemporaryDir directory;
+    require(directory.isValid(), "Cannot create mounted-volume fixture");
+    mount.path = directory.path();
+    const QString device = "/org/freedesktop/UDisks2/block_devices/data";
+    auto entry = [](const QString& name, const QList<QByteArray>& points, bool ignore = false) {
+        return VolumeInterfaces{
+            {"org.freedesktop.UDisks2.Block", {{"IdUsage", "filesystem"}, {"IdType", "ntfs"},
+                {"IdLabel", name}, {"PreferredDevice", QByteArray("/dev/test\0", 10)},
+                {"HintIgnore", ignore}, {"Drive", QVariant::fromValue(QDBusObjectPath("/"))}}},
+            {"org.freedesktop.UDisks2.Filesystem", {{"MountPoints", QVariant::fromValue(points)}}}};
+    };
+    disks.objects.insert(QDBusObjectPath(device), entry("Windows 11", {}));
+    disks.objects.insert(QDBusObjectPath(device + "_root"), entry("System", {QByteArray("/\0", 2)}));
+    auto efi = entry("EFI", {});
+    efi.insert("org.freedesktop.UDisks2.Partition", {{"Type", "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"}});
+    disks.objects.insert(QDBusObjectPath(device + "_efi"), efi);
+    disks.objects.insert(QDBusObjectPath(device + "_ignored"), entry("Hidden", {}, true));
+    require(bus.registerService("org.freedesktop.UDisks2"), "Cannot own fake UDisks service");
+    require(bus.registerObject("/org/freedesktop/UDisks2", &disks,
+        QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals), "Cannot export volume list");
+    require(bus.registerObject(device, &mount, QDBusConnection::ExportAllSlots), "Cannot export fake Mount");
+    volumes.refresh();
+    auto hasName = [&](const QString& name) {
+        return std::ranges::any_of(volumes.volumes(), [&](const QVariant& v) {
+            return v.toMap().value("name").toString() == name;
+        });
+    };
+    until([&] { return hasName("Windows 11"); });
+    require(!hasName("System") && !hasName("EFI") && !hasName("Hidden"), "System or ignored volumes shown");
+    require(mount.calls == 0, "Listing mounted a disk");
+    std::cout << "PASS: listing excludes system/EFI/ignored partitions and never mounts\n" << std::flush;
+    QString opened, failure;
+    QObject::connect(&volumes, &FileVolumes::opened, &volumes, [&](const QString& path) { opened = path; });
+    QObject::connect(&volumes, &FileVolumes::failed, &volumes, [&](const QString& error) {
+        failure = error;
+    });
+    volumes.openVolume("invalid");
+    require(mount.calls == 0 && volumes.busyId().isEmpty(), "Invalid volume was opened");
+    volumes.openVolume(device);
+    volumes.openVolume(device);
+    require(volumes.busyId() == device, "Mount does not expose busy state");
+    until([&] { return opened == directory.path(); });
+    require(mount.calls == 1 && volumes.busyId().isEmpty(), "Duplicate mount or stuck busy state");
+    std::cout << "PASS: mount runs once asynchronously and opens its returned directory\n" << std::flush;
+    mount.deny = true;
+    volumes.openVolume(device);
+    until([&] { return !failure.isEmpty(); });
+    require(failure.contains("permission denied") && volumes.busyId().isEmpty(), "Mount failure lost or dialog stuck");
+    std::cout << "PASS: mount failure is reported and clears busy state\n" << std::flush;
+    const auto mounted = entry("USB files", {directory.path().toUtf8() + '\0'});
+    disks.objects.insert(QDBusObjectPath(device + "_usb"), mounted);
+    emit disks.InterfacesAdded(QDBusObjectPath(device + "_usb"), mounted);
+    until([&] { return hasName("USB files"); });
+    opened.clear();
+    volumes.openVolume(device + "_usb");
+    require(opened == directory.path() && mount.calls == 2, "Mounted volume remounted or path not decoded");
+    bus.unregisterObject(device);
+    bus.unregisterObject("/org/freedesktop/UDisks2");
+    bus.unregisterService("org.freedesktop.UDisks2");
+    std::cout << "PASS: disk discovery, system/EFI filtering, explicit asynchronous mount, failures and hotplug\n";
+}
+
 int main(int argc, char** argv) {
     QCoreApplication app(argc, argv);
     try {
@@ -146,6 +253,7 @@ int main(int argc, char** argv) {
         require(pending.reply().type() != QDBusMessage::ErrorMessage && pending.reply().arguments().size() == 2
             && pending.reply().arguments().first().toUInt() != 0, "Request.Close did not withdraw the portal request");
         std::cout << "PASS: portal Request.Close completes the pending call\n";
+        checkVolumes();
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 1;

@@ -62,6 +62,7 @@ DialogWindow {
     Shortcut {
         sequence: "Escape"
         context: Qt.WindowShortcut
+        enabled: !dialog.active
         onActivated: root.dismissed()
     }
 

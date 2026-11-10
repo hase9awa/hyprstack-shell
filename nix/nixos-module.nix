@@ -26,6 +26,7 @@ in {
       override = args: package.hyprland.override args;
     });
     environment.systemPackages = [ package ];
+    services.udisks2.enable = lib.mkDefault true;
 
     # The lock screen is the shell's own and authenticates through the PAM
     # stack of this name, which is all that is wanted here. Switching

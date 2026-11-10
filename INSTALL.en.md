@@ -22,7 +22,7 @@ sudo pacman -Syu --needed base-devel git cmake ninja pkgconf gettext \
   pixman libdrm libinput systemd-libs wayland libxkbcommon pango cairo \
   python python-pillow fuzzel wl-clipboard cliphist grim slurp wf-recorder \
   libnotify brightnessctl networkmanager pipewire pipewire-audio \
-  pipewire-pulse wireplumber polkit libcap hyprlock hyprpicker xdg-utils \
+  pipewire-pulse wireplumber polkit udisks2 libcap hyprlock hyprpicker xdg-utils \
   xdg-user-dirs libxml2 adwaita-icon-theme dbus glib2 gsettings-desktop-schemas \
   xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
 ```

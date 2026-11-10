@@ -48,6 +48,7 @@ StyledRect {
             active: root.dialog.mode === FileDialog.Save
 
             sourceComponent: StyledTextField {
+                objectName: "fileDialogName"
                 text: root.dialog.saveName
                 placeholderText: Tr.tr("File name")
                 onTextChanged: root.dialog.saveName = text
@@ -120,6 +121,7 @@ StyledRect {
         }
 
         StyledRect {
+            objectName: "fileDialogAccept"
             color: Colours.tPalette.m3surfaceContainerHigh
             radius: Tokens.rounding.medium
 
@@ -143,6 +145,7 @@ StyledRect {
         }
 
         StyledRect {
+            objectName: "fileDialogCancel"
             color: Colours.tPalette.m3surfaceContainerHigh
             radius: Tokens.rounding.medium
 

@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Hyprstack
 import Hyprstack.Config
 import Hyprstack.I18n
+import Hyprstack.Services
 import qs.components
 import qs.components.containers
 import qs.components.controls
@@ -22,6 +23,7 @@ StyledRect {
     // here instead: its folder is called after the user.
     readonly property var places: [
         {path: Paths.home, name: Tr.trCtx("Home", "file dialog place"), icon: "home"},
+        {path: "/", name: Tr.tr("File system"), icon: "hard_drive"},
         {path: Paths.downloads, icon: "file_download"},
         {path: Paths.desktop, icon: "desktop_windows"},
         {path: Paths.documents, icon: "description"},
@@ -42,6 +44,12 @@ StyledRect {
 
     Bookmarks {
         id: bookmarks
+    }
+
+    FileVolumes {
+        id: volumes
+        onOpened: path => root.dialog.navigate(path)
+        onFailed: message => root.dialog.errorMessage = Tr.tr("Could not open the drive: %1").arg(message)
     }
 
     StyledFlickable {
@@ -89,6 +97,21 @@ StyledRect {
 
                 Place {}
             }
+
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: Tokens.spacing.medium
+                Layout.bottomMargin: Tokens.spacing.small
+                visible: volumes.volumes.length > 0
+                text: Tr.tr("Drives")
+                color: Colours.palette.m3onSurface
+                font: Tokens.font.body.builders.large.weight(Font.Bold).build()
+            }
+
+            Repeater {
+                model: volumes.volumes
+                Place { drive: true }
+            }
         }
     }
 
@@ -96,6 +119,8 @@ StyledRect {
         id: place
 
         required property var modelData
+        property bool drive: false
+        readonly property bool busy: drive && volumes.busyId === modelData.id
         readonly property bool selected: modelData.path === root.dialog.currentPath
 
         Layout.fillWidth: true
@@ -106,7 +131,11 @@ StyledRect {
 
         StateLayer {
             color: place.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
-            onClicked: root.dialog.cwd = root.dialog.segmentsFor(place.modelData.path)
+            disabled: place.drive && volumes.busyId.length > 0
+            onClicked: {
+                if (place.drive) volumes.openVolume(place.modelData.id);
+                else root.dialog.navigate(place.modelData.path);
+            }
         }
 
         RowLayout {
@@ -120,7 +149,7 @@ StyledRect {
             spacing: Tokens.spacing.medium
 
             MaterialIcon {
-                text: place.modelData.icon
+                text: place.busy ? "hourglass_top" : place.drive ? (place.modelData.removable ? "usb" : "hard_drive") : place.modelData.icon
                 color: place.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                 fontStyle: Tokens.font.icon.medium
                 fill: place.selected ? 1 : 0
@@ -138,6 +167,13 @@ StyledRect {
                 color: place.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                 font: Tokens.font.body.small
                 elide: Text.ElideRight
+            }
+
+            MaterialIcon {
+                visible: place.drive && !place.modelData.mounted && !place.busy
+                text: "add_circle"
+                color: Colours.palette.m3onSurfaceVariant
+                fontStyle: Tokens.font.icon.small
             }
         }
     }

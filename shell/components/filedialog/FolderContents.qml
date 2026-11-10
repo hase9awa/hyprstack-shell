@@ -16,10 +16,19 @@ import qs.utils
 
 Item {
     id: root
+    objectName: "fileDialogContents"
 
     required property var dialog
     readonly property FileEntry currentItem: view.currentItem as FileEntry
     property list<string> selectedPaths
+
+    function focusContents(): void { view.forceActiveFocus(); }
+
+    function activateCurrent(): void {
+        const file = currentItem?.modelData;
+        if (file?.isDir) dialog.navigate(file.path);
+        else dialog.submit();
+    }
 
     function contains(name: string): bool {
         if (!name)
@@ -43,7 +52,7 @@ Item {
             return;
 
         if (!dialog.matchesFilter(file)) {
-            if (!file.isDir)
+            if (!file.isDir || !dialog.multiple)
                 selectedPaths = [];
             return;
         }
@@ -113,6 +122,7 @@ Item {
 
     GridView {
         id: view
+        objectName: "fileDialogEntries"
 
         anchors.fill: parent
         anchors.margins: Tokens.padding.extraSmall + Tokens.padding.medium
@@ -125,8 +135,12 @@ Item {
         currentIndex: -1
         Keys.onEscapePressed: currentIndex = -1
 
-        Keys.onReturnPressed: root.dialog.submit()
-        Keys.onEnterPressed: root.dialog.submit()
+        Keys.onReturnPressed: root.activateCurrent()
+        Keys.onEnterPressed: root.activateCurrent()
+        onCurrentIndexChanged: {
+            if (currentItem?.modelData && !root.dialog.multiple)
+                root.select(currentItem.modelData);
+        }
 
         StyledScrollBar.vertical: StyledScrollBar {
             flickable: view
@@ -134,6 +148,7 @@ Item {
 
         model: FileSystemModel {
             path: root.dialog.currentPath
+            showHidden: root.dialog.showHidden
             // Offering files while the caller asked for a folder only invites
             // picking the wrong thing.
             filter: root.dialog.mode === FileDialog.SelectFolder ? FileSystemModel.Dirs : FileSystemModel.NoFilter
@@ -189,6 +204,7 @@ Item {
 
     component FileEntry: StyledRect {
         id: item
+        objectName: "fileDialogEntry_" + (modelData?.name ?? "")
 
         required property int index
         required property FileSystemEntry modelData
@@ -212,7 +228,7 @@ Item {
             }
             onDoubleClicked: {
                 if (item.modelData.isDir)
-                    root.dialog.cwd.push(item.modelData.name);
+                    root.dialog.navigate(item.modelData.path);
                 else
                     root.dialog.submit();
             }
@@ -234,21 +250,23 @@ Item {
             }
         }
 
-        CachingIconImage {
+        Item {
             id: icon
 
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.topMargin: Tokens.padding.medium
 
-            implicitSize: Sizes.itemWidth - Tokens.padding.medium * 2
+            implicitWidth: Sizes.itemWidth - Tokens.padding.medium * 2
+            implicitHeight: implicitWidth
 
-            Component.onCompleted: {
+            readonly property url iconSource: {
                 const file = item.modelData;
-                if (file.isImage)
-                    source = Qt.resolvedUrl(file.path);
-                else if (!file.isDir)
-                    source = Quickshell.iconPath(file.mimeType.replace("/", "-"), "application-x-zerosize");
+                if (!file) return "";
+                if (file.isImage) return Paths.fileUrl(file.path);
+                let names;
+                if (!file.isDir)
+                    names = [file.mimeType.replace("/", "-"), `${file.mimeType.split("/")[0]}-x-generic`, "text-x-generic"];
                 else {
                     // The desktop's own folders are known by their paths:
                     // their names are in the user's language, their icons
@@ -257,8 +275,33 @@ Item {
                         [Paths.downloads, "download"], [Paths.music, "music"],
                         [Paths.pictures, "pictures"], [Paths.videos, "videos"]]
                         .find(entry => entry[0] && entry[0] === file.path);
-                    source = Quickshell.iconPath(kind ? `folder-${kind[1]}` : "inode-directory", "inode-directory");
+                    names = [kind ? `folder-${kind[1]}` : "folder", "folder", "inode-directory"];
                 }
+                // The default missing-icon checkerboard reports Ready too.
+                // Check existence before asking the provider for a texture.
+                for (const name of names) {
+                    const path = Quickshell.iconPath(name, true);
+                    if (path) return path;
+                }
+                return "";
+            }
+
+            CachingIconImage {
+                id: image
+                objectName: "fileDialogImage"
+                anchors.fill: parent
+                source: icon.iconSource
+                visible: status === Image.Ready
+            }
+
+            MaterialIcon {
+                objectName: "fileDialogFallbackIcon"
+                anchors.centerIn: parent
+                visible: image.status !== Image.Ready
+                text: item.modelData?.isDir ? "folder" : "draft"
+                color: item.modelData?.isDir ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                fill: item.modelData?.isDir ? 1 : 0
+                fontStyle: Tokens.font.icon.builders.extraLarge.scale(2).build()
             }
         }
 

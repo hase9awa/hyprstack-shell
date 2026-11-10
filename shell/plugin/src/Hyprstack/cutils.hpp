@@ -28,6 +28,8 @@ public:
     Q_INVOKABLE static QString toLocalFile(const QUrl& url);
     Q_INVOKABLE static QString userDirectory(const QString& kind);
     Q_INVOKABLE static bool isDirectory(const QString& path);
+    Q_INVOKABLE static QString resolveFilePath(const QString& path, const QString& base);
+    Q_INVOKABLE static QVariantMap fileInfo(const QString& path);
     Q_INVOKABLE static QString findExecutable(const QString& program);
     Q_INVOKABLE static QString findIconFile(const QString& name);
     Q_INVOKABLE static void setThemeEnvironment(const QVariantMap& environment);

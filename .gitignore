@@ -46,6 +46,8 @@
 !/distribution/tests/test_notification_images.py
 !/distribution/tests/test_screenshots.py
 !/distribution/tests/screenshot_shell.qml
+!/distribution/tests/test_filedialog.py
+!/distribution/tests/filedialog_shell.qml
 !/distribution/tests/wayland_test_pointer.c
 !/distribution/tests/test_workspace_panel.py
 !/distribution/tests/workspace_panel_shell.qml

@@ -18,6 +18,7 @@ qml_module(hyprstack-services
         memory.cpp
         diskinfo.cpp
         storage.cpp
+        filevolumes.cpp
         lyriccandidate.cpp
         lyrics.cpp
         sessionmanager.cpp

@@ -22,6 +22,33 @@ Q_LOGGING_CATEGORY(lcCUtils, "hyprstack.cutils", QtInfoMsg)
 
 namespace hyprstack {
 
+QString CUtils::resolveFilePath(const QString& input, const QString& base) {
+    auto path = input;
+    if (path.isEmpty() || path.contains(QChar::Null)) return {};
+    if (path.startsWith(u"file:")) {
+        const QUrl url(path);
+        if (!url.isValid() || !url.isLocalFile()
+            || (!url.host().isEmpty() && url.host() != u"localhost")) return {};
+        path = url.toLocalFile();
+    } else if (path.contains(u"://")) return {};
+    const auto home = QDir::homePath();
+    for (const auto& prefix : {QStringLiteral("~"), QStringLiteral("$HOME"), QStringLiteral("${HOME}")}) {
+        if (path == prefix || path.startsWith(prefix + u'/')) {
+            path.replace(0, prefix.size(), home);
+            break;
+        }
+    }
+    return QDir::cleanPath(QDir(base).absoluteFilePath(path));
+}
+
+QVariantMap CUtils::fileInfo(const QString& path) {
+    const QFileInfo info(path);
+    return {{QStringLiteral("exists"), info.exists()}, {QStringLiteral("isDir"), info.isDir()},
+        {QStringLiteral("readable"), info.isReadable() && (!info.isDir() || info.isExecutable())},
+        {QStringLiteral("writable"), info.isWritable()}, {QStringLiteral("name"), info.fileName()},
+        {QStringLiteral("parent"), info.absolutePath()}};
+}
+
 void CUtils::saveItem(QQuickItem* target, const QUrl& path, const QJSValue& onSaved, const QJSValue& onFailed) {
     this->saveItem(target, path, QRect(), onSaved, onFailed);
 }

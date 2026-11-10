@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Hyprstack
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
@@ -79,6 +80,13 @@ LazyLoader {
         property list<string> cwd: loader.cwd
         property int currentFilter: loader.currentFilter
         property string saveName: loader.suggestedName
+        property bool showHidden: false
+        property string errorMessage
+        property list<string> history: []
+        property int historyIndex: -1
+        readonly property bool canBack: historyIndex > 0
+        readonly property bool canForward: historyIndex >= 0 && historyIndex < history.length - 1
+        readonly property bool canUp: currentPath !== "/"
 
         readonly property int mode: loader.mode
         readonly property bool multiple: loader.multiple && loader.mode === FileDialog.Open
@@ -87,16 +95,88 @@ LazyLoader {
         readonly property list<string> patterns: activeGroup?.patterns ?? ["*"]
         readonly property string acceptLabel: loader.acceptLabel || loader.defaultAcceptLabel
 
-        readonly property string currentPath: cwd[0] === "Home" ? `${Paths.home}${cwd.length > 1 ? "/" : ""}${cwd.slice(1).join("/")}` : cwd.join("/")
+        readonly property string currentPath: cwd[0] === "Home" ? `${Paths.home}${cwd.length > 1 ? "/" : ""}${cwd.slice(1).join("/")}` : (cwd.join("/") || "/")
 
         // The same path the other way round: the segments the bar walks,
         // with home named rather than spelled out.
         function segmentsFor(path: string): list<string> {
+            if (path === "/") return [""];
             if (path === Paths.home)
                 return ["Home"];
             if (path.startsWith(`${Paths.home}/`))
                 return ["Home", ...path.slice(Paths.home.length + 1).split("/")];
             return path.split("/");
+        }
+
+        function navigate(input: string): bool {
+            const path = CUtils.resolveFilePath(input, currentPath);
+            const info = path ? CUtils.fileInfo(path) : null;
+            if (!info?.exists) {
+                errorMessage = Tr.tr("This path does not exist");
+                return false;
+            }
+            if (!info.readable) {
+                errorMessage = Tr.tr("This location is not accessible");
+                return false;
+            }
+            if (!info.isDir) {
+                if (mode === FileDialog.SelectFolder) {
+                    errorMessage = Tr.tr("Choose a folder");
+                    return false;
+                }
+                if (mode === FileDialog.Open && !Filters.matches(info.name, patterns)) {
+                    errorMessage = Tr.tr("This file does not match the selected filter");
+                    return false;
+                }
+                if (!navigate(info.parent)) return false;
+                if (mode === FileDialog.Save) saveName = info.name;
+                else folderContents.selectedPaths = [path];
+                return true;
+            }
+            errorMessage = "";
+            if (currentPath !== path) {
+                cwd = segmentsFor(path);
+                history = [...history.slice(0, historyIndex + 1), path];
+                historyIndex = history.length - 1;
+            }
+            folderContents.focusContents();
+            return true;
+        }
+
+        function goHistory(offset: int): void {
+            const index = historyIndex + offset;
+            if (index < 0 || index >= history.length) return;
+            const path = history[index];
+            const info = CUtils.fileInfo(path);
+            if (!info.isDir || !info.readable) {
+                errorMessage = Tr.tr("This location is not accessible");
+                return;
+            }
+            historyIndex = index;
+            cwd = segmentsFor(path);
+            errorMessage = "";
+            folderContents.focusContents();
+        }
+
+        function goUp(): void {
+            if (canUp) navigate(CUtils.fileInfo(currentPath).parent);
+        }
+
+        Shortcut { sequence: "Ctrl+L"; context: Qt.WindowShortcut; onActivated: header.editPath() }
+        Shortcut { sequence: "Alt+Left"; context: Qt.WindowShortcut; onActivated: root.goHistory(-1) }
+        Shortcut { sequence: "Alt+Right"; context: Qt.WindowShortcut; onActivated: root.goHistory(1) }
+        Shortcut { sequence: "Alt+Up"; context: Qt.WindowShortcut; onActivated: root.goUp() }
+        Shortcut { sequence: "Ctrl+H"; context: Qt.WindowShortcut; onActivated: root.showHidden = !root.showHidden }
+
+        Component.onCompleted: {
+            const path = CUtils.resolveFilePath(currentPath, Paths.home);
+            const info = path ? CUtils.fileInfo(path) : null;
+            if (!info?.isDir || !info.readable) {
+                cwd = ["Home"];
+                errorMessage = Tr.tr("The requested folder is unavailable; showing Home");
+            } else cwd = segmentsFor(path);
+            history = [currentPath];
+            historyIndex = 0;
         }
 
         function matchesFilter(file: var): bool {
@@ -109,12 +189,12 @@ LazyLoader {
             if (mode === FileDialog.SelectFolder)
                 return true;
             if (mode === FileDialog.Save)
-                return saveName.trim().length > 0;
+                return saveName.length > 0 && saveName !== "." && saveName !== ".." && !saveName.includes("/") && !saveName.includes("\0");
             return folderContents.selectedPaths.length > 0;
         }
 
         // Saving over an existing file is allowed, but the button says so.
-        readonly property bool overwriting: mode === FileDialog.Save && folderContents.contains(saveName.trim())
+        readonly property bool overwriting: mode === FileDialog.Save && folderContents.contains(saveName)
 
         function accepted(paths: list<string>): void {
             loader.currentFilter = currentFilter;
@@ -126,8 +206,18 @@ LazyLoader {
                 return;
             if (mode === FileDialog.SelectFolder)
                 accepted([currentPath]);
-            else if (mode === FileDialog.Save)
-                accepted([`${currentPath}/${saveName.trim()}`]);
+            else if (mode === FileDialog.Save) {
+                const path = `${currentPath === "/" ? "" : currentPath}/${saveName}`;
+                if (CUtils.isDirectory(path)) {
+                    navigate(path);
+                    return;
+                }
+                if (!CUtils.fileInfo(currentPath).writable) {
+                    errorMessage = Tr.tr("This folder is read-only");
+                    return;
+                }
+                accepted([path]);
+            }
             else
                 accepted(folderContents.selectedPaths);
         }
@@ -166,6 +256,7 @@ LazyLoader {
                     spacing: 0
 
                     HeaderBar {
+                        id: header
                         Layout.fillWidth: true
                         dialog: root
                     }
@@ -176,6 +267,16 @@ LazyLoader {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         dialog: root
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Tokens.padding.medium
+                        Layout.rightMargin: Tokens.padding.medium
+                        visible: root.errorMessage.length > 0
+                        text: root.errorMessage
+                        color: Colours.palette.m3error
+                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                     }
 
                     DialogButtons {

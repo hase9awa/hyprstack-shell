@@ -6235,3 +6235,33 @@ msgstr "Введите одноразовый код."
 msgctxt "button"
 msgid "Next"
 msgstr "Далее"
+
+msgid "Folder path (Ctrl+L)"
+msgstr "Путь к папке (Ctrl+L)"
+
+msgid "File system"
+msgstr "Файловая система"
+
+msgid "Drives"
+msgstr "Диски"
+
+msgid "This path does not exist"
+msgstr "Такого пути не существует"
+
+msgid "This location is not accessible"
+msgstr "Нет доступа к этой папке"
+
+msgid "Choose a folder"
+msgstr "Выберите папку"
+
+msgid "This file does not match the selected filter"
+msgstr "Этот файл не соответствует выбранному фильтру"
+
+msgid "The requested folder is unavailable; showing Home"
+msgstr "Запрошенная папка недоступна, открыта домашняя папка"
+
+msgid "This folder is read-only"
+msgstr "В эту папку нельзя сохранять файлы"
+
+msgid "Could not open the drive: %1"
+msgstr "Не удалось открыть диск: %1"
