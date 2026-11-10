@@ -29,6 +29,7 @@ public:
     Q_INVOKABLE static QString userDirectory(const QString& kind);
     Q_INVOKABLE static bool isDirectory(const QString& path);
     Q_INVOKABLE static QString findExecutable(const QString& program);
+    Q_INVOKABLE static QString findIconFile(const QString& name);
     Q_INVOKABLE static void setThemeEnvironment(const QVariantMap& environment);
 
     Q_INVOKABLE static qreal clamp(qreal value, qreal min, qreal max);

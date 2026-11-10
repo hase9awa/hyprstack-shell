@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Hyprstack
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.utils
@@ -60,7 +61,8 @@ Singleton {
             root.osId = fd("ID");
             root.osIdLike = fd("ID_LIKE").split(" ");
 
-            const logo = Quickshell.iconPath(fd("LOGO"), true);
+            const logoName = fd("LOGO") || root.osId;
+            const logo = Quickshell.iconPath(logoName, true) || CUtils.findIconFile(logoName);
             if (GlobalConfig.general.logo === "hyprstack") {
                 root.osLogo = Qt.resolvedUrl(`${Quickshell.shellDir}/assets/logo.svg`);
                 root.isDefaultLogo = true;

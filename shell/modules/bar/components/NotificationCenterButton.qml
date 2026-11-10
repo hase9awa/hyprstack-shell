@@ -29,7 +29,7 @@ Item {
 
         anchors.centerIn: parent
         text: Notifs.dnd ? "notifications_paused" : "notifications"
-        color: root.screenState.sidebar || Notifs.unreadCount > 0 ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+        color: root.screenState.sidebar || Notifs.unreadCount > 0 ? Colours.palette.m3primary : Colours.palette.m3secondary
         fontStyle: Tokens.font.icon.builders.small.weight(Font.Bold).build()
         fill: root.screenState.sidebar || Notifs.unreadCount > 0 ? 1 : 0
     }

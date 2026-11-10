@@ -137,6 +137,23 @@ QString CUtils::findExecutable(const QString& program) {
     return QStandardPaths::findExecutable(program);
 }
 
+QString CUtils::findIconFile(const QString& name) {
+    using Qt::StringLiterals::operator""_s;
+    if (name.isEmpty() || name.contains(u'/'))
+        return {};
+
+    // os-release logos may live directly in a data directory, outside the
+    // current icon theme and its inheritance chain.
+    for (const auto& directory : { u"icons/"_s, u"pixmaps/"_s }) {
+        for (const auto& extension : { u".svg"_s, u".png"_s, u".xpm"_s }) {
+            const auto path = QStandardPaths::locate(QStandardPaths::GenericDataLocation, directory + name + extension);
+            if (!path.isEmpty())
+                return QUrl::fromLocalFile(path).toString(QUrl::FullyEncoded);
+        }
+    }
+    return {};
+}
+
 void CUtils::setThemeEnvironment(const QVariantMap& environment) {
     // Update Qt URL handlers and Quickshell.env(). Detached launches additionally
     // pass ThemeSync.launchEnvironment because Quickshell caches its startup env.

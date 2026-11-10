@@ -374,7 +374,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::reloadConfig();
 
-    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.4.6"};
+    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.4.7"};
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {
