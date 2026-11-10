@@ -48,6 +48,18 @@ qint64 FileSystemEntry::size() const {
     return m_fileInfo.size();
 };
 
+QDateTime FileSystemEntry::modified() const {
+    return m_fileInfo.lastModified();
+}
+
+void FileSystemEntry::refresh() {
+    const auto oldSize = size();
+    const auto oldModified = modified();
+    m_fileInfo.refresh();
+    if (oldSize != size() || oldModified != modified())
+        emit metadataChanged();
+}
+
 bool FileSystemEntry::isDir() const {
     return m_fileInfo.isDir();
 };
@@ -183,8 +195,37 @@ void FileSystemModel::setSortReverse(bool sortReverse) {
 
     m_sortReverse = sortReverse;
     emit sortReverseChanged();
+    sortEntries();
+}
 
+FileSystemModel::SortBy FileSystemModel::sortBy() const { return m_sortBy; }
+
+void FileSystemModel::setSortBy(SortBy sortBy) {
+    if (sortBy > SortBy::Type || m_sortBy == sortBy) return;
+    m_sortBy = sortBy;
+    emit sortByChanged();
+    sortEntries();
+}
+
+void FileSystemModel::refresh() {
+    for (auto* entry : std::as_const(m_entries)) entry->refresh();
+    sortEntries();
     update();
+}
+
+void FileSystemModel::sortEntries() {
+    if (m_entries.isEmpty()) return;
+    const auto previous = m_entries;
+    emit layoutAboutToBeChanged({}, QAbstractItemModel::VerticalSortHint);
+    const auto persistent = persistentIndexList();
+    std::ranges::sort(m_entries, [this](const auto* a, const auto* b) { return compareEntries(a, b); });
+    QHash<FileSystemEntry*, int> rows;
+    for (int i = 0; i < m_entries.size(); ++i) rows.insert(m_entries[i], i);
+    QModelIndexList next;
+    for (const auto& old : persistent) next.append(index(rows.value(previous[old.row()]), old.column()));
+    changePersistentIndexList(persistent, next);
+    emit layoutChanged({}, QAbstractItemModel::VerticalSortHint);
+    emit entriesChanged();
 }
 
 FileSystemModel::Filter FileSystemModel::filter() const {
@@ -458,9 +499,22 @@ void FileSystemModel::applyChanges(const QSet<QString>& removedPaths, const QSet
 
 bool FileSystemModel::compareEntries(const FileSystemEntry* a, const FileSystemEntry* b) const {
     if (a->isDir() != b->isDir()) {
-        return m_sortReverse ^ a->isDir();
+        return a->isDir();
     }
-    const auto cmp = a->relativePath().localeAwareCompare(b->relativePath());
+    int cmp = 0;
+    switch (m_sortBy) {
+    case SortBy::Modified:
+        cmp = a->modified() < b->modified() ? -1 : a->modified() > b->modified() ? 1 : 0;
+        break;
+    case SortBy::Size:
+        if (!a->isDir()) cmp = a->size() < b->size() ? -1 : a->size() > b->size() ? 1 : 0;
+        break;
+    case SortBy::Type:
+        cmp = a->suffix().toCaseFolded().localeAwareCompare(b->suffix().toCaseFolded());
+        break;
+    case SortBy::Name: break;
+    }
+    if (cmp == 0) cmp = a->relativePath().localeAwareCompare(b->relativePath());
     return m_sortReverse ? cmp > 0 : cmp < 0;
 }
 

@@ -1,6 +1,7 @@
 #include "nmsecretagent.hpp"
 #include "filechooserportal.hpp"
 #include "filevolumes.hpp"
+#include "filesystemmodel.hpp"
 #include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -12,6 +13,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QPointer>
+#include <QPersistentModelIndex>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QUrl>
@@ -191,6 +193,62 @@ static void checkVolumes() {
     std::cout << "PASS: disk discovery, system/EFI filtering, explicit asynchronous mount, failures and hotplug\n";
 }
 
+static void checkFileSorting() {
+    using namespace hyprstack::models;
+    QTemporaryDir directory;
+    require(directory.isValid(), "Cannot create sort fixture");
+    QDir dir(directory.path());
+    require(dir.mkdir("folderA") && dir.mkdir("folderB"), "Cannot create sort folders");
+    auto write = [&](const QString& name, int size, qint64 time) {
+        QFile file(dir.filePath(name));
+        require(file.open(QIODevice::WriteOnly), "Cannot write sort fixture");
+        require(file.write(QByteArray(size, 'x')) == size, "Cannot size sort fixture");
+        require(file.flush(), "Cannot flush sort fixture");
+        require(file.setFileTime(QDateTime::fromSecsSinceEpoch(1600000000 + time),
+            QFileDevice::FileModificationTime), "Cannot date sort fixture");
+    };
+    write("a.bin", 90, 300);
+    write("b.txt", 10, 100);
+    write("c.bin", 50, 200);
+    FileSystemModel model;
+    model.setWatchChanges(false);
+    model.setPath(directory.path());
+    until([&] { return model.rowCount() == 5; });
+    auto entry = [&](int row) { return model.data(model.index(row, 0), Qt::UserRole).value<FileSystemEntry*>(); };
+    auto files = [&] {
+        require(entry(0)->isDir() && entry(1)->isDir(), "Descending order moved folders below files");
+        QStringList result;
+        for (int row = 2; row < model.rowCount(); ++row) result.append(entry(row)->name());
+        return result;
+    };
+    require(files() == QStringList{"a.bin", "b.txt", "c.bin"}, "Name sort failed");
+    QPersistentModelIndex selected(model.index(3, 0));
+    auto* selectedFile = entry(3);
+    model.setSortBy(FileSystemModel::SortBy::Size);
+    require(files() == QStringList{"b.txt", "c.bin", "a.bin"}, "Size sort failed");
+    require(selected.row() == 2 && selected.data(Qt::UserRole).value<FileSystemEntry*>() == selectedFile,
+        "Sorting changed the selected file identity");
+    model.setSortBy(FileSystemModel::SortBy::Modified);
+    require(files() == QStringList{"b.txt", "c.bin", "a.bin"}, "Modified-date sort failed");
+    model.setSortReverse(true);
+    require(files() == QStringList{"a.bin", "c.bin", "b.txt"}, "Reverse modified-date sort failed");
+    model.setSortBy(FileSystemModel::SortBy::Type);
+    model.setSortReverse(false);
+    require(files() == QStringList{"a.bin", "c.bin", "b.txt"}, "Type sort failed");
+    model.setSortBy(FileSystemModel::SortBy::Size);
+    model.setSortReverse(true);
+    write("d.txt", 30, 50);
+    model.refresh();
+    until([&] { return model.rowCount() == 6; });
+    require(files() == QStringList{"a.bin", "c.bin", "d.txt", "b.txt"}, "New file inserted at the wrong sorted position");
+    write("b.txt", 120, 400);
+    model.refresh();
+    require(files() == QStringList{"b.txt", "a.bin", "c.bin", "d.txt"}, "Refresh left stale file sizes");
+    require(selected.row() == 2 && selectedFile->modified() == QDateTime::fromSecsSinceEpoch(1600000400),
+        "Refresh lost the persistent selection or modification time");
+    std::cout << "PASS: file sorting by name/date/size/type, reverse order, folders first, persistent selection and refreshed metadata\n";
+}
+
 int main(int argc, char** argv) {
     QCoreApplication app(argc, argv);
     try {
@@ -254,6 +312,7 @@ int main(int argc, char** argv) {
             && pending.reply().arguments().first().toUInt() != 0, "Request.Close did not withdraw the portal request");
         std::cout << "PASS: portal Request.Close completes the pending call\n";
         checkVolumes();
+        checkFileSorting();
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 1;

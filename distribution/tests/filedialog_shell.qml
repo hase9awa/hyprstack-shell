@@ -60,7 +60,11 @@ ShellRoot {
             return JSON.stringify({open: !!win, accepted: root.acceptedPaths, cancelled: root.cancelled,
                 path: win?.currentPath ?? "", error: win?.errorMessage ?? "", hidden: win?.showHidden ?? false,
                 selected: folder?.selectedPaths ?? [], saveName: win?.saveName ?? "",
+                current: view?.currentItem?.modelData?.path ?? "",
+                viewMode: FileDialogSettings.viewMode, sortBy: FileDialogSettings.sortBy,
+                reverse: FileDialogSettings.reverse, preferencesLoaded: FileDialogSettings.loaded,
                 entries: view ? [...view.model.entries].map(e => e.name) : [],
+                files: view ? [...view.model.entries].filter(e => !e.isDir).map(e => e.name) : [],
                 icons: win ? root.items(win.contentItem).filter(i => i.objectName === "fileDialogImage")
                     .map(i => ({source: i.source.toString(), status: i.status, visible: i.visible})) : []});
         }

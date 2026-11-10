@@ -6265,3 +6265,30 @@ msgstr "В эту папку нельзя сохранять файлы"
 
 msgid "Could not open the drive: %1"
 msgstr "Не удалось открыть диск: %1"
+
+msgctxt "file column"
+msgid "Name"
+msgstr "Имя"
+
+msgid "Date modified"
+msgstr "Дата изменения"
+
+msgctxt "file column"
+msgid "Size"
+msgstr "Размер"
+
+msgctxt "file column"
+msgid "Type"
+msgstr "Тип"
+
+msgid "Icons"
+msgstr "Значки"
+
+msgid "List"
+msgstr "Список"
+
+msgid "Folder"
+msgstr "Папка"
+
+msgid "File"
+msgstr "Файл"

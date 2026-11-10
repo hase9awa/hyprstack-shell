@@ -40,6 +40,8 @@ def main():
     # A valid image with URI-sensitive characters exercises URL encoding.
     from PIL import Image
     Image.new("RGB", (32, 32), "#83a598").save(home / "image # %.png")
+    for index, name in enumerate(["first.txt", "hash # %.txt", "second.txt", "image # %.png"]):
+        os.utime(home / name, (1600000000 + index * 100, 1600000000 + index * 100))
     config = base / "config"
     prefs = config / "hyprstack"
     prefs.mkdir(parents=True)
@@ -95,10 +97,25 @@ def main():
     def status(): return json.loads(ipc("status"))
     def ctl(*args): return run(["hyprctl", *args])
     def key(*args): run([wtype, *args])
+    def snapshot(name):
+        # Optional review artifact; a compositor frame may still be pending.
+        for attempt in range(3):
+            try:
+                run(["grim", str(base / name)])
+                return
+            except subprocess.SubprocessError:
+                time.sleep(.15)
     def click(name):
         time.sleep(.4)
         pos = wait(lambda: json.loads(ipc("rect", name)), name)
-        run([pointer, str(round(pos["x"])), str(round(pos["y"])), "1280", "800"])
+        layers = [layer for monitor in json.loads(ctl("-j", "layers")).values()
+            for level in monitor["levels"].values() for layer in level]
+        layer = next(layer for layer in layers if layer["namespace"] == "hyprstack-filechooser")
+        monitor = json.loads(ctl("-j", "monitors"))[0]
+        with (base / "clicks.jsonl").open("a") as log:
+            log.write(json.dumps({"name": name, "position": pos}) + "\n")
+        run([pointer, str(round(pos["x"] + layer["x"])), str(round(pos["y"] + layer["y"])),
+            str(monitor["width"]), str(monitor["height"])])
     def start(mode, path=home, multiple=False):
         ipc("start", mode, path, "true" if multiple else "false")
         wait(lambda: status()["open"] and status()["entries"], "file dialog")
@@ -118,10 +135,10 @@ def main():
         subprocess.run(["dbus-update-activation-environment", *[k for k in env
             if k.startswith("XDG_") or k in ["HOME", "WAYLAND_DISPLAY", "HYPRLAND_INSTANCE_SIGNATURE",
                 "DBUS_SYSTEM_BUS_ADDRESS"]]], env=env, check=True)
-        launch([qs, "--path", str(shell), "--no-duplicate", "--no-color"], "shell")
+        shell_proc = launch([qs, "--path", str(shell), "--no-duplicate", "--no-color"], "shell")
         wait(lambda: "File dialog test underlay" in ctl("-j", "clients"), "shell")
         start(0)
-        run(["grim", str(base / "filechooser.png")])
+        snapshot("filechooser.png")
         assert ".hidden.txt" not in status()["entries"]
         path("Files with spaces")
         wait(lambda: status()["path"] == str(home / "Files with spaces"), "relative path")
@@ -181,9 +198,51 @@ def main():
         assert status()["accepted"] == [str(home / "Files with spaces/saved file.txt")]
         assert json.loads(ctl("-j", "clients"))[0]["fullscreen"] == 2
         print("PASS: Save As remains visible and accepts input above an exclusive fullscreen application", flush=True)
+        start(0)
+        wait(lambda: status()["preferencesLoaded"], "view preferences")
+        click("fileDialogEntry_first.txt")
+        click("fileDialogListView")
+        wait(lambda: status()["viewMode"] == "list", "list view")
+        assert status()["selected"] == [str(home / "first.txt")]
+        click("fileDialogSort_modified")
+        wait(lambda: status()["sortBy"] == "modified" and status()["reverse"], "newest first")
+        wait(lambda: status()["files"] == ["image # %.png", "second.txt", "hash # %.txt", "first.txt"], "date-sorted rows")
+        assert status()["selected"] == [str(home / "first.txt")]
+        click("fileDialogSort_modified")
+        wait(lambda: not status()["reverse"], "oldest first")
+        wait(lambda: status()["files"] == ["first.txt", "hash # %.txt", "second.txt", "image # %.png"], "reversed date-sorted rows")
+        for field in ["size", "type", "name"]:
+            click("fileDialogSort_" + field)
+            wait(lambda: status()["sortBy"] == field, "sort " + field)
+            assert status()["selected"] == [str(home / "first.txt")]
+            wait(lambda: status()["current"] == str(home / "first.txt"), "keyboard focus follows selected file")
+        snapshot("filechooser-list.png")
+        click("fileDialogIconsView")
+        wait(lambda: status()["viewMode"] == "icons", "icons view")
+        assert status()["selected"] == [str(home / "first.txt")]
+        click("fileDialogListView")
+        click("fileDialogSort_modified")
+        cancel()
+        start(1)
+        assert status()["viewMode"] == "list" and status()["sortBy"] == "modified" and status()["reverse"]
+        cancel()
+        settings_file = prefs / "file-dialog.json"
+        wait(lambda: settings_file.exists() and json.loads(settings_file.read_text()) ==
+            {"viewMode":"list", "sortBy":"modified", "reverse":True}, "persisted view preferences")
+        shell_proc.terminate()
+        shell_proc.wait(timeout=10)
+        shell_proc = launch([qs, "--path", str(shell), "--no-duplicate", "--no-color"], "shell-restored")
+        wait(lambda: "File dialog test underlay" in ctl("-j", "clients"), "restored shell")
+        start(0)
+        wait(lambda: status()["preferencesLoaded"], "restored preferences")
+        assert status()["viewMode"] == "list" and status()["sortBy"] == "modified" and status()["reverse"]
+        cancel()
+        print("PASS: list/icons views, all sort controls, selection preservation and preferences after reopening and shell restart", flush=True)
         assert not ctl("configerrors").strip()
         print("PASS: thumbnails with reserved characters, cancellation and clean compositor config", flush=True)
     finally:
+        try: run(["grim", str(base / "last-frame.png")])
+        except (OSError, subprocess.SubprocessError): pass
         try: (base / "status.json").write_text(ipc("status"))
         except (OSError, subprocess.SubprocessError): pass
         for child in reversed(children):

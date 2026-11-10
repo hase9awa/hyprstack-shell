@@ -19,13 +19,13 @@ def main():
     root = Path(__file__).resolve().parents[2]
     build = Path(sys.argv[1]).resolve() / "shell/plugin/src/Hyprstack"
     source = Path(__file__).with_name("portal_contracts.cpp")
-    includes = ["-I" + str(root / "shell/plugin/src/Hyprstack" / name) for name in ["Services", "Portals"]]
+    includes = ["-I" + str(root / "shell/plugin/src/Hyprstack" / name) for name in ["Services", "Portals", "Models"]]
     flags = shlex.split(subprocess.check_output(
-        ["pkg-config", "--cflags", "--libs", "Qt6Core", "Qt6Qml", "Qt6DBus"], text=True))
+        ["pkg-config", "--cflags", "--libs", "Qt6Core", "Qt6Gui", "Qt6Qml", "Qt6DBus"], text=True))
     with tempfile.TemporaryDirectory(prefix="hs-portal-test-") as temp:
         subprocess.run(["/usr/lib/qt6/moc", *includes, *[f for f in flags if f.startswith(("-I", "-D"))],
                         str(source), "-o", temp + "/portal_contracts.moc"], check=True)
-        libraries = [build / name / ("libhyprstack-" + name.lower() + ".so") for name in ["Services", "Portals"]]
+        libraries = [build / name / ("libhyprstack-" + name.lower() + ".so") for name in ["Services", "Portals", "Models"]]
         subprocess.run(["c++", "-std=c++20", "-fPIC", "-I" + temp, *includes,
                         str(source), *map(str, libraries), *["-Wl,-rpath," + str(p.parent) for p in libraries],
                         *flags, "-o", temp + "/contracts"], check=True)

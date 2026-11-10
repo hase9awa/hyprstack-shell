@@ -1,6 +1,7 @@
 #pragma once
 
 #include <qabstractitemmodel.h>
+#include <qdatetime.h>
 #include <qdir.h>
 #include <qdiriterator.h>
 #include <qfilesystemwatcher.h>
@@ -24,7 +25,8 @@ class FileSystemEntry : public QObject {
     Q_PROPERTY(QString baseName READ baseName CONSTANT)
     Q_PROPERTY(QString parentDir READ parentDir CONSTANT)
     Q_PROPERTY(QString suffix READ suffix CONSTANT)
-    Q_PROPERTY(qint64 size READ size CONSTANT)
+    Q_PROPERTY(qint64 size READ size NOTIFY metadataChanged)
+    Q_PROPERTY(QDateTime modified READ modified NOTIFY metadataChanged)
     Q_PROPERTY(bool isDir READ isDir CONSTANT)
     Q_PROPERTY(bool isImage READ isImage CONSTANT)
     Q_PROPERTY(QString mimeType READ mimeType CONSTANT)
@@ -39,17 +41,20 @@ public:
     [[nodiscard]] QString parentDir() const;
     [[nodiscard]] QString suffix() const;
     [[nodiscard]] qint64 size() const;
+    [[nodiscard]] QDateTime modified() const;
     [[nodiscard]] bool isDir() const;
     [[nodiscard]] bool isImage() const;
     [[nodiscard]] QString mimeType() const;
 
     void updateRelativePath(const QDir& dir);
+    void refresh();
 
 signals:
     void relativePathChanged();
+    void metadataChanged();
 
 private:
-    const QFileInfo m_fileInfo;
+    QFileInfo m_fileInfo;
 
     const QString m_path;
     QString m_relativePath;
@@ -70,6 +75,7 @@ class FileSystemModel : public QAbstractListModel {
     Q_PROPERTY(bool watchChanges READ watchChanges WRITE setWatchChanges NOTIFY watchChangesChanged)
     Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden NOTIFY showHiddenChanged)
     Q_PROPERTY(bool sortReverse READ sortReverse WRITE setSortReverse NOTIFY sortReverseChanged)
+    Q_PROPERTY(SortBy sortBy READ sortBy WRITE setSortBy NOTIFY sortByChanged)
     Q_PROPERTY(Filter filter READ filter WRITE setFilter NOTIFY filterChanged)
     Q_PROPERTY(QStringList nameFilters READ nameFilters WRITE setNameFilters NOTIFY nameFiltersChanged)
 
@@ -83,6 +89,9 @@ public:
         Dirs,
     };
     Q_ENUM(Filter)
+
+    enum class SortBy : quint8 { Name, Modified, Size, Type };
+    Q_ENUM(SortBy)
 
     explicit FileSystemModel(QObject* parent = nullptr);
 
@@ -104,6 +113,9 @@ public:
 
     [[nodiscard]] bool sortReverse() const;
     void setSortReverse(bool sortReverse);
+    [[nodiscard]] SortBy sortBy() const;
+    void setSortBy(SortBy sortBy);
+    Q_INVOKABLE void refresh();
 
     [[nodiscard]] Filter filter() const;
     void setFilter(Filter filter);
@@ -119,6 +131,7 @@ signals:
     void watchChangesChanged();
     void showHiddenChanged();
     void sortReverseChanged();
+    void sortByChanged();
     void filterChanged();
     void nameFiltersChanged();
     void entriesChanged();
@@ -145,6 +158,7 @@ private:
     bool m_watchChanges;
     bool m_showHidden;
     bool m_sortReverse = false;
+    SortBy m_sortBy = SortBy::Name;
     Filter m_filter;
     QStringList m_nameFilters;
 
@@ -157,6 +171,7 @@ private:
     [[nodiscard]] static std::optional<QSet<QString>> scanDir(const QString& dir, const ScanFilters& filters,
         QDirIterator::IteratorFlags flags, const QPromise<PathDiff>& promise);
     void applyChanges(const QSet<QString>& removedPaths, const QSet<QString>& addedPaths);
+    void sortEntries();
     [[nodiscard]] bool compareEntries(const FileSystemEntry* a, const FileSystemEntry* b) const;
 };
 

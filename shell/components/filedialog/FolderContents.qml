@@ -21,8 +21,22 @@ Item {
     required property var dialog
     readonly property FileEntry currentItem: view.currentItem as FileEntry
     property list<string> selectedPaths
+    readonly property bool listMode: FileDialogSettings.viewMode === "list"
+    readonly property int modifiedWidth: 160 * Tokens.scale
+    readonly property int sizeWidth: 80 * Tokens.scale
+    readonly property int typeWidth: 85 * Tokens.scale
+    property bool reordering: false
+    property string focusedPath
+
+    function restoreCurrent(): void {
+        const entries = [...view.model.entries];
+        view.currentIndex = focusedPath ? entries.findIndex(entry => entry.path === focusedPath) : -1;
+        reordering = false;
+    }
 
     function focusContents(): void { view.forceActiveFocus(); }
+
+    Shortcut { sequence: "F5"; context: Qt.WindowShortcut; onActivated: view.model.refresh() }
 
     function activateCurrent(): void {
         const file = currentItem?.modelData;
@@ -120,15 +134,35 @@ Item {
         }
     }
 
+    RowLayout {
+        id: columns
+        visible: root.listMode
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: Tokens.padding.extraSmall + Tokens.padding.medium
+        anchors.leftMargin: Tokens.padding.extraSmall + Tokens.padding.medium * 2 + 26 * Tokens.scale + Tokens.spacing.medium
+        anchors.rightMargin: Tokens.padding.extraSmall + Tokens.padding.medium * 2
+        spacing: Tokens.spacing.medium
+        StyledText { Layout.fillWidth: true; text: Tr.trCtx("Name", "file column"); color: Colours.palette.m3onSurfaceVariant }
+        StyledText { Layout.preferredWidth: root.modifiedWidth; text: Tr.tr("Date modified"); color: Colours.palette.m3onSurfaceVariant }
+        StyledText { Layout.preferredWidth: root.sizeWidth; text: Tr.trCtx("Size", "file column"); color: Colours.palette.m3onSurfaceVariant }
+        StyledText { Layout.preferredWidth: root.typeWidth; text: Tr.trCtx("Type", "file column"); color: Colours.palette.m3onSurfaceVariant }
+    }
+
     GridView {
         id: view
         objectName: "fileDialogEntries"
 
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.top: columns.visible ? columns.bottom : parent.top
         anchors.margins: Tokens.padding.extraSmall + Tokens.padding.medium
+        anchors.topMargin: root.listMode ? Tokens.spacing.small : Tokens.padding.extraSmall + Tokens.padding.medium
 
-        cellWidth: Sizes.itemWidth + Tokens.spacing.small
-        cellHeight: Sizes.itemWidth + Tokens.spacing.large + Tokens.padding.medium * 2 + 1
+        cellWidth: root.listMode ? width : Sizes.itemWidth + Tokens.spacing.small
+        cellHeight: root.listMode ? 46 * Tokens.scale : Sizes.itemWidth + Tokens.spacing.large + Tokens.padding.medium * 2 + 1
 
         clip: true
         focus: true
@@ -138,7 +172,7 @@ Item {
         Keys.onReturnPressed: root.activateCurrent()
         Keys.onEnterPressed: root.activateCurrent()
         onCurrentIndexChanged: {
-            if (currentItem?.modelData && !root.dialog.multiple)
+            if (!root.reordering && currentItem?.modelData && !root.dialog.multiple)
                 root.select(currentItem.modelData);
         }
 
@@ -149,6 +183,9 @@ Item {
         model: FileSystemModel {
             path: root.dialog.currentPath
             showHidden: root.dialog.showHidden
+            sortBy: ({name: FileSystemModel.Name, modified: FileSystemModel.Modified,
+                size: FileSystemModel.Size, type: FileSystemModel.Type})[FileDialogSettings.sortBy]
+            sortReverse: FileDialogSettings.reverse
             // Offering files while the caller asked for a folder only invites
             // picking the wrong thing.
             filter: root.dialog.mode === FileDialog.SelectFolder ? FileSystemModel.Dirs : FileSystemModel.NoFilter
@@ -156,6 +193,15 @@ Item {
                 view.currentIndex = -1;
                 root.selectedPaths = [];
             }
+        }
+
+        Connections {
+            target: view.model
+            function onLayoutAboutToBeChanged(): void {
+                if (!root.reordering) root.focusedPath = view.currentItem?.modelData?.path ?? "";
+                root.reordering = true;
+            }
+            function onLayoutChanged(): void { Qt.callLater(root.restoreCurrent); }
         }
 
         delegate: FileEntry {}
@@ -210,12 +256,12 @@ Item {
         required property FileSystemEntry modelData
         readonly property bool selected: !!modelData && (root?.selectedPaths ?? []).includes(modelData.path)
 
-        readonly property real nonAnimHeight: icon.implicitHeight + name.anchors.topMargin + name.implicitHeight + Tokens.padding.medium * 2
+        readonly property real nonAnimHeight: root.listMode ? view.cellHeight : icon.implicitHeight + name.anchors.topMargin + name.implicitHeight + Tokens.padding.medium * 2
 
-        implicitWidth: Sizes.itemWidth
+        implicitWidth: root.listMode ? view.cellWidth : Sizes.itemWidth
         implicitHeight: nonAnimHeight
 
-        radius: Tokens.rounding.large
+        radius: root.listMode ? Tokens.rounding.medium : Tokens.rounding.large
         color: Qt.alpha(Colours.tPalette.m3surfaceContainerHighest, selected || GridView.isCurrentItem ? Colours.tPalette.m3surfaceContainerHighest.a : 0)
         z: GridView.isCurrentItem || implicitHeight !== nonAnimHeight ? 1 : 0
         clip: true
@@ -253,11 +299,14 @@ Item {
         Item {
             id: icon
 
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: parent.top
+            anchors.horizontalCenter: root.listMode ? undefined : parent.horizontalCenter
+            anchors.left: root.listMode ? parent.left : undefined
+            anchors.leftMargin: Tokens.padding.medium
+            anchors.verticalCenter: root.listMode ? parent.verticalCenter : undefined
+            anchors.top: root.listMode ? undefined : parent.top
             anchors.topMargin: Tokens.padding.medium
 
-            implicitWidth: Sizes.itemWidth - Tokens.padding.medium * 2
+            implicitWidth: root.listMode ? 26 * Tokens.scale : Sizes.itemWidth - Tokens.padding.medium * 2
             implicitHeight: implicitWidth
 
             readonly property url iconSource: {
@@ -301,28 +350,58 @@ Item {
                 text: item.modelData?.isDir ? "folder" : "draft"
                 color: item.modelData?.isDir ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                 fill: item.modelData?.isDir ? 1 : 0
-                fontStyle: Tokens.font.icon.builders.extraLarge.scale(2).build()
+                fontStyle: Tokens.font.icon.builders.extraLarge.scale(root.listMode ? 0.75 : 2).build()
             }
         }
 
         StyledText {
             id: name
 
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: icon.bottom
-            anchors.topMargin: Tokens.spacing.small
-            anchors.margins: Tokens.padding.medium
+            anchors.left: root.listMode ? icon.right : parent.left
+            anchors.right: root.listMode ? metadata.left : parent.right
+            anchors.top: root.listMode ? undefined : icon.bottom
+            anchors.verticalCenter: root.listMode ? parent.verticalCenter : undefined
+            anchors.topMargin: root.listMode ? 0 : Tokens.spacing.small
+            anchors.leftMargin: root.listMode ? Tokens.spacing.medium : Tokens.padding.medium
+            anchors.rightMargin: Tokens.padding.medium
 
-            horizontalAlignment: Text.AlignHCenter
-            elide: item.GridView.isCurrentItem ? Text.ElideNone : Text.ElideRight
-            wrapMode: item.GridView.isCurrentItem ? Text.WrapAtWordBoundaryOrAnywhere : Text.NoWrap
+            horizontalAlignment: root.listMode ? Text.AlignLeft : Text.AlignHCenter
+            elide: !root.listMode && item.GridView.isCurrentItem ? Text.ElideNone : Text.ElideRight
+            wrapMode: !root.listMode && item.GridView.isCurrentItem ? Text.WrapAtWordBoundaryOrAnywhere : Text.NoWrap
             color: item.selected ? Colours.palette.m3primary : Colours.palette.m3onSurface
 
-            Component.onCompleted: text = item.modelData.name
+            text: item.modelData?.name ?? ""
+        }
+
+        RowLayout {
+            id: metadata
+            visible: root.listMode
+            anchors.right: parent.right
+            anchors.rightMargin: Tokens.padding.medium
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Tokens.spacing.medium
+            StyledText {
+                Layout.preferredWidth: root.modifiedWidth
+                text: item.modelData ? Qt.formatDateTime(item.modelData.modified, Qt.locale(), Locale.ShortFormat) : ""
+                color: Colours.palette.m3onSurfaceVariant
+                elide: Text.ElideRight
+            }
+            StyledText {
+                Layout.preferredWidth: root.sizeWidth
+                text: !item.modelData || item.modelData.isDir ? "—" : Units.formatBytes(item.modelData.size)
+                color: Colours.palette.m3onSurfaceVariant
+                elide: Text.ElideRight
+            }
+            StyledText {
+                Layout.preferredWidth: root.typeWidth
+                text: item.modelData?.isDir ? Tr.tr("Folder") : item.modelData?.suffix.toUpperCase() || Tr.tr("File")
+                color: Colours.palette.m3onSurfaceVariant
+                elide: Text.ElideRight
+            }
         }
 
         Behavior on implicitHeight {
+            enabled: !root.listMode
             Anim {}
         }
     }
