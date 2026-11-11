@@ -12,7 +12,10 @@ Singleton {
     id: root
 
     function create(parent: Item, props: var): void {
-        nexusComp.createObject(parent ?? dummy, props);
+        const options = Object.assign({}, props ?? {});
+        if (!options.screen)
+            options.screen = ShellState.forActive()?.modelData ?? Quickshell.screens[0];
+        nexusComp.createObject(parent ?? dummy, options);
     }
 
     QtObject {

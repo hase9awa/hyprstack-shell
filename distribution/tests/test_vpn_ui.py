@@ -77,6 +77,7 @@ class VpnInterfaceTests(unittest.TestCase):
             copy("services/ManagedVPN.qml", ROOT / "shell/services/ManagedVPN.qml")
             copy("modules/vpn/VpnWindow.qml", ROOT / "shell/modules/vpn/VpnWindow.qml")
             copy("modules/dashboard/dash/Calendar.qml", ROOT / "shell/modules/dashboard/dash/Calendar.qml")
+            copy("modules/dashboard/dash/Resources.qml", ROOT / "shell/modules/dashboard/dash/Resources.qml")
             copy("modules/nexus/pages/AboutPage.qml", ROOT / "shell/modules/nexus/pages/AboutPage.qml")
             copy("fixtures/VpnToggle.qml", ROOT / "shell/modules/bar/components/VpnToggle.qml")
             copy("utils/scripts/vpn-flow.js", ROOT / "shell/utils/scripts/vpn-flow.js")

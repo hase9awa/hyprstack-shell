@@ -118,8 +118,9 @@ PageBase {
 
         RowButton {
             objectName: "networkVpnSettings"
+            Layout.topMargin: Tokens.spacing.large
             first: true
-            last: true
+            last: root.hasOtherVpnProviders
             text: Tr.tr("VPN")
             subtext: ManagedVPN.connected ? Tr.tr("Connected to %1").arg(ManagedVPN.data.server)
                 : Tr.tr("Choose a server or add a connection")

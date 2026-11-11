@@ -22,7 +22,7 @@ import time
 import theme_manager as themes
 from i18n import _, configure_argparse
 
-VERSION = "1.4.12"
+VERSION = "1.4.13"
 ASSETS = Path(__file__).resolve().parent
 CONFIG = themes.CONFIG
 STATE = themes.STATE

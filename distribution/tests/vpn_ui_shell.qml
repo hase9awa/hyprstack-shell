@@ -20,9 +20,17 @@ ShellRoot {
         implicitHeight: 650
         contentItem.Config.screen: screen.name
         contentItem.Tokens.screen: screen.name
-        Item {
-            x: 20; y: 20; width: 440; height: 400
-            Calendar { id: calendar; screenState: state }
+        Row {
+            id: dashboardPreview
+            x: 20; y: 20; height: calendar.implicitHeight; spacing: 12
+            Item {
+                width: 440; height: parent.height
+                Calendar { id: calendar; screenState: state }
+            }
+            Item {
+                width: resources.implicitWidth; height: parent.height
+                Resources { id: resources; screenState: state; width: parent.width }
+            }
         }
         AboutPage { id: about; visible: false; width: 600; height: 600; nState: null }
         Fixtures.VpnToggle { id: barVpn; x: 480; y: 30 }
@@ -72,27 +80,20 @@ ShellRoot {
                 }
                 verify(!labels(about));
             }
-            function test_calendar_opens_settings_on_the_same_screen() {
+            function test_dashboard_opens_settings_on_the_same_screen() {
                 state.dashboard = true;
                 const before = WindowFactory.opened;
-                click(findChild(calendar, "dashboardSettingsButton"));
+                verify(findChild(calendar, "dashboardSettingsButton") === null);
+                click(findChild(resources, "dashboardSettingsButton"));
                 compare(state.dashboard, false);
                 compare(WindowFactory.opened, before + 1);
                 compare(WindowFactory.lastScreen, state.modelData);
             }
-            function test_calendar_settings_fit_a_narrow_dashboard() {
-                const width = calendar.parent.width;
-                try {
-                    for (const size of [320, 440]) {
-                        calendar.parent.width = size;
-                        wait(40);
-                        const button = findChild(calendar, "dashboardSettingsButton");
-                        const point = button.mapToItem(calendar, 0, 0);
-                        verify(point.x >= 0 && point.x + button.width <= calendar.width);
-                    }
-                } finally {
-                    calendar.parent.width = width;
-                }
+            function test_dashboard_settings_fit_the_resource_block() {
+                const button = findChild(resources, "dashboardSettingsButton");
+                const point = button.mapToItem(resources, 0, 0);
+                verify(point.x >= 0 && point.x + button.width <= resources.width);
+                verify(point.y >= 0 && point.y + button.height <= resources.height);
             }
             function test_empty_state_has_one_obvious_import_action() {
                 fixture({profiles:[],selectedProfile:-1,installed:false,canTun:false});
@@ -211,7 +212,7 @@ ShellRoot {
                     GlobalConfig.general.language = "ru_RU";
                     wait(150);
                     grabImage(ManagedVPN.window.contentItem).save(directory + "/vpn.png");
-                    grabImage(calendar).save(directory + "/calendar.png");
+                    grabImage(dashboardPreview).save(directory + "/dashboard.png");
                     click(control("vpnAddConnectionButton"));
                     tryVerify(() => control("vpnImportDialog").opened);
                     grabImage(ManagedVPN.window.contentItem).save(directory + "/vpn-import.png");

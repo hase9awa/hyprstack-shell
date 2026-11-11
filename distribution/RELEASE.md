@@ -1,4 +1,4 @@
-Шестерёнка настроек рядом с календарём. В VPN — понятные кнопки подключения, выбор сервера и простой импорт. Из «О проекте» убрана строка загруженных плагинов.
+Исправлены скругления VPN-пунктов и размер окна настроек. Шестерёнка перенесена в блок ресурсов справа от календаря.
 
 Обновить: **Настройки → Обновления** или `hyprstack-update`.
 
@@ -8,4 +8,4 @@
 curl -fsSL https://raw.githubusercontent.com/hase9awa/hyprstack-shell/main/update.sh | bash
 ```
 
-![Обновление оболочки из настроек](https://github.com/hase9awa/hyprstack-shell/releases/download/v1.4.12/updates.png)
+![Обновление оболочки из настроек](https://github.com/hase9awa/hyprstack-shell/releases/download/v1.4.13/updates.png)

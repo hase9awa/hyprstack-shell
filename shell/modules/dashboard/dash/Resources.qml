@@ -1,13 +1,23 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Hyprstack.Config
+import Hyprstack.I18n
 import Hyprstack.Services
 import qs.components
 import qs.components.controls
 import qs.services
+import qs.modules.nexus
 
 Item {
     id: root
+
+    required property ScreenState screenState
+
+    function openSettings(): void {
+        screenState.dashboard = false;
+        WindowFactory.create(null, {screen: screenState.modelData});
+    }
 
     anchors.top: parent.top
     anchors.bottom: parent.bottom
@@ -50,6 +60,25 @@ Item {
             icon: "hard_disk"
             value: Storage.percentage
             fgColour: Colours.palette.m3secondary
+        }
+
+        IconButton {
+            objectName: "dashboardSettingsButton"
+            Layout.alignment: Qt.AlignHCenter
+            isRound: true
+            icon: "settings"
+            type: IconButton.Filled
+            padding: Tokens.padding.medium
+            activeFocusOnTab: true
+            stateLayer.manualHoverOverride: activeFocus
+            Accessible.role: Accessible.Button
+            Accessible.name: Tr.tr("Settings")
+            Accessible.onPressAction: root.openSettings()
+            ToolTip.visible: hovered || activeFocus
+            ToolTip.text: Tr.tr("Settings")
+            Keys.onReturnPressed: root.openSettings()
+            Keys.onSpacePressed: root.openSettings()
+            onClicked: root.openSettings()
         }
     }
     component Resource: CircularProgress {

@@ -82,6 +82,8 @@ GridLayout {
 
         Resources {
             id: resources
+
+            screenState: root.screenState
         }
     }
 
