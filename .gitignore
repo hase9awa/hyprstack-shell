@@ -29,6 +29,8 @@
 !/distribution/generate_emoji.py
 !/distribution/update.py
 !/distribution/update_transaction.py
+!/distribution/updates.py
+!/distribution/RELEASE.md
 !/distribution/defaults/
 !/distribution/systemd/
 !/distribution/patches/
@@ -37,6 +39,7 @@
 !/distribution/tests/
 /distribution/tests/*
 !/distribution/tests/test_upgrade.py
+!/distribution/tests/test_updates.py
 !/distribution/tests/damage_probe.cpp
 !/distribution/tests/test_client_snapshot.py
 !/distribution/tests/client_snapshot.cpp
@@ -152,3 +155,7 @@
 # These two files are empty extension points, with no machine configuration.
 !/distribution/defaults/hyprstack/monitors.lua
 !/distribution/defaults/hyprstack/local.lua
+
+!/.github/
+!/.github/workflows/
+!/.github/workflows/release.yml

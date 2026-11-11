@@ -52,9 +52,9 @@ class Installer:
         self.pending = self.root / "pending.json"
 
     def tree(self, source: Path, destination: Path):
-        if not source.exists():
+        if not source.exists() and not source.is_symlink():
             raise FileNotFoundError(f"Required source is missing: {source}")
-        sources = [source] if source.is_file() else sorted(p for p in source.rglob("*")
+        sources = [source] if source.is_file() or source.is_symlink() else sorted(p for p in source.rglob("*")
                   if (p.is_file() or p.is_symlink()) and "__pycache__" not in p.parts and not p.name.endswith(".pyc"))
         for path in sources:
             target = destination if source.is_file() else destination / path.relative_to(source)
@@ -65,6 +65,9 @@ class Installer:
 
     def plan(self):
         raise NotImplementedError("A deployment plan is required")
+
+    def should_retire(self, path: Path):
+        return True
 
     @staticmethod
     def fingerprint(path: Path):
@@ -153,7 +156,7 @@ class Installer:
                    and self.fingerprint(f.path) != self.desired(f)]
         destinations = {str(file.path) for file in files}
         retired = {path: owned for path, owned in (previous or {}).get("files", {}).items()
-                   if path not in destinations} if action == "install" else {}
+                   if path not in destinations and self.should_retire(Path(path))} if action == "install" else {}
         if dry_run:
             if action == "install":
                 for file in changes: print("WRITE", file.path)

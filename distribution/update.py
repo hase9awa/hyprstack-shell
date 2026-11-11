@@ -31,25 +31,38 @@ def capture(command):
 class Update(Installer):
     staging: Path | None = None
 
+    def should_retire(self, path):
+        # Earlier installers share this ledger with private shell overlays and
+        # user-service drop-ins. A public release must leave those files alone.
+        return (any(path.is_relative_to(root) for root in
+                    (self.bin, self.data / "hyprstack", self.config / "hypr"))
+            or path in (self.config / "hyprstack/hypr-user.lua",
+                self.config / "systemd/user/hyprstack-session.service",
+                self.config / "systemd/user/hyprstack-vpn.service",
+                self.data / "xdg-desktop-portal/portals/hyprstack.portal",
+                self.data / "dbus-1/services/org.freedesktop.impl.portal.desktop.hyprstack.service",
+                self.data / "icons/hicolor/scalable/apps/hyprstack.svg"))
+
     def plan(self):
         if self.staging is None:
             raise ValueError("No staged build")
         yield from self.tree(self.staging / "bin", self.bin)
         yield from self.tree(self.staging / "share", self.data)
-        for file in self.tree(ROOT / "shell/assets/hyprland/config", self.config / "hypr"):
+        data = self.staging / "share/hyprstack"
+        for file in self.tree(data / "shell/assets/hyprland/config", self.config / "hypr"):
             # The screen sharing portal reads xdph.conf, which is its own file
             # rather than ours: it is seeded once and left alone afterwards.
             file.preserve = file.path in (self.config / "hypr/scheme/current.lua",
                                           self.config / "hypr/xdph.conf")
             yield file
-        for file in self.tree(ROOT / "distribution/defaults/hyprstack", self.config / "hyprstack"):
+        for file in self.tree(data / "defaults/hyprstack", self.config / "hyprstack"):
             file.preserve = file.path.name != "hypr-user.lua"
             yield file
-        for file in self.tree(ROOT / "distribution/defaults/xdg-desktop-portal", self.config / "xdg-desktop-portal"):
+        for file in self.tree(data / "defaults/xdg-desktop-portal", self.config / "xdg-desktop-portal"):
             file.preserve = True
             yield file
         for unit in ("hyprstack-session.service", "hyprstack-vpn.service"):
-            yield from self.tree(ROOT / "distribution/systemd/user" / unit,
+            yield from self.tree(data / "systemd" / unit,
                                  self.config / "systemd/user" / unit)
 
 
@@ -125,14 +138,15 @@ def pull_sources():
     return True
 
 
-def preflight():
+def preflight(output=None):
     missing = [name for name in ("Hyprland", "hyprctl", "qs", "cmake", "ninja", "pkg-config", "c++", "msgfmt") if not shutil.which(name)]
     if missing:
         raise ValueError("Не найдены зависимости: " + ", ".join(missing) + ". См. INSTALL.md.")
     hypr = json.loads(capture(["Hyprland", "--version-json"]) or "{}")
     if hypr.get("version") not in ("0.57.0", "0.57.1") or not hypr.get("abiHash"):
         raise ValueError("Нужен Hyprland 0.57.0 или 0.57.1 с совместимыми заголовками. См. INSTALL.md.")
-    subprocess.run([sys.executable, str(ROOT / "distribution/check_headers.py"), hypr["abiHash"]], check=True)
+    subprocess.run([sys.executable, str(Path(__file__).with_name("check_headers.py")), hypr["abiHash"]],
+                   check=True, stdout=output, stderr=subprocess.STDOUT if output else None)
     for command, minimum, label in ((["qs", "--version"], (0, 3, 1), "Quickshell"),
             (["pkg-config", "--modversion", "Qt6Core"], (6, 9, 0), "Qt")):
         match = re.search(r"(\d+)\.(\d+)\.(\d+)", capture(command))
@@ -141,14 +155,16 @@ def preflight():
     return hypr
 
 
-def build(update, jobs, hypr):
+def build(update, jobs, hypr, output=None):
     identity = "\n".join((str(ROOT), hypr["abiHash"], capture(["pkg-config", "--modversion", "Qt6Core"]), capture(["c++", "--version"])))
     key = hashlib.sha256(identity.encode()).hexdigest()[:16]
     directory = Path(os.environ.get("XDG_CACHE_HOME", str(update.home / ".cache"))) / "hyprstack-build" / key
     subprocess.run(["cmake", "-S", str(ROOT), "-B", str(directory), "-G", "Ninja",
         "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_INSTALL_PREFIX=" + str(update.home / ".local"),
-        "-DCMAKE_INSTALL_BINDIR=bin", "-DCMAKE_INSTALL_DATADIR=share", "-DHYPRSTACK_AUDIO_VISUALIZER=OFF"], check=True)
-    subprocess.run(["cmake", "--build", str(directory), "--parallel", str(jobs)], check=True)
+        "-DCMAKE_INSTALL_BINDIR=bin", "-DCMAKE_INSTALL_DATADIR=share", "-DHYPRSTACK_AUDIO_VISUALIZER=OFF"],
+        check=True, stdout=output, stderr=subprocess.STDOUT if output else None)
+    subprocess.run(["cmake", "--build", str(directory), "--parallel", str(jobs)],
+                   check=True, stdout=output, stderr=subprocess.STDOUT if output else None)
     return directory
 
 

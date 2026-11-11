@@ -2785,6 +2785,102 @@ var catalogue = [
     "target": "",
     "match": "",
     "keywords": ""
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Updates",
+    "context": "",
+    "target": "",
+    "match": "",
+    "keywords": ""
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Check for updates",
+    "context": "",
+    "target": "updatesCheck",
+    "match": "Check for updates",
+    "keywords": ""
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Download and prepare update",
+    "context": "",
+    "target": "updatesPrepare",
+    "match": "Download and prepare update",
+    "keywords": "Prepare the update again Download release background build"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Install update…",
+    "context": "",
+    "target": "updatesInstall",
+    "match": "Install update…",
+    "keywords": "Save your work. Installation ends the Hyprland session."
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Open update log",
+    "context": "",
+    "target": "",
+    "match": "Open update log",
+    "keywords": ""
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Check for updates automatically",
+    "context": "",
+    "target": "",
+    "match": "Check for updates automatically",
+    "keywords": "Check stable releases at startup and every six hours."
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Notify about new releases",
+    "context": "",
+    "target": "",
+    "match": "Notify about new releases",
+    "keywords": "Show a small notification once for each new version."
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Updates"
+    ],
+    "label": "Open release on GitHub",
+    "context": "",
+    "target": "",
+    "match": "Open release on GitHub",
+    "keywords": ""
   }
 ];
 // End catalogue
@@ -2799,7 +2895,7 @@ var aliases = [
     ["прокрут", "scroll"], ["автоскрол", "autoscroll"], ["колес", "middle"],
     ["окн", "window"], ["окон", "window"], ["неактив", "border"],
     ["панел", "panel"], ["трей", "tray"], ["знач", "icon"], ["икон", "icon"],
-    ["уведом", "notification"], ["звук", "audio"], ["громк", "volume"],
+    ["обнов", "update"], ["релиз", "release"], ["уведом", "notification"], ["звук", "audio"], ["громк", "volume"],
     ["микроф", "input"], ["язык", "language"], ["сеть", "network"], ["сетев", "network"],
     ["скорос", "refresh"], ["частот", "refresh"], ["размер", "size"], ["интенс", "intensity"],
     ["толщ", "width"], ["цвет", "colour"], ["блют", "bluetooth"], ["интерф", "interface"],

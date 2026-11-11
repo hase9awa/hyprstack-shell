@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+data_dir=${HYPRSTACK_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/hyprstack}
+export PYTHONDONTWRITEBYTECODE=1
+exec python3 "$data_dir/updater/updates.py" "$@"

@@ -13,6 +13,7 @@ Scope {
         // the compositor hands the key over only once one is up.
         Dialogs;
         Notifs;
+        Updates;
         Players;
         WindowSwitcher;
         Brightness;

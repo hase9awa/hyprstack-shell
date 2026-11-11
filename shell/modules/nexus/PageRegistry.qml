@@ -83,5 +83,11 @@ QtObject {
             description: Tr.tr("System information, credits"),
             category: "about"
         },
+        {
+            label: Tr.tr("Updates"),
+            icon: "system_update",
+            description: Tr.tr("Check for releases and update Hyprstack"),
+            category: "about"
+        },
     ]
 }

@@ -186,6 +186,13 @@ QtObject {
                     AboutPage {}
                 }
             }
+        },
+        Component {
+            StackPage {
+                Component {
+                    UpdatesPage {}
+                }
+            }
         }
     ]
 

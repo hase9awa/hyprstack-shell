@@ -6292,3 +6292,177 @@ msgstr "Папка"
 
 msgid "File"
 msgstr "Файл"
+
+#: services/Updates.qml
+msgid "Unable to read the updater response"
+msgstr "Не удалось прочитать ответ службы обновлений"
+
+#: services/Updates.qml
+msgid "Hyprstack update available"
+msgstr "Доступно обновление Hyprstack"
+
+#: services/Updates.qml
+#, qt-format
+msgid "Version %1 is available. Open Settings → Updates to install it."
+msgstr "Доступна версия %1. Для установки откройте Настройки → Обновления."
+
+#: services/Updates.qml
+msgid "The updater stopped unexpectedly"
+msgstr "Процесс обновления неожиданно завершился"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Updates"
+msgstr "Обновления"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Checking for updates…"
+msgstr "Проверка обновлений…"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Downloading the release…"
+msgstr "Загрузка новой версии…"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Building the update… This may take several minutes."
+msgstr "Сборка обновления… Это может занять несколько минут."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Waiting for the session to end…"
+msgstr "Ожидание завершения сеанса…"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Installing the update…"
+msgstr "Установка обновления…"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Hyprstack was updated successfully"
+msgstr "Hyprstack успешно обновлён"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Update failed"
+msgstr "Не удалось выполнить обновление"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "The update is ready to install"
+msgstr "Обновление готово к установке"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "A new version is available"
+msgstr "Доступна новая версия"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "No releases have been published yet"
+msgstr "Релизы пока не опубликованы"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "You are using the latest version"
+msgstr "Установлена актуальная версия"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check for a new Hyprstack release"
+msgstr "Проверьте наличие новой версии Hyprstack"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Hyprstack version"
+msgstr "Версия Hyprstack"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Installed version"
+msgstr "Установленная версия"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Latest release"
+msgstr "Последний релиз"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Last checked"
+msgstr "Последняя проверка"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "Unable to update Hyprstack: %1"
+msgstr "Не удалось обновить Hyprstack: %1"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check for updates"
+msgstr "Проверить обновления"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Prepare the update again"
+msgstr "Подготовить обновление повторно"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Download and prepare update"
+msgstr "Скачать и подготовить обновление"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "You can keep working while the release downloads and builds."
+msgstr "Во время загрузки и сборки можно продолжать работу."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Install update…"
+msgstr "Установить обновление…"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Save your work. Installation ends the Hyprland session."
+msgstr "Сохраните работу. Установка завершит сеанс Hyprland."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "On NixOS, update the hyprstack flake input and rebuild your NixOS or Home Manager configuration."
+msgstr "В NixOS обновите вход hyprstack во flake и пересоберите конфигурацию NixOS или Home Manager."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Installation from Settings requires a systemd user session. Use update.sh from a TTY on this system."
+msgstr "Для установки из настроек нужен пользовательский systemd. В этой системе запустите update.sh из TTY."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "This installation is managed by your package manager or configuration. Update it there."
+msgstr "Эта установка управляется менеджером пакетов или конфигурацией. Обновите её через них."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Open update log"
+msgstr "Открыть журнал обновления"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Automatic checks"
+msgstr "Автоматическая проверка"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check for updates automatically"
+msgstr "Проверять обновления автоматически"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check stable releases at startup and every six hours."
+msgstr "Проверять стабильные релизы при запуске и каждые шесть часов."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Notify about new releases"
+msgstr "Уведомлять о новых релизах"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Show a small notification once for each new version."
+msgstr "Показывать небольшое уведомление один раз для каждой новой версии."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Release notes"
+msgstr "Описание релиза"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Open release on GitHub"
+msgstr "Открыть релиз на GitHub"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Install update and log out?"
+msgstr "Установить обновление и выйти?"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Save your work and close your applications. Hyprland will exit, then the prepared update will be installed with a backup. Wait for installation to finish before logging in again."
+msgstr "Сохраните работу и закройте приложения. Сеанс Hyprland завершится, затем подготовленное обновление будет установлено с резервной копией. Дождитесь окончания установки перед следующим входом."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Install and log out"
+msgstr "Установить и выйти"
+
+#: modules/nexus/PageRegistry.qml
+msgid "Check for releases and update Hyprstack"
+msgstr "Проверка релизов и обновление Hyprstack"

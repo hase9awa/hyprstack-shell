@@ -75,7 +75,15 @@ Requires **Hyprland 0.57.0 or 0.57.1**, **Quickshell ≥ 0.3.1**, **Qt ≥ 6.9**
 Settings include a gradient focus border, window wobble, 11 blur variants and motion blur.
 Rebuild the native extension after a Hyprland ABI change.
 
-[Updates and recovery (Russian)](MAINTENANCE.md#обновление).
+Update an existing installation with one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hase9awa/hyprstack-shell/main/update.sh | bash
+```
+
+The script downloads and builds the release, then asks before logging out of
+Hyprland to install it. Starting with 1.4.11, run `hyprstack-update` or open
+**Settings → Updates**. [Details and recovery (Russian)](MAINTENANCE.md#обновление).
 
 Keep custom settings in `~/.config/hyprstack/`: override default keybindings in
 `hypr-vars.lua`, add bindings and other settings in `local.lua`, and configure

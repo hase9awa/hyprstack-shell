@@ -5051,3 +5051,177 @@ msgstr ""
 msgctxt "button"
 msgid "Next"
 msgstr ""
+
+#: services/Updates.qml
+msgid "Unable to read the updater response"
+msgstr ""
+
+#: services/Updates.qml
+msgid "Hyprstack update available"
+msgstr ""
+
+#: services/Updates.qml
+#, qt-format
+msgid "Version %1 is available. Open Settings → Updates to install it."
+msgstr ""
+
+#: services/Updates.qml
+msgid "The updater stopped unexpectedly"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Updates"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Checking for updates…"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Downloading the release…"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Building the update… This may take several minutes."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Waiting for the session to end…"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Installing the update…"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Hyprstack was updated successfully"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Update failed"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "The update is ready to install"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "A new version is available"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "No releases have been published yet"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "You are using the latest version"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check for a new Hyprstack release"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Hyprstack version"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Installed version"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Latest release"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Last checked"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "Unable to update Hyprstack: %1"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check for updates"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Prepare the update again"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Download and prepare update"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "You can keep working while the release downloads and builds."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Install update…"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Save your work. Installation ends the Hyprland session."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "On NixOS, update the hyprstack flake input and rebuild your NixOS or Home Manager configuration."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Installation from Settings requires a systemd user session. Use update.sh from a TTY on this system."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "This installation is managed by your package manager or configuration. Update it there."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Open update log"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Automatic checks"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check for updates automatically"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Check stable releases at startup and every six hours."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Notify about new releases"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Show a small notification once for each new version."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Release notes"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Open release on GitHub"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Install update and log out?"
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Save your work and close your applications. Hyprland will exit, then the prepared update will be installed with a backup. Wait for installation to finish before logging in again."
+msgstr ""
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Install and log out"
+msgstr ""
+
+#: modules/nexus/PageRegistry.qml
+msgid "Check for releases and update Hyprstack"
+msgstr ""

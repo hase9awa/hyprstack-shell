@@ -1,0 +1,38 @@
+name: Publish release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Validate version and publish the tagged source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          gh api "repos/$GH_REPO/contents/CMakeLists.txt?ref=$GITHUB_REF_NAME" --jq .content | base64 --decode > CMakeLists.txt
+          gh api "repos/$GH_REPO/contents/distribution/RELEASE.md?ref=$GITHUB_REF_NAME" --jq .content | base64 --decode > release-notes.md
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import re
+          version = re.search(r'project\(hyprstack VERSION (\d+\.\d+\.\d+)', Path('CMakeLists.txt').read_text())
+          assert version and 'v' + version[1] == os.environ['GITHUB_REF_NAME'], 'Release tag and CMake version differ'
+          PY
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --title "Hyprstack ${GITHUB_REF_NAME#v}" --notes-file release-notes.md --latest
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "Hyprstack ${GITHUB_REF_NAME#v}" --notes-file release-notes.md --latest
+          fi

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(hyprstack VERSION 1.4.10 LANGUAGES CXX)
+project(hyprstack VERSION 1.4.11 LANGUAGES CXX)
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_DATADIR}/hyprstack/lib" CACHE PATH "Private runtime libraries" FORCE)
 
@@ -57,7 +57,11 @@ install(DIRECTORY distribution/defaults/ DESTINATION "${CMAKE_INSTALL_DATADIR}/h
 # the running shell; activation only hands the request to the session service.
 install(FILES distribution/portals/hyprstack.portal DESTINATION "${CMAKE_INSTALL_DATADIR}/xdg-desktop-portal/portals")
 install(FILES distribution/dbus/org.freedesktop.impl.portal.desktop.hyprstack.service DESTINATION "${CMAKE_INSTALL_DATADIR}/dbus-1/services")
-install(PROGRAMS distribution/bin/hyprstack distribution/bin/hyprstack-shell distribution/bin/hyprstack-session distribution/bin/hyprstack-session-runner distribution/bin/hyprstack-doctor distribution/bin/hyprstack-vpn distribution/bin/hyprstack-share-picker DESTINATION "${CMAKE_INSTALL_BINDIR}")
+install(PROGRAMS distribution/bin/hyprstack distribution/bin/hyprstack-shell distribution/bin/hyprstack-session distribution/bin/hyprstack-session-runner distribution/bin/hyprstack-doctor distribution/bin/hyprstack-vpn distribution/bin/hyprstack-share-picker distribution/bin/hyprstack-update DESTINATION "${CMAKE_INSTALL_BINDIR}")
+install(FILES distribution/updates.py distribution/update.py distribution/update_transaction.py distribution/check_headers.py
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/updater")
+file(WRITE "${CMAKE_BINARY_DIR}/hyprstack-version.json" "{\"version\": \"${PROJECT_VERSION}\"}\n")
+install(FILES "${CMAKE_BINARY_DIR}/hyprstack-version.json" DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack" RENAME version.json)
 install(FILES distribution/systemd/user/hyprstack-session.service distribution/systemd/user/hyprstack-vpn.service DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/systemd")
 install(FILES shell/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack" RENAME LICENSE)
 install(FILES THIRD_PARTY.md DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack")

@@ -57,6 +57,9 @@ class ServiceConfig : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(bool, askpass, true)
     CONFIG_GLOBAL_PROPERTY(bool, bluetoothAgent, true)
     CONFIG_GLOBAL_PROPERTY(bool, networkSecrets, true)
+
+    CONFIG_GLOBAL_PROPERTY(bool, checkUpdates, true)
+    CONFIG_GLOBAL_PROPERTY(bool, updateNotifications, true)
 };
 
 } // namespace hyprstack::config
