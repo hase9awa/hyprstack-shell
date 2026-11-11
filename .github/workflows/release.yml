@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - '.github/workflows/release.yml'
+      - 'distribution/RELEASE.md'
     tags:
       - 'v*'
 
@@ -39,8 +40,13 @@ jobs:
           fi
           [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
           export RELEASE_TAG="$release_tag"
+          notes_ref="$release_tag"
+          if [[ "$GITHUB_REF_TYPE" == branch ]]; then
+            notes_ref="$GITHUB_SHA"
+          fi
           gh api "repos/$GH_REPO/contents/CMakeLists.txt?ref=$release_tag" --jq .content | base64 --decode > CMakeLists.txt
-          gh api "repos/$GH_REPO/contents/distribution/RELEASE.md?ref=$release_tag" --jq .content | base64 --decode > release-notes.md
+          gh api "repos/$GH_REPO/contents/distribution/RELEASE.md?ref=$notes_ref" --jq .content | base64 --decode > release-notes.md
+          gh api "repos/$GH_REPO/contents/docs/media/updates.png?ref=$notes_ref" --jq .content | base64 --decode > updates.png
           python3 - <<'PY'
           import os
           from pathlib import Path
@@ -53,3 +59,4 @@ jobs:
           else
             gh release create "$release_tag" --verify-tag --title "Hyprstack ${release_tag#v}" --notes-file release-notes.md --latest
           fi
+          gh release upload "$release_tag" updates.png --clobber
