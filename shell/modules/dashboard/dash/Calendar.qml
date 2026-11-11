@@ -10,6 +10,7 @@ import qs.components
 import qs.components.controls
 import qs.components.effects
 import qs.services
+import qs.modules.nexus
 
 CustomMouseArea {
     id: root
@@ -37,6 +38,11 @@ CustomMouseArea {
             screenState.dashboardDate = new Date(nonAnimCurrYear, nonAnimCurrMonth - 1, 1);
         else if (event.angleDelta.y < 0)
             screenState.dashboardDate = new Date(nonAnimCurrYear, nonAnimCurrMonth + 1, 1);
+    }
+
+    function openSettings(): void {
+        screenState.dashboard = false;
+        WindowFactory.create(null, {screen: screenState.modelData});
     }
 
     anchors.left: parent.left
@@ -118,6 +124,7 @@ CustomMouseArea {
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumWidth: 0
 
                 implicitWidth: monthYearDisplay.implicitWidth + Tokens.padding.large * 2
                 implicitHeight: monthYearDisplay.implicitHeight + Tokens.padding.extraSmall * 2
@@ -147,6 +154,9 @@ CustomMouseArea {
                     }
 
                     anchors.centerIn: parent
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    elide: Text.ElideRight
                     text: new Date(root.currYear, root.currMonth, 1).toLocaleString(Tr.locale, "MMMM yyyy")
                     color: Colours.palette.m3primary
                     font: Tokens.font.title.builders.small.capitalisation(Font.Capitalize).build()
@@ -160,6 +170,24 @@ CustomMouseArea {
                 font: Tokens.font.icon.builders.small.weight(Font.Bold).build()
                 padding: Tokens.padding.small
                 onClicked: root.screenState.dashboardDate = new Date(root.nonAnimCurrYear, root.nonAnimCurrMonth + 1, 1)
+            }
+
+            IconButton {
+                objectName: "dashboardSettingsButton"
+                isRound: true
+                icon: "settings"
+                type: IconButton.Text
+                padding: Tokens.padding.small
+                activeFocusOnTab: true
+                stateLayer.manualHoverOverride: activeFocus
+                Accessible.role: Accessible.Button
+                Accessible.name: Tr.tr("Settings")
+                Accessible.onPressAction: root.openSettings()
+                ToolTip.visible: hovered
+                ToolTip.text: Tr.tr("Settings")
+                Keys.onReturnPressed: root.openSettings()
+                Keys.onSpacePressed: root.openSettings()
+                onClicked: root.openSettings()
             }
         }
 

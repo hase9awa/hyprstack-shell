@@ -6466,3 +6466,104 @@ msgstr "Установить и выйти"
 #: modules/nexus/PageRegistry.qml
 msgid "Check for releases and update Hyprstack"
 msgstr "Проверка релизов и обновление Hyprstack"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Please wait…"
+msgstr "Подождите…"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Disconnect other VPN"
+msgstr "Отключить другой VPN"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Add connection"
+msgstr "Добавить подключение"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Select a server"
+msgstr "Выбрать сервер"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Prepare VPN"
+msgstr "Подготовить VPN"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Allow VPN"
+msgstr "Разрешить VPN"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Adding connection…"
+msgstr "Добавление подключения…"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Preparing VPN…"
+msgstr "Подготовка VPN…"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Waiting for permission…"
+msgstr "Ожидание разрешения…"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Testing latency…"
+msgstr "Проверка задержки…"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Updating subscriptions…"
+msgstr "Обновление подписок…"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Disconnected"
+msgstr "Отключено"
+
+#: modules/vpn/VpnWindow.qml
+#, qt-format
+msgid "%1 is connected. Disconnect it before using this VPN."
+msgstr "Подключён %1. Отключите его, чтобы использовать этот VPN."
+
+#: modules/vpn/VpnWindow.qml
+msgid "Add a server link or subscription to get started."
+msgstr "Для начала добавьте ссылку на сервер или подписку."
+
+#: modules/vpn/VpnWindow.qml
+msgid "Prepare the VPN components once, then connect."
+msgstr "Подготовьте компоненты VPN, затем подключитесь."
+
+#: modules/vpn/VpnWindow.qml
+msgid "Allow access to create a VPN tunnel. A system prompt will appear."
+msgstr "Разрешите создание VPN-туннеля в системном запросе."
+
+#: modules/vpn/VpnWindow.qml
+msgid "Choose a server, then press Connect."
+msgstr "Выберите сервер и нажмите «Подключить»."
+
+#: modules/vpn/VpnWindow.qml
+msgid "Servers"
+msgstr "Серверы"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Choosing another server reconnects the VPN."
+msgstr "При выборе другого сервера VPN переподключится."
+
+#: modules/vpn/VpnWindow.qml
+msgid "Advanced"
+msgstr "Дополнительно"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Disconnect to change connection settings."
+msgstr "Отключитесь, чтобы изменить настройки подключения."
+
+#: modules/vpn/VpnWindow.qml
+msgid "Paste"
+msgstr "Вставить"
+
+#: modules/bar/components/VpnToggle.qml
+msgid "Open VPN controls"
+msgstr "Открыть управление VPN"
+
+#: modules/nexus/pages/NetworkPage.qml
+msgid "Choose a server or add a connection"
+msgstr "Выбрать сервер или добавить подключение"
+
+#: modules/nexus/pages/NetworkPage.qml
+msgid "External VPN provider"
+msgstr "Внешний VPN-клиент"

@@ -168,6 +168,18 @@ Singleton {
         GlobalConfig.utilities.vpn.selectedProvider = id;
     }
 
+    function selectManagedProvider(): bool {
+        if (connected && active.name !== "native")
+            return false;
+        if (!providers.some(provider => provider.name === "native"))
+            addProvider({name: "native", displayName: "VPN", interface: "hyprstack-vpn", connectCmd: [], disconnectCmd: []});
+        const provider = providers.find(provider => provider.name === "native");
+        if (!provider)
+            return false;
+        applySelectedProvider(provider.id);
+        return true;
+    }
+
     // Guarantee there is always a valid selection while any provider exists: if
     // the stored id matches no configured provider, fall back to the first one
     // (or clear it when the list is empty).
@@ -182,7 +194,10 @@ Singleton {
 
     function connect(): void {
         if (active.name === "native") {
-            ManagedVPN.run("connect", {});
+            if (ManagedVPN.needsSetup)
+                ManagedVPN.openSettings();
+            else
+                ManagedVPN.run("connect", {});
             return;
         }
         if (status.state === "needs-auth" && status.authUrl) {
@@ -444,7 +459,7 @@ Singleton {
         }
 
         // Auto connect if config was enabled on init
-        if (root.autoConnectPending) {
+        if (root.autoConnectPending && (active.name !== "native" || ManagedVPN.loaded)) {
             root.autoConnectPending = false;
             if (!newStatus.connected)
                 root.connect();
@@ -519,6 +534,14 @@ Singleton {
     }
 
     onProvidersChanged: root.ensureSelection()
+
+    Connections {
+        target: ManagedVPN
+        function onLoadedChanged(): void {
+            if (ManagedVPN.loaded && root.autoConnectPending)
+                root.checkStatus();
+        }
+    }
 
     onSelectedProviderChanged: {
         status = {

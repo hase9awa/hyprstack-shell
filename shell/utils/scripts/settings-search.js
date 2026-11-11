@@ -530,11 +530,11 @@ var catalogue = [
     "path": [
       "Network"
     ],
-    "label": "VPN settings",
+    "label": "VPN",
     "context": "",
-    "target": "",
-    "match": "VPN settings",
-    "keywords": "Profiles, subscriptions and connection mode"
+    "target": "networkVpnSettings",
+    "match": "VPN",
+    "keywords": "VPN settings Servers subscriptions connection Profiles"
   },
   {
     "page": 1,
@@ -554,11 +554,11 @@ var catalogue = [
     "path": [
       "Network"
     ],
-    "label": "Add provider",
+    "label": "External VPN provider",
     "context": "",
-    "target": "",
-    "match": "Add provider",
-    "keywords": ""
+    "target": "networkExternalVpnProvider",
+    "match": "External VPN provider",
+    "keywords": "WireGuard Tailscale WARP NetBird Add provider"
   },
   {
     "page": 1,

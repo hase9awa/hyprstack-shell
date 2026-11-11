@@ -15,21 +15,14 @@ Item {
 
     implicitWidth: icon.implicitHeight + Tokens.padding.small
     implicitHeight: icon.implicitHeight
-    activeFocusOnTab: !busy
-    Accessible.role: Accessible.CheckBox
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
     Accessible.name: Tr.tr("VPN")
     Accessible.description: statusText
-    Accessible.checkable: true
-    Accessible.checked: connected
-    Accessible.onToggleAction: root.toggle()
+    Accessible.onPressAction: ManagedVPN.openSettings()
 
     function toggle(): void {
-        if (busy)
-            return;
-        if (VPN.active.name === "native" && ManagedVPN.profiles.length === 0)
-            ManagedVPN.openSettings();
-        else
-            VPN.toggle();
+        ManagedVPN.openSettings();
     }
 
     Keys.onSpacePressed: root.toggle()
@@ -42,7 +35,6 @@ Item {
         implicitWidth: root.implicitWidth
         implicitHeight: root.implicitHeight + Tokens.padding.small
         radius: Tokens.rounding.full
-        disabled: root.busy
         manualHoverOverride: root.activeFocus
         onClicked: root.toggle()
     }
@@ -58,6 +50,6 @@ Item {
     }
 
     ToolTip.visible: hitArea.containsMouse || root.activeFocus
-    ToolTip.text: root.statusText
+    ToolTip.text: root.statusText + "\n" + Tr.tr("Open VPN controls")
     ToolTip.delay: 400
 }

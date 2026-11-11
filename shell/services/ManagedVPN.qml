@@ -13,15 +13,30 @@ Singleton {
     property var data: ({ profiles: [], groups: [], routes: [], selectedProfile: -1, mode: "tun" })
     readonly property var profiles: data.profiles ?? []
     readonly property var routes: data.routes ?? []
+    readonly property var selectedProfile: profiles.find(p => p.id === data.selectedProfile) ?? null
+    readonly property bool connected: data.connected === true
+    readonly property bool needsSetup: !selectedProfile || data.installed === false
+        || (data.mode !== "proxy" && !data.canTun)
     readonly property bool busy: mutation.running
     property string action
     property string error
     property string payload
     property bool refreshPending
+    property bool loaded: false
     property var window: null
     property var windowComponent: null
 
     signal operationFinished(command: string, success: bool)
+
+    function connectSelected(): void {
+        if (busy)
+            return;
+        if (needsSetup || !VPN.selectManagedProvider()) {
+            openSettings();
+            return;
+        }
+        run("connect", {});
+    }
 
     function refresh(): void {
         if (read.running) {
@@ -72,6 +87,7 @@ Singleton {
                         root.data = Object.assign({}, root.data, {installed: value.installed !== false});
                     } else
                         root.data = value;
+                    root.loaded = true;
                 } catch (err) {
                     root.error = Tr.tr("Unable to read VPN status");
                 }
@@ -99,6 +115,9 @@ Singleton {
                     if (value.error) {
                         root.error = Tr.tr(value.error);
                         Toaster.toast(Tr.tr("VPN"), root.error, "vpn_key_alert");
+                    } else if (Array.isArray(value.profiles)) {
+                        root.data = value;
+                        root.loaded = true;
                     }
                 } catch (err) {
                     root.error = Tr.tr("The VPN action did not complete");

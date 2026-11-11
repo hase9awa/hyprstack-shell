@@ -5225,3 +5225,164 @@ msgstr ""
 #: modules/nexus/PageRegistry.qml
 msgid "Check for releases and update Hyprstack"
 msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Please wait…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Disconnect other VPN"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Add connection"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Select a server"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Prepare VPN"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Allow VPN"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Adding connection…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Preparing VPN…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Waiting for permission…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Testing latency…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Updating subscriptions…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Updating connection…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Disconnected"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+#, qt-format
+msgid "%1 is connected. Disconnect it before using this VPN."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Local proxy · selected applications"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "VPN · all applications"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Add a server link or subscription to get started."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Prepare the VPN components once, then connect."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Allow access to create a VPN tunnel. A system prompt will appear."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Choose a server, then press Connect."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Close window"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Servers"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Choosing another server reconnects the VPN."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Test latency"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Delete profile"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Advanced"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Disconnect to change connection settings."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Connection mode"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "SOCKS5: 127.0.0.1:2080 · HTTP: 127.0.0.1:2081"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Routing profile"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Reconnect after login"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Update subscriptions"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Profile links or configuration"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Subscription URL"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Subscription name"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Paste"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Delete profile?"
+msgstr ""
+
+#: modules/bar/components/VpnToggle.qml
+msgid "Open VPN controls"
+msgstr ""
+
+#: modules/nexus/pages/NetworkPage.qml
+msgid "Choose a server or add a connection"
+msgstr ""
+
+#: modules/nexus/pages/NetworkPage.qml
+msgid "External VPN provider"
+msgstr ""

@@ -14,6 +14,7 @@ PageBase {
     id: root
 
     title: Tr.tr("Network")
+    readonly property bool hasOtherVpnProviders: VPN.providers.some(provider => provider.name !== "native")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -116,13 +117,18 @@ PageBase {
         // ---- VPN -------------------------------------------------------------
 
         RowButton {
-            text: Tr.tr("VPN settings")
-            subtext: Tr.tr("Profiles, subscriptions and connection mode")
+            objectName: "networkVpnSettings"
+            first: true
+            last: true
+            text: Tr.tr("VPN")
+            subtext: ManagedVPN.connected ? Tr.tr("Connected to %1").arg(ManagedVPN.data.server)
+                : Tr.tr("Choose a server or add a connection")
             icon: "vpn_key"
             trailingIcon: "open_in_new"
             onClicked: ManagedVPN.openSettings()
         }
         ToggleRow {
+            visible: root.hasOtherVpnProviders
             Layout.topMargin: Tokens.spacing.large
             Layout.fillWidth: true
             first: true
@@ -149,6 +155,7 @@ PageBase {
 
         ItemList {
             id: providerList
+            visible: root.hasOtherVpnProviders
 
             showList: true
             placeholderIcon: "add_circle"
@@ -350,9 +357,11 @@ PageBase {
 
         // Add provider
         RowButton {
+            objectName: "networkExternalVpnProvider"
             last: true
             icon: "add"
-            text: Tr.tr("Add provider")
+            text: Tr.tr("External VPN provider")
+            subtext: "WireGuard, Tailscale, WARP, NetBird"
             onClicked: {
                 root.nState.editingVpnIndex = -1;
                 root.nState.openSubPage(4); // Add/edit provider sub-page
