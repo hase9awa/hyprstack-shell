@@ -30,7 +30,6 @@ local float_50_60_tag = "float_50_60"
 local game_tag = "game"
 local xwl_popup_tag = "xwl_popup"
 local system_monitor_tag = "system_monitor"
-local music_player_tag = "music_player"
 local todo_app_tag = "todo_app"
 
 
@@ -133,15 +132,9 @@ tagged_rule(xwl_popup_tag, {
 
 -- Special workspaces
 tagged_rule(system_monitor_tag, { "btop" }, "class")
-tagged_rule(music_player_tag, {
-    "feishin|Supersonic|Plexamp",                                  -- Self hosted
-    "Spotify",                                                     -- Spotify
-    "Cider",                                                       -- Apple music
-    "com.github.th-ch.youtube-music|com-maxrave-simpmusic-MainKt", -- YouTube music
-}, "class")
-tagged_rule(music_player_tag, {
-    "Spotify|Spotify Free" -- Spotify wayland, it has no class for some reason
-}, "initial_title")
+-- Music players use regular workspaces and their normal window geometry.
+-- Sending Electron/XWayland players to a special workspace can scale the
+-- entire surface and leave the application looking low resolution.
 tagged_rule(todo_app_tag, {
     "todoist" -- Todoist
 }, "class")
@@ -188,7 +181,6 @@ create_tag(xwl_popup_tag, {
     rounding = math.min(10, vars.windowRounding), -- Popups are usually small, so we want to limit the rounding
 })
 create_tag(system_monitor_tag, { workspace = "special:sysmon" })
-create_tag(music_player_tag, { workspace = "special:music" })
 create_tag(todo_app_tag, { workspace = "special:todo" })
 
 

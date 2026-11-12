@@ -4,7 +4,8 @@ hl.config({
     input = {
         follow_mouse       = 2,
         float_switch_override_focus = 0,
-        kb_layout          = "us",
+        kb_layout          = "us,ru",
+        kb_options         = "grp:alt_shift_toggle",
         numlock_by_default = false,
         repeat_delay       = 250,
         repeat_rate        = 35,

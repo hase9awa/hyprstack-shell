@@ -13,12 +13,12 @@ let
     networkmanager pipewire wireplumber polkit hyprlock hyprpicker xdg-utils
     xdg-user-dirs libxml2 systemd libqalculate ];
 in
-assert lib.assertMsg (builtins.elem hyprland.version [ "0.57.0" "0.57.1" ]) "Hyprstack requires Hyprland 0.57.0 or 0.57.1";
+assert lib.assertMsg (builtins.elem hyprland.version [ "0.57.0" "0.57.1" "0.57.2" ]) "Hyprstack requires Hyprland 0.57.0–0.57.2";
 assert lib.assertMsg (lib.versionAtLeast quickshell.version "0.3.1") "Hyprstack requires Quickshell >= 0.3.1";
 assert lib.assertMsg (lib.versionAtLeast qt6.qtbase.version "6.9") "Hyprstack requires Qt >= 6.9";
 (hyprland.stdenv or stdenv).mkDerivation {
   pname = "hyprstack";
-  version = "1.4.13";
+  version = "1.4.14";
   inherit src;
 
   nativeBuildInputs = [ cmake ninja pkg-config gettext makeWrapper qt6.wrapQtAppsHook python hyprland ];
@@ -54,7 +54,7 @@ assert lib.assertMsg (lib.versionAtLeast qt6.qtbase.version "6.9") "Hyprstack re
 
   passthru = { inherit hyprland quickshell; };
   meta = {
-    description = "Hyprstack desktop shell for Hyprland 0.57.0 and 0.57.1";
+    description = "Hyprstack desktop shell for Hyprland 0.57.0–0.57.2";
     homepage = "https://github.com/hase9awa/hyprstack-shell";
     license = lib.licenses.gpl3Only;
     platforms = [ "x86_64-linux" "aarch64-linux" ];

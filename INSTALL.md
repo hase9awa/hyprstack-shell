@@ -5,10 +5,14 @@
 <a id="arch"></a>
 
 Arch Linux, CachyOS, EndeavourOS и Manjaro с systemd.
-Нужны **Hyprland 0.57.0 или 0.57.1** с соответствующими заголовками, **Quickshell ≥ 0.3.1**
+Нужны **Hyprland 0.57.0–0.57.2** с соответствующими заголовками, **Quickshell ≥ 0.3.1**
 с Hyprland/PAM/Polkit и **Qt ≥ 6.9**. CMake проверяет ABI при сборке.
 
 После обновления Hyprland пересоберите Hyprstack и войдите в новый сеанс.
+Раскладки по умолчанию: US/RU, переключение — Alt+Shift.
+
+Для непроверенной версии Gist предлагает «Всё равно установить»;
+при ручной сборке добавьте `-DHYPRSTACK_ALLOW_UNSUPPORTED_HYPRLAND=ON`.
 
 **Команды рассчитаны на Bash** — из Fish/Zsh сначала выполните `bash`.
 Для существующей установки используйте [обновление](MAINTENANCE.md#обновление).

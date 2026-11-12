@@ -143,8 +143,8 @@ def preflight(output=None):
     if missing:
         raise ValueError("Не найдены зависимости: " + ", ".join(missing) + ". См. INSTALL.md.")
     hypr = json.loads(capture(["Hyprland", "--version-json"]) or "{}")
-    if hypr.get("version") not in ("0.57.0", "0.57.1") or not hypr.get("abiHash"):
-        raise ValueError("Нужен Hyprland 0.57.0 или 0.57.1 с совместимыми заголовками. См. INSTALL.md.")
+    if hypr.get("version") not in ("0.57.0", "0.57.1", "0.57.2") or not hypr.get("abiHash"):
+        raise ValueError("Нужен Hyprland 0.57.0, 0.57.1 или 0.57.2 с совместимыми заголовками. См. INSTALL.md.")
     subprocess.run([sys.executable, str(Path(__file__).with_name("check_headers.py")), hypr["abiHash"]],
                    check=True, stdout=output, stderr=subprocess.STDOUT if output else None)
     for command, minimum, label in ((["qs", "--version"], (0, 3, 1), "Quickshell"),

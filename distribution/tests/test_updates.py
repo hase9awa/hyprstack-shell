@@ -64,6 +64,19 @@ class UpdateTests(unittest.TestCase):
         self.environment.stop()
         self.temporary.cleanup()
 
+    def test_hyprland_0572_preflight_checks_matching_headers(self):
+        def capture(command):
+            return '{"version":"0.57.2","abiHash":"new-abi"}' if command[0] == "Hyprland" else "6.12.0"
+        with patch.object(updates.deployment, "capture", side_effect=capture), \
+             patch.object(updates.deployment.subprocess, "run") as run:
+            self.assertEqual(updates.deployment.preflight()["version"], "0.57.2")
+        self.assertEqual(run.call_args.args[0][-1], "new-abi")
+
+    def test_supported_hyprland_without_abi_cannot_bypass_preflight(self):
+        with patch.object(updates.deployment, "capture", return_value='{"version":"0.57.2"}'):
+            with self.assertRaises(ValueError):
+                updates.deployment.preflight()
+
     def files(self, stage):
         values = {
             "bin/hyprstack": "NEW BINARY",

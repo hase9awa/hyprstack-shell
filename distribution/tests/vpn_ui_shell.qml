@@ -152,12 +152,13 @@ ShellRoot {
                 tryVerify(() => ManagedVPN.data.selectedProfile === "b56de78f" && !ManagedVPN.busy);
                 verify(!ManagedVPN.connected);
             }
-            function test_bar_icon_opens_controls_without_toggling_connection() {
-                fixture({connected:true,server:"Server A"});
+            function test_bar_icon_connects_and_disconnects_directly() {
                 click(barVpn);
-                wait(100);
-                verify(ManagedVPN.connected);
-                compare(ManagedVPN.data.operations.length, 0);
+                tryVerify(() => ManagedVPN.connected && !ManagedVPN.busy);
+                compare(ManagedVPN.data.operations[0], "connect");
+                click(barVpn);
+                tryVerify(() => !ManagedVPN.connected && !ManagedVPN.busy);
+                compare(ManagedVPN.data.operations[1], "disconnect");
             }
             function test_import_success_closes_the_form_and_failure_keeps_input() {
                 click(control("vpnAddConnectionButton"));
