@@ -20,6 +20,17 @@ PageBase {
     title: Tr.tr("Wallpapers")
     isSubPage: true
 
+    // The folder dialog walks the wallpapers directory as segments, with the
+    // home directory named rather than spelled out.
+    function wallDirSegments(): list<string> {
+        const dir = Paths.wallsdir;
+        if (!dir || dir === Paths.home)
+            return ["Home"];
+        if (dir.startsWith(`${Paths.home}/`))
+            return ["Home", ...dir.slice(Paths.home.length + 1).split("/")];
+        return dir.split("/");
+    }
+
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -70,15 +81,55 @@ PageBase {
             }
         }
 
-        StyledText {
+        RowLayout {
+            Layout.fillWidth: true
             Layout.topMargin: Tokens.spacing.large
-            text: Tr.tr("Local wallpapers")
-            font: Tokens.font.title.small
+            spacing: Tokens.spacing.medium
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: Tr.tr("Local wallpapers")
+                    font: Tokens.font.title.small
+                    elide: Text.ElideMiddle
+                }
+
+                // The folder the grid and the random button both read from.
+                StyledText {
+                    Layout.fillWidth: true
+                    text: Paths.shortenHome(Paths.wallsdir)
+                    color: Colours.palette.m3outline
+                    font: Tokens.font.body.small
+                    elide: Text.ElideMiddle
+                }
+            }
+
+            IconButton {
+                icon: "folder"
+                type: IconButton.Tonal
+                Accessible.name: Tr.trCtx("Select folder", "button")
+                onClicked: dirDialog.open()
+
+                FileDialog {
+                    id: dirDialog
+
+                    mode: FileDialog.SelectFolder
+                    title: Tr.tr("Select a folder with wallpapers")
+                    cwd: root.wallDirSegments()
+                    onAccepted: paths => {
+                        if (paths[0] !== Paths.wallsdir)
+                            GlobalConfig.paths.wallpaperDir = paths[0];
+                    }
+                }
+            }
         }
 
         GridLayout {
             Layout.fillWidth: true
-            visible: localWalls.count > 0
+            visible: Wallpapers.list.length > 0
 
             columns: Config.nexus.wallpapersPerRow
             rowSpacing: Tokens.spacing.medium
@@ -143,7 +194,7 @@ PageBase {
             Layout.fillWidth: true
 
             asynchronous: true
-            active: localWalls.count === 0
+            active: Wallpapers.list.length === 0
             visible: active
 
             sourceComponent: StyledRect {
@@ -169,6 +220,15 @@ PageBase {
                         text: Tr.tr("No local wallpapers found")
                         color: Colours.palette.m3outline
                         font: Tokens.font.title.small
+                    }
+
+                    IconTextButton {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.topMargin: Tokens.spacing.medium
+                        icon: "folder"
+                        text: Tr.trCtx("Select folder", "button")
+                        type: IconTextButton.Tonal
+                        onClicked: dirDialog.open()
                     }
                 }
             }
