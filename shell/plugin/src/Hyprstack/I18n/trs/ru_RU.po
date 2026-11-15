@@ -3018,6 +3018,10 @@ msgstr "Локальные обои"
 msgid "No local wallpapers found"
 msgstr "Локальные обои не найдены"
 
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+msgid "Select a folder with wallpapers"
+msgstr "Выберите папку с обоями"
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Wallpaper disabled"
 msgstr "Обои отключены"

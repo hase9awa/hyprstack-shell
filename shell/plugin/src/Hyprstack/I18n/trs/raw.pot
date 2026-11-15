@@ -3754,6 +3754,10 @@ msgstr ""
 msgid "Select a profile picture"
 msgstr ""
 
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+msgid "Select a folder with wallpapers"
+msgstr ""
+
 #: modules/background/Wallpaper.qml
 msgid "Select a wallpaper"
 msgstr ""

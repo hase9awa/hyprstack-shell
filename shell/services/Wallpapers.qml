@@ -29,7 +29,9 @@ Searcher {
     }
 
     function setRandom(): void {
-        Quickshell.execDetached(["hyprstack", "wallpaper", "-r", ...smartArg]);
+        // The CLI only knows the environment variable and its own default, so
+        // the folder shown in the settings is passed to it explicitly.
+        Quickshell.execDetached(["hyprstack", "wallpaper", "-r", Paths.wallsdir, ...smartArg]);
     }
 
     function setWallpaper(path: string): void {
