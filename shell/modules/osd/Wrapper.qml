@@ -14,6 +14,7 @@ Item {
     required property bool sidebarOrSessionVisible
 
     property bool hovered
+    readonly property bool onLeft: Config.osd.side === OsdSide.Left
     readonly property Brightness.Monitor monitor: Brightness.getMonitorForScreen(root.screen)
     readonly property bool shouldBeActive: screenState.osd && Config.osd.enabled && !(screenState.utilities && Config.utilities.enabled)
     property real offsetScale: shouldBeActive ? 0 : 1
@@ -39,7 +40,10 @@ Item {
     }
 
     visible: offsetScale < 1
-    anchors.rightMargin: (-implicitWidth - 5 - sidebarOffset) * offsetScale
+    // Slide-out offset, kept as x so flipping the side never toggles anchors.
+    x: root.onLeft
+        ? (-root.implicitWidth - 5) * root.offsetScale
+        : (parent?.width ?? 0) - root.width + (root.implicitWidth + 5 + root.sidebarOffset) * root.offsetScale
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
     opacity: 1 - offsetScale

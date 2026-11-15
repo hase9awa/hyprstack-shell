@@ -3604,6 +3604,22 @@ msgstr ""
 msgid "Input volume control in the indicator"
 msgstr ""
 
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Orientation"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Left"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Right"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Screen edge the indicator appears on"
+msgstr ""
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Reveal on hover"
 msgstr ""

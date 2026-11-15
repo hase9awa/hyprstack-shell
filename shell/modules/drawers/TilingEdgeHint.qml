@@ -72,7 +72,8 @@ Item {
             const centre = panels.osdWrapper.mapToItem(win.contentItem, 0, panels.osdWrapper.height / 2).y;
             const depth = panels.osd.shouldBeActive || panels.osd.visible
                 ? Math.max(panels.osd.width, Tokens.sizes.osd.sliderWidth + 2 * Tokens.padding.large) + halo : Math.max(edge, 3 * uiScale);
-            add(win.width - depth, centre - osdHeight / 2 - halo, depth, osdHeight + 2 * halo);
+            const onLeft = win.contentItem.Config.osd.side === OsdSide.Left;
+            add(onLeft ? 0 : win.width - depth, centre - osdHeight / 2 - halo, depth, osdHeight + 2 * halo);
         }
         panel(panels.sidebar, panels.sidebar.visible || win.screenState.sidebar);
         panel(panels.sessionWrapper, panels.session.visible || win.screenState.session);

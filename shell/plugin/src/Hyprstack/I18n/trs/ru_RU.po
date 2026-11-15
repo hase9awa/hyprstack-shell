@@ -2695,6 +2695,22 @@ msgstr "Показывать ползунок микрофона"
 msgid "Input volume control in the indicator"
 msgstr "Управление громкостью микрофона в индикаторе"
 
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Orientation"
+msgstr "Ориентация"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Left"
+msgstr "Слева"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Right"
+msgstr "Справа"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Screen edge the indicator appears on"
+msgstr "Край экрана, на котором показывается индикатор"
+
 #: modules/nexus/pages/services/NotificationsPage.qml
 msgctxt "show notifications over fullscreen apps"
 msgid "On"

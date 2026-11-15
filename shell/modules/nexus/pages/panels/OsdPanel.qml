@@ -4,10 +4,25 @@ import QtQuick
 import QtQuick.Layouts
 import Hyprstack.Config
 import Hyprstack.I18n
+import qs.components.controls
 import qs.modules.nexus.common
 
 PageBase {
     id: root
+
+    // OSD side, values must match config::OsdSide (Left, Right)
+    readonly property list<MenuItem> osdSideItems: [
+        MenuItem {
+            text: Tr.tr("Left")
+            value: OsdSide.Left
+            icon: "chevron_left"
+        },
+        MenuItem {
+            text: Tr.tr("Right")
+            value: OsdSide.Right
+            icon: "chevron_right"
+        }
+    ]
 
     title: Tr.tr("Sound and brightness")
     isSubPage: true
@@ -35,6 +50,14 @@ PageBase {
             subtext: Tr.tr("Reveal when the cursor reaches the screen edge")
             checked: Config.osd.showOnHover
             onToggled: GlobalConfig.osd.showOnHover = checked
+        }
+
+        SelectRow {
+            label: Tr.tr("Orientation")
+            subtext: Tr.tr("Screen edge the indicator appears on")
+            menuItems: root.osdSideItems
+            active: root.osdSideItems.find(i => i.value === Config.osd.side)
+            onSelected: item => GlobalConfig.osd.side = item.value
         }
 
         StepperRow {

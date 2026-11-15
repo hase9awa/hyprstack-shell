@@ -118,7 +118,7 @@ StyledWindow {
         height: panels.notifications.height
 
         Region {
-            x: root.width - width
+            x: root.contentItem.Config.osd.side === OsdSide.Left ? 0 : root.width - width
             y: panels.y + panels.osdWrapper.y
             width: panels.osdWrapper.width * (1 - panels.osd.offsetScale) + root.borderThickness
             height: panels.osd.height

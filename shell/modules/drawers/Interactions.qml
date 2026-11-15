@@ -47,6 +47,14 @@ CustomMouseArea {
         return x >= Math.min(width - Math.max(3, (Config.border.minThickness * Tokens.scale)), panels.x + panel.x) && withinPanelHeight(panel, x, y);
     }
 
+    function inLeftPanel(panel: Item, x: real, y: real): bool {
+        return x <= Math.max(Math.max(3, (Config.border.minThickness * Tokens.scale)), panels.x + panel.x + panel.width) && withinPanelHeight(panel, x, y);
+    }
+
+    function inOsdPanel(x: real, y: real): bool {
+        return Config.osd.side === OsdSide.Left ? inLeftPanel(panels.osdWrapper, x, y) : inRightPanel(panels.osdWrapper, x, y);
+    }
+
     function inTopPanel(panel: Item, x: real, y: real): bool {
         const panelHeight = panel.height * (1 - (panel.offsetScale ?? 0)); // qmllint disable missing-property
         return y < Math.max(2, (Config.border.minThickness * Tokens.scale), panelHeight > 0 ? panels.y + panelHeight : 0) && withinPanelWidth(panel, x, y);
@@ -137,7 +145,7 @@ CustomMouseArea {
         const dragY = y - dragStart.y;
 
         if (fullscreen) {
-            root.panels.osd.hovered = inRightPanel(panels.osdWrapper, x, y);
+            root.panels.osd.hovered = inOsdPanel(x, y);
             return;
         }
 
@@ -156,7 +164,7 @@ CustomMouseArea {
 
         if (panels.sidebar.offsetScale === 1) {
             // Show osd on hover
-            const showOsd = Config.osd.showOnHover && inRightPanel(panels.osdWrapper, x, y);
+            const showOsd = Config.osd.showOnHover && inOsdPanel(x, y);
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
@@ -195,7 +203,7 @@ CustomMouseArea {
         } else {
             const outOfSidebar = x < width - panels.sidebar.width * (1 - panels.sidebar.offsetScale);
             // Show osd on hover
-            const showOsd = Config.osd.showOnHover && outOfSidebar && inRightPanel(panels.osdWrapper, x, y);
+            const showOsd = Config.osd.showOnHover && outOfSidebar && inOsdPanel(x, y);
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
@@ -348,7 +356,7 @@ CustomMouseArea {
 
                 // Also hide dashboard and OSD if they're not being hovered
                 const inDashboardArea = root.inDashboard(root.pointerPosition.x, root.pointerPosition.y);
-                const inOsdArea = root.inRightPanel(root.panels.osdWrapper, root.pointerPosition.x, root.pointerPosition.y);
+                const inOsdArea = root.inOsdPanel(root.pointerPosition.x, root.pointerPosition.y);
 
                 if (!inDashboardArea) {
                     root.screenState.dashboard = false;
@@ -386,7 +394,7 @@ CustomMouseArea {
         function onOsdChanged() {
             if (root.screenState.osd) {
                 // OSD became visible, immediately check if this should be shortcut mode
-                const inOsdArea = root.inRightPanel(root.panels.osdWrapper, root.pointerPosition.x, root.pointerPosition.y);
+                const inOsdArea = root.inOsdPanel(root.pointerPosition.x, root.pointerPosition.y);
                 if (!inOsdArea) {
                     root.osdShortcutActive = true;
                 }

@@ -2255,6 +2255,21 @@ var catalogue = [
       "Panels",
       "Sound and brightness"
     ],
+    "label": "Orientation",
+    "context": "",
+    "target": "",
+    "match": "Orientation",
+    "keywords": "Left right side screen edge лево право сторона ориентация край"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
     "label": "Hide delay",
     "context": "",
     "target": "",
