@@ -30,6 +30,13 @@ PageBase {
             onToggled: GlobalConfig.osd.enabled = checked
         }
 
+        ToggleRow {
+            text: Tr.tr("Show on hover")
+            subtext: Tr.tr("Reveal when the cursor reaches the screen edge")
+            checked: Config.osd.showOnHover
+            onToggled: GlobalConfig.osd.showOnHover = checked
+        }
+
         StepperRow {
             last: true
             label: Tr.tr("Hide delay")

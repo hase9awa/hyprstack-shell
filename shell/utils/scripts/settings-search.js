@@ -2240,6 +2240,21 @@ var catalogue = [
       "Panels",
       "Sound and brightness"
     ],
+    "label": "Show on hover",
+    "context": "",
+    "target": "",
+    "match": "Show on hover",
+    "keywords": "Reveal appear when the cursor reaches the screen edge наведение курсор"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
     "label": "Hide delay",
     "context": "",
     "target": "",
