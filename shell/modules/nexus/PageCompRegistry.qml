@@ -135,6 +135,11 @@ QtObject {
                 Component {
                     BarClock {}
                 }
+
+                // Sound and brightness sub-page
+                Component {
+                    OsdPanel {}
+                }
             }
         },
         Component {

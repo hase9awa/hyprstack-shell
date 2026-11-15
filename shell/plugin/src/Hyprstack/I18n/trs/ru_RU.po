@@ -2661,6 +2661,40 @@ msgstr "Показывать при наведении"
 msgid "Reveal on drag"
 msgstr "Показывать при перетаскивании"
 
+#: modules/nexus/pages/PanelsPage.qml
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Sound and brightness"
+msgstr "Звук и яркость"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Hide delay"
+msgstr "Задержка скрытия"
+
+#. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Time before the indicator hides (ms)"
+msgstr "Время до скрытия индикатора (мс)"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Sliders"
+msgstr "Ползунки"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Show brightness slider"
+msgstr "Показывать ползунок яркости"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Brightness control in the indicator"
+msgstr "Управление яркостью в индикаторе"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Show microphone slider"
+msgstr "Показывать ползунок микрофона"
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Input volume control in the indicator"
+msgstr "Управление громкостью микрофона в индикаторе"
+
 #: modules/nexus/pages/services/NotificationsPage.qml
 msgctxt "show notifications over fullscreen apps"
 msgid "On"

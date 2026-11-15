@@ -3571,6 +3571,40 @@ msgid "Reveal on drag"
 msgstr ""
 
 #: modules/nexus/pages/PanelsPage.qml
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Sound and brightness"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Hide delay"
+msgstr ""
+
+#. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Time before the indicator hides (ms)"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Sliders"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Show brightness slider"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Brightness control in the indicator"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Show microphone slider"
+msgstr ""
+
+#: modules/nexus/pages/panels/OsdPanel.qml
+msgid "Input volume control in the indicator"
+msgstr ""
+
+#: modules/nexus/pages/PanelsPage.qml
 msgid "Reveal on hover"
 msgstr ""
 
