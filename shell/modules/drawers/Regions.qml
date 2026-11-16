@@ -66,13 +66,14 @@ Region {
 
     R {
         panel: root.panels.osdWrapper
-        x: root.win.width - width
+        readonly property bool onLeft: root.win.contentItem.Config.osd.side === OsdSide.Left
+        x: onLeft ? 0 : root.win.width - width
         // Stacking has no frame. Keep the closed OSD's edge reachable while
         // leaving the top hot corner and bottom taskbar to their own menus.
         y: Math.max(8, root.panels.y + panel.y)
         height: Math.max(0, Math.min(panel.height, root.win.height - root.bar.bottomInset - y))
         width: Math.max(root.bar.atBottom && root.win.contentItem.Config.osd.enabled ? 3 : 0,
-            panel.width * (1 - root.panels.osd.offsetScale) + root.borderThickness + sessionRegion.width)
+            panel.width * (1 - root.panels.osd.offsetScale) + root.borderThickness + (onLeft ? 0 : sessionRegion.width))
     }
 
     R {

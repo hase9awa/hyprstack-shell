@@ -2205,6 +2205,108 @@ var catalogue = [
     "keywords": ""
   },
   {
+    "page": 4,
+    "subpages": [],
+    "path": [
+      "Panels"
+    ],
+    "label": "Sound and brightness",
+    "context": "",
+    "target": "",
+    "match": "",
+    "keywords": "OSD indicator on the right screen edge volume brightness microphone slider"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
+    "label": "Enabled",
+    "context": "toggle label",
+    "target": "",
+    "match": "Enabled",
+    "keywords": ""
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
+    "label": "Show on hover",
+    "context": "",
+    "target": "",
+    "match": "Show on hover",
+    "keywords": "Reveal appear when the cursor reaches the screen edge наведение курсор"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
+    "label": "Orientation",
+    "context": "",
+    "target": "",
+    "match": "Orientation",
+    "keywords": "Left right side screen edge лево право сторона ориентация край"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
+    "label": "Hide delay",
+    "context": "",
+    "target": "",
+    "match": "Hide delay",
+    "keywords": "Milliseconds auto hide time the indicator disappears"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
+    "label": "Show brightness slider",
+    "context": "",
+    "target": "",
+    "match": "Show brightness slider",
+    "keywords": "Brightness control bar in the indicator"
+  },
+  {
+    "page": 4,
+    "subpages": [
+      11
+    ],
+    "path": [
+      "Panels",
+      "Sound and brightness"
+    ],
+    "label": "Show microphone slider",
+    "context": "",
+    "target": "",
+    "match": "Show microphone slider",
+    "keywords": "Input volume control bar in the indicator"
+  },
+  {
     "page": 5,
     "subpages": [],
     "path": [

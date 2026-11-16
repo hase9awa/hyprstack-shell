@@ -52,10 +52,15 @@ Item {
     Item {
         id: osdWrapper
 
+        readonly property bool onLeft: Config.osd.side === OsdSide.Left
+        // Placed by x instead of switching left/right anchors: both anchors are
+        // briefly set while the side flips, which stretches the item to the full
+        // screen width and the anchor-laid width never falls back to implicitWidth.
+        readonly property real sideOffset: onLeft ? 0 : sessionWrapper.anchors.rightMargin + session.width * (1 - session.offsetScale)
+
         anchors.verticalCenter: parent.verticalCenter
-        anchors.right: parent.right
-        anchors.rightMargin: sessionWrapper.anchors.rightMargin + session.width * (1 - session.offsetScale)
-        clip: sidebar.visible || session.visible
+        x: onLeft ? 0 : (parent?.width ?? 0) - width - sideOffset
+        clip: !onLeft && (sidebar.visible || session.visible)
 
         implicitWidth: osd.implicitWidth * (1 - osd.offsetScale)
         implicitHeight: osd.implicitHeight
@@ -65,10 +70,9 @@ Item {
 
             screen: root.screen
             screenState: root.screenState
-            sidebarOrSessionVisible: sidebar.visible || session.visible
+            sidebarOrSessionVisible: !osdWrapper.onLeft && (sidebar.visible || session.visible)
 
             anchors.verticalCenter: parent.verticalCenter
-            anchors.right: parent.right
         }
     }
 
