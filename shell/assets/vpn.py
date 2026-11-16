@@ -26,6 +26,7 @@ import tarfile
 import tempfile
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 import zipfile
 
@@ -73,8 +74,11 @@ def read_json(path, default=None):
 
 
 def model():
-    return read_json(ROOT / 'profiles.json', {'profiles': [], 'groups': [], 'selectedProfile': -1,
-                                             'mode': 'tun', 'route': 'all'})
+    value = read_json(ROOT / 'profiles.json', {'profiles': [], 'groups': [], 'selectedProfile': -1,
+                                               'mode': 'tun', 'route': 'all'})
+    value.setdefault('sendHwid', False)
+    value.setdefault('userAgent', '')
+    return value
 
 
 def selected(value):
@@ -123,10 +127,48 @@ def required(value):
     return {'sing-box'} | {p['engine'] for p in value['profiles']}
 
 
-def download(url, limit=MAX_IMPORT):
-    request = urllib.request.Request(url, headers={'User-Agent': 'Hyprstack-VPN/1'})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        content = response.read(limit + 1)
+def panel_version():
+    path = Path(os.environ.get('HYPRSTACK_DATA_DIR', DATA)) / 'version.json'
+    try:
+        value = json.loads(path.read_text())
+        version = str(value.get('version', '')).strip() if isinstance(value, dict) else ''
+    except (OSError, ValueError):
+        return 'dev'
+    return version or 'dev'
+
+
+def hwid():
+    try:
+        machine = Path('/etc/machine-id').read_text().strip()
+    except OSError:
+        return None
+    if not machine:
+        return None
+    return hashlib.sha256(machine.encode()).hexdigest()
+
+
+def download(url, limit=MAX_IMPORT, subscription=False):
+    headers = {'User-Agent': 'Hyprstack-VPN/1'}
+    if subscription:
+        settings = model()
+        headers['User-Agent'] = str(settings['userAgent']).strip() or f'hyprstack/{panel_version()}'
+        if settings['sendHwid']:
+            identifier = hwid()
+            if identifier:
+                # X-HWID is what 3x-ui and Happ read; hwid covers generic servers.
+                headers['X-HWID'] = identifier
+                headers['hwid'] = identifier
+                headers['X-Device-OS'] = 'Linux'
+    request = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            content = response.read(limit + 1)
+    except urllib.error.HTTPError as error:
+        if error.headers.get('X-Hwid-Max-Devices-Reached') or error.headers.get('X-Hwid-Limit'):
+            raise VpnError('The subscription device limit has been reached') from error
+        if error.headers.get('X-Hwid-Not-Supported'):
+            raise VpnError('The server requires a device identifier that this system cannot provide') from error
+        raise VpnError(f'The subscription server refused the request (HTTP {error.code})') from error
     if len(content) > limit:
         raise VpnError('The download is too large')
     return content
@@ -309,6 +351,7 @@ def overview():
     value = model()
     return {**status(), 'profiles': [{k: p[k] for k in ('id', 'name', 'type', 'group', 'latency_ms', 'engine')} for p in value['profiles']],
             'groups': [{k: g[k] for k in ('id', 'name', 'subscription')} for g in value['groups']],
+            'sendHwid': value['sendHwid'], 'userAgent': value['userAgent'],
             'routes': [{'id': 'all', 'name': 'All traffic', 'active': value['route'] == 'all'},
                        {'id': 'bypass-ru', 'name': 'Bypass Russia', 'active': value['route'] == 'bypass-ru'}]}
 
@@ -524,7 +567,7 @@ def dispatch(action, payload):
                 if subscription:
                     if urllib.parse.urlsplit(text).scheme not in ('https', 'http'):
                         raise VpnError('A subscription URL must begin with https:// or http://')
-                    entries = parse(download(text).decode('utf-8-sig'))
+                    entries = parse(download(text, subscription=True).decode('utf-8-sig'))
                 else:
                     entries = parse(text)
                 for entry in entries:
@@ -538,7 +581,7 @@ def dispatch(action, payload):
             elif action == 'update':
                 for group in value['groups']:
                     if group['subscription']:
-                        entries = parse(download(group['url']).decode('utf-8-sig'))
+                        entries = parse(download(group['url'], subscription=True).decode('utf-8-sig'))
                         for entry in entries:
                             validate(entry)
                         add_profiles(value, group, entries)
@@ -553,6 +596,9 @@ def dispatch(action, payload):
                 if payload['id'] not in ('all', 'bypass-ru'):
                     raise VpnError('Choose a routing profile')
                 value['route'] = payload['id']
+            elif action == 'settings':
+                value['sendHwid'] = bool(payload.get('sendHwid'))
+                value['userAgent'] = str(payload.get('userAgent', '')).strip()[:200]
             elif action in ('delete', 'test'):
                 profile = next((p for p in value['profiles'] if p['id'] == payload['id']), None)
                 if profile is None:
@@ -577,10 +623,10 @@ def dispatch(action, payload):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('serve', 'status', 'overview', 'install', 'authorize', 'connect', 'disconnect', 'import', 'update', 'select', 'mode', 'route', 'delete', 'test'))
+    parser.add_argument('action', choices=('serve', 'status', 'overview', 'install', 'authorize', 'connect', 'disconnect', 'import', 'update', 'select', 'mode', 'route', 'settings', 'delete', 'test'))
     args = parser.parse_args()
     try:
-        payload = json.load(sys.stdin) if args.action in ('import', 'select', 'mode', 'route', 'delete', 'test') else {}
+        payload = json.load(sys.stdin) if args.action in ('import', 'select', 'mode', 'route', 'settings', 'delete', 'test') else {}
         print(json.dumps(dispatch(args.action, payload), ensure_ascii=False))
         return 0
     except Exception as error:

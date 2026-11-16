@@ -31,6 +31,7 @@ elif action not in ('overview','status'):
  if action=='connect':value['connected']=True;value['server']=next(p['name']for p in value['profiles']if p['id']==value['selectedProfile'])
  if action=='disconnect':value['connected']=False
  if action=='select':value['selectedProfile']=payload['id']
+ if action=='settings':value.update(payload)
  if action=='import':value['profiles'].append({'id':'c9012abc','name':'Imported','type':'trojan','latency_ms':-1})
  if action=='delete':value['profiles']=[p for p in value['profiles']if p['id']!=payload['id']]
 path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value))
@@ -81,7 +82,7 @@ class VpnInterfaceTests(unittest.TestCase):
             copy("modules/nexus/pages/AboutPage.qml", ROOT / "shell/modules/nexus/pages/AboutPage.qml")
             copy("fixtures/VpnToggle.qml", ROOT / "shell/modules/bar/components/VpnToggle.qml")
             copy("utils/scripts/vpn-flow.js", ROOT / "shell/utils/scripts/vpn-flow.js")
-            for name in ("RowButton", "ConnectedRect", "ToggleRow", "InfoRow", "SectionHeader", "AnimatedLogo"):
+            for name in ("RowButton", "ConnectedRect", "ToggleRow", "TextFieldRow", "InfoRow", "SectionHeader", "AnimatedLogo"):
                 copy("modules/nexus/common/" + name + ".qml", ROOT / "shell/modules/nexus/common" / (name + ".qml"))
             write("modules/nexus/common/PageBase.qml", '''import QtQuick
 Item { property string title; property var nState; readonly property int cappedWidth: width; default property alias contents: container.data; Item { id:container; anchors.fill:parent } }

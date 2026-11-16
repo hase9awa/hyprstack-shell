@@ -5606,6 +5606,22 @@ msgid "Routing profile"
 msgstr "Профиль маршрутизации"
 
 #. VPN controls
+msgid "Send hardware ID"
+msgstr "Передавать аппаратный идентификатор"
+
+#. VPN controls
+msgid "Adds a device identifier header to subscription requests."
+msgstr "Добавляет заголовок с идентификатором устройства в запросы подписок."
+
+#. VPN controls
+msgid "User-Agent"
+msgstr "User-Agent"
+
+#. VPN controls
+msgid "Sent with subscription requests. Empty uses hyprstack/<version>."
+msgstr "Отправляется в запросах подписок. Пустое значение — hyprstack/<версия>."
+
+#. VPN controls
 msgid "Reconnect after login"
 msgstr "Подключаться после входа"
 
@@ -6564,6 +6580,10 @@ msgstr "Проверка задержки…"
 #: modules/vpn/VpnWindow.qml
 msgid "Updating subscriptions…"
 msgstr "Обновление подписок…"
+
+#: modules/vpn/VpnWindow.qml
+msgid "Saving settings…"
+msgstr "Сохранение настроек…"
 
 #: modules/vpn/VpnWindow.qml
 msgid "Disconnected"

@@ -5325,6 +5325,10 @@ msgid "Updating subscriptions…"
 msgstr ""
 
 #: modules/vpn/VpnWindow.qml
+msgid "Saving settings…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
 msgid "Updating connection…"
 msgstr ""
 
@@ -5399,6 +5403,22 @@ msgstr ""
 
 #: modules/vpn/VpnWindow.qml
 msgid "Routing profile"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Send hardware ID"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Adds a device identifier header to subscription requests."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "User-Agent"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Sent with subscription requests. Empty uses hyprstack/<version>."
 msgstr ""
 
 #: modules/vpn/VpnWindow.qml

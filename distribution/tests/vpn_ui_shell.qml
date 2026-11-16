@@ -187,6 +187,42 @@ ShellRoot {
                 fixture({mode:"proxy",canTun:false});
                 compare(ManagedVPN.window.primaryAction, "connect");
             }
+            function test_hwid_toggle_and_user_agent_field_persist() {
+                function ensureVisible(item) {
+                    const scroll = control("vpnScrollView");
+                    const flick = scroll.contentItem;
+                    const p = item.mapToItem(scroll, 0, 0);
+                    if (p.y >= 0 && p.y + item.height <= scroll.height)
+                        return;
+                    const delta = p.y < 0 ? p.y - 8 : p.y + item.height - scroll.height + 8;
+                    flick.contentY = Math.max(0, Math.min(flick.contentHeight - scroll.height, flick.contentY + delta));
+                    wait(80);
+                }
+                try {
+                    click(control("vpnAdvancedButton"));
+                    const toggle = control("vpnSendHwidToggle");
+                    const field = control("vpnUserAgentField");
+                    verify(!!toggle);
+                    verify(!!field);
+                    compare(toggle.checked, false);
+                    verify(field.placeholderText.indexOf("hyprstack/") === 0);
+                    ensureVisible(toggle);
+                    click(toggle);
+                    tryVerify(() => !ManagedVPN.busy && ManagedVPN.data.sendHwid === true);
+                    compare(toggle.checked, true);
+                    compare(ManagedVPN.data.operations[ManagedVPN.data.operations.length - 1], "settings");
+                    field.editingFinished("custom-agent/2");
+                    tryVerify(() => !ManagedVPN.busy && ManagedVPN.data.userAgent === "custom-agent/2");
+                    compare(field.field.text, "custom-agent/2");
+                    ensureVisible(toggle);
+                    click(toggle);
+                    tryVerify(() => !ManagedVPN.busy && ManagedVPN.data.sendHwid === false);
+                    compare(ManagedVPN.data.userAgent, "custom-agent/2");
+                } finally {
+                    ManagedVPN.window.advancedOpen = false;
+                    control("vpnScrollView").contentItem.contentY = 0;
+                }
+            }
             function test_small_window_keeps_import_actions_reachable() {
                 const height = ManagedVPN.window.height;
                 const scale = GlobalConfig.appearance.scale;
