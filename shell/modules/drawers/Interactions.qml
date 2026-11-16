@@ -164,17 +164,18 @@ CustomMouseArea {
 
         if (panels.sidebar.offsetScale === 1) {
             // Show osd on hover
-            const showOsd = Config.osd.showOnHover && inOsdPanel(x, y);
+            const overOsd = inOsdPanel(x, y);
+            const showOsd = Config.osd.showOnHover && overOsd;
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
                 screenState.osd = showOsd;
-                root.panels.osd.hovered = showOsd;
             } else if (showOsd) {
                 // If hovering over OSD area while in shortcut mode, transition to hover control
                 osdShortcutActive = false;
                 root.panels.osd.hovered = true;
             }
+            root.panels.osd.hovered = overOsd && (Config.osd.showOnHover || panels.osd.visible);
 
             const showSidebar = pressed && dragStart.x > Math.min(width - (Config.border.minThickness * Tokens.scale), panels.x + panels.sidebar.x);
 
@@ -203,17 +204,18 @@ CustomMouseArea {
         } else {
             const outOfSidebar = x < width - panels.sidebar.width * (1 - panels.sidebar.offsetScale);
             // Show osd on hover
-            const showOsd = Config.osd.showOnHover && outOfSidebar && inOsdPanel(x, y);
+            const overOsd = outOfSidebar && inOsdPanel(x, y);
+            const showOsd = Config.osd.showOnHover && overOsd;
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
                 screenState.osd = showOsd;
-                root.panels.osd.hovered = showOsd;
             } else if (showOsd) {
                 // If hovering over OSD area while in shortcut mode, transition to hover control
                 osdShortcutActive = false;
                 root.panels.osd.hovered = true;
             }
+            root.panels.osd.hovered = overOsd && (Config.osd.showOnHover || panels.osd.visible);
 
             // Show/hide session on drag
             if (pressed && outOfSidebar && inRightPanel(panels.sessionWrapper, dragStart.x, dragStart.y) && withinPanelHeight(panels.sessionWrapper, x, y)) {
@@ -395,7 +397,7 @@ CustomMouseArea {
             if (root.screenState.osd) {
                 // OSD became visible, immediately check if this should be shortcut mode
                 const inOsdArea = root.inOsdPanel(root.pointerPosition.x, root.pointerPosition.y);
-                if (!inOsdArea) {
+                if (!root.Config.osd.showOnHover || !inOsdArea) {
                     root.osdShortcutActive = true;
                 }
             } else {
