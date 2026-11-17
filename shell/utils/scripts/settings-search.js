@@ -2960,6 +2960,399 @@ var catalogue = [
     "page": 9,
     "subpages": [],
     "path": [
+      "Power & security"
+    ],
+    "label": "Power & security",
+    "context": "",
+    "target": "",
+    "match": "",
+    "keywords": "power sleep lock battery hibernation сон блокировка питание батарея гибернация профиль безопасности"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Lock",
+    "context": "",
+    "target": "",
+    "match": "Lock",
+    "keywords": "заблокировать сразу lock screen"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Suspend",
+    "context": "",
+    "target": "",
+    "match": "Suspend",
+    "keywords": "спящий режим усыпить suspend sleep сейчас"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Hibernate",
+    "context": "",
+    "target": "",
+    "match": "Hibernate",
+    "keywords": "гибернация спящий с диском hibernate"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Power off",
+    "context": "",
+    "target": "",
+    "match": "Power off",
+    "keywords": "выключение выключить poweroff shutdown"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Reboot",
+    "context": "",
+    "target": "",
+    "match": "Reboot",
+    "keywords": "перезагрузка перезагрузить restart"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Power profile",
+    "context": "",
+    "target": "",
+    "match": "Power profile",
+    "keywords": "профиль питания энергосбережение производительность balanced performance saver"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Lock before sleep",
+    "context": "",
+    "target": "",
+    "match": "Lock before sleep",
+    "keywords": "блокировать перед сном lock sleep"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Inhibit while audio plays",
+    "context": "",
+    "target": "",
+    "match": "Inhibit while audio plays",
+    "keywords": "звук музыка воспроизведение audio inhibit"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Inhibit while charging",
+    "context": "",
+    "target": "",
+    "match": "Inhibit while charging",
+    "keywords": "зарядка подзарядка charging inhibit"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Sleep timeouts",
+    "context": "",
+    "target": "",
+    "match": "Sleep timeouts",
+    "keywords": "таймауты сна idle бездействие таймеры timers"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Lock screen",
+    "context": "settings page",
+    "target": "",
+    "match": "Lock screen",
+    "keywords": "экран блокировки отпечаток пальца howdy лицо fingerprint"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Battery warnings",
+    "context": "",
+    "target": "",
+    "match": "Battery warnings",
+    "keywords": "батарея предупреждения заряд battery warning"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Session menu",
+    "context": "",
+    "target": "",
+    "match": "Session menu",
+    "keywords": "сеанс меню выход выключение перезагрузка гибернация"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "Timeout",
+    "context": "",
+    "target": "",
+    "match": "Timeout",
+    "keywords": "таймаут секунды seconds idle"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "When idle",
+    "context": "",
+    "target": "",
+    "match": "When idle",
+    "keywords": "действие бездействие idle lock suspend"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "When returning",
+    "context": "",
+    "target": "",
+    "match": "When returning",
+    "keywords": "возврат активность return unlock dpms"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "Add timeout",
+    "context": "",
+    "target": "",
+    "match": "Add timeout",
+    "keywords": "добавить таймаут новый"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Use wallpaper",
+    "context": "",
+    "target": "",
+    "match": "Use wallpaper",
+    "keywords": "обои wallpaper фон background"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Hide notifications",
+    "context": "",
+    "target": "",
+    "match": "Hide notifications",
+    "keywords": "уведомления notifications скрыть"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Fingerprint unlock",
+    "context": "",
+    "target": "",
+    "match": "Fingerprint unlock",
+    "keywords": "отпечаток пальца fingerprint сканер"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Face unlock",
+    "context": "",
+    "target": "",
+    "match": "Face unlock",
+    "keywords": "лицо howdy face распознавание"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      3
+    ],
+    "path": [
+      "Power & security",
+      "Battery warnings"
+    ],
+    "label": "Critical battery level",
+    "context": "",
+    "target": "",
+    "match": "Critical battery level",
+    "keywords": "критический заряд гибернация critical hibernate"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      3
+    ],
+    "path": [
+      "Power & security",
+      "Battery warnings"
+    ],
+    "label": "Warning levels",
+    "context": "",
+    "target": "",
+    "match": "Warning levels",
+    "keywords": "уровни предупреждения warning levels заряд"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      3
+    ],
+    "path": [
+      "Power & security",
+      "Battery warnings"
+    ],
+    "label": "Add level",
+    "context": "",
+    "target": "",
+    "match": "Add level",
+    "keywords": "добавить уровень предупреждение"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      4
+    ],
+    "path": [
+      "Power & security",
+      "Session menu"
+    ],
+    "label": "Vim keybinds",
+    "context": "",
+    "target": "",
+    "match": "Vim keybinds",
+    "keywords": "vim hjkl клавиши навигация"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      4
+    ],
+    "path": [
+      "Power & security",
+      "Session menu"
+    ],
+    "label": "Drag threshold",
+    "context": "",
+    "target": "",
+    "match": "Drag threshold",
+    "keywords": "порог перетаскивания drag swipe"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      4
+    ],
+    "path": [
+      "Power & security",
+      "Session menu"
+    ],
+    "label": "Logout command",
+    "context": "",
+    "target": "",
+    "match": "Logout command",
+    "keywords": "команда выхода logout завершение"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      4
+    ],
+    "path": [
+      "Power & security",
+      "Session menu"
+    ],
+    "label": "Shutdown command",
+    "context": "",
+    "target": "",
+    "match": "Shutdown command",
+    "keywords": "команда выключения poweroff shutdown"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
       "About"
     ],
     "label": "About",
@@ -2969,7 +3362,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -2981,7 +3374,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -2993,7 +3386,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -3005,7 +3398,7 @@ var catalogue = [
     "keywords": "Prepare the update again Download release background build"
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -3017,7 +3410,7 @@ var catalogue = [
     "keywords": "Save your work. Installation ends the Hyprland session."
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -3029,7 +3422,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -3041,7 +3434,7 @@ var catalogue = [
     "keywords": "Check stable releases at startup and every six hours."
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -3053,7 +3446,7 @@ var catalogue = [
     "keywords": "Show a small notification once for each new version."
   },
   {
-    "page": 10,
+    "page": 11,
     "subpages": [],
     "path": [
       "Updates"
@@ -3084,7 +3477,10 @@ var aliases = [
     ["толщ", "width"], ["цвет", "colour"], ["блют", "bluetooth"], ["интерф", "interface"],
     ["клав", "keyboard"], ["сочет", "shortcut"], ["хотке", "shortcut"], ["погод", "weather"], ["акцент", "colour"],
     ["город", "city"], ["провайдер", "provider"], ["местополож", "location"],
-    ["внутрен", "inner"], ["внешн", "outer"], ["прилож", "app"], ["ярк", "brightness"]
+    ["внутрен", "inner"], ["внешн", "outer"], ["прилож", "app"], ["ярк", "brightness"],
+    ["сон", "sleep"], ["блокир", "lock"], ["питани", "power"], ["батар", "battery"],
+    ["заряд", "battery"], ["профил", "profile"], ["гиберн", "hibernate"],
+    ["таймаут", "timeout"], ["сеанс", "session"]
 ];
 
 function normalise(value) {

@@ -75,6 +75,12 @@ QtObject {
             description: Tr.tr("Current key bindings and mouse gestures"),
             category: "shell"
         },
+        {
+            label: Tr.tr("Power & security"),
+            icon: "power",
+            description: Tr.tr("Sleep, lock screen, battery"),
+            category: "shell"
+        },
 
         // About
         {

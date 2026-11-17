@@ -19,6 +19,7 @@ class SessionManager : public QObject {
 public:
     explicit SessionManager(QObject* parent = nullptr);
 
+    Q_INVOKABLE void lock();
     Q_INVOKABLE void logout();
     Q_INVOKABLE void suspend();
     Q_INVOKABLE void suspendThenHibernate();

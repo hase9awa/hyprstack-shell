@@ -6855,3 +6855,383 @@ msgstr "Открыть центр уведомлений"
 #: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Mark all as read"
 msgstr "Отметить всё прочитанным"
+
+
+#: modules/nexus/pages/power
+msgid "Battery warnings"
+msgstr "Предупреждения батареи"
+
+#: modules/nexus/pages/power
+msgid "Critical level"
+msgstr "Критический уровень"
+
+#: modules/nexus/pages/power
+msgid "Hibernates the system five seconds after the battery falls to this level"
+msgstr "Уводит систему в гибернацию через пять секунд после падения заряда до этого уровня"
+
+#: modules/nexus/pages/power
+msgid "Warning levels"
+msgstr "Уровни предупреждений"
+
+#: modules/nexus/pages/power
+#, qt-format
+msgid "At %1% charge"
+msgstr "При заряде %1%"
+
+#: modules/nexus/pages/power
+msgid "Level"
+msgstr "Уровень"
+
+#: modules/nexus/pages/power
+msgid "Battery percentage that triggers the warning"
+msgstr "Процент заряда, при котором появится предупреждение"
+
+#: modules/nexus/pages/power
+msgid "Title"
+msgstr "Заголовок"
+
+#: modules/nexus/pages/power
+msgid "First line of the notification"
+msgstr "Первая строка уведомления"
+
+#: modules/nexus/pages/power
+msgid "Message"
+msgstr "Текст"
+
+#: modules/nexus/pages/power
+msgid "Body of the notification"
+msgstr "Текст уведомления"
+
+#: modules/nexus/pages/power
+msgid "Icon"
+msgstr "Иконка"
+
+#: modules/nexus/pages/power
+msgid "Material icon name"
+msgstr "Название иконки Material"
+
+#: modules/nexus/pages/power
+msgid "Critical"
+msgstr "Критичное"
+
+#: modules/nexus/pages/power
+msgid "Show the warning as an error"
+msgstr "Показывать предупреждение как ошибку"
+
+#: modules/nexus/pages/power
+msgid "Remove level"
+msgstr "Удалить уровень"
+
+#: modules/nexus/pages/power
+msgid "Add level"
+msgstr "Добавить уровень"
+
+#: modules/nexus/pages/power
+msgid "Turn off the display"
+msgstr "Выключить экран"
+
+#: modules/nexus/pages/power
+msgid "Hibernate"
+msgstr "Гибернация"
+
+#: modules/nexus/pages/power
+msgid "Log out"
+msgstr "Выйти"
+
+#: modules/nexus/pages/power
+msgid "Power off"
+msgstr "Выключение"
+
+#: modules/nexus/pages/power
+msgid "Reboot"
+msgstr "Перезагрузить"
+
+#: modules/nexus/pages/power
+msgid "Do nothing"
+msgstr "Ничего не делать"
+
+#: modules/nexus/pages/power
+msgid "Turn on the display"
+msgstr "Включить экран"
+
+#: modules/nexus/pages/power
+msgid "Unlock"
+msgstr "Разблокировать"
+
+#: modules/nexus/pages/power
+msgid "Sleep timeouts"
+msgstr "Таймауты сна"
+
+#: modules/nexus/pages/power
+msgid "Each timeout runs its action after the screen has been idle for the given time."
+msgstr "Каждый таймаут выполняет действие, когда экран бездействует заданное время."
+
+#: modules/nexus/pages/power
+#, qt-format
+msgid "After %1 seconds"
+msgstr "Через %1 с"
+
+#: modules/nexus/pages/power
+msgid "Timeout"
+msgstr "Таймаут"
+
+#: modules/nexus/pages/power
+msgid "Seconds of inactivity before the action"
+msgstr "Секунды бездействия перед действием"
+
+#: modules/nexus/pages/power
+msgid "When idle"
+msgstr "Когда бездействует"
+
+#: modules/nexus/pages/power
+msgid "Action after the timeout"
+msgstr "Действие по истечении таймаута"
+
+#: modules/nexus/pages/power
+msgid "When returning"
+msgstr "При возврате"
+
+#: modules/nexus/pages/power
+msgid "Action when the session becomes active"
+msgstr "Действие при возвращении активности"
+
+#: modules/nexus/pages/power
+msgid "Respect inhibitors"
+msgstr "Учитывать ингибиторы"
+
+#: modules/nexus/pages/power
+msgid "Honour requests from apps to stay awake"
+msgstr "Учитывать просьбы приложений не засыпать"
+
+#: modules/nexus/pages/power
+msgid "Inhibit while audio plays"
+msgstr "Не засыпать при звуке"
+
+#: modules/nexus/pages/power
+msgid "Inhibit while charging"
+msgstr "Не засыпать при зарядке"
+
+#: modules/nexus/pages/power
+msgid "Remove timeout"
+msgstr "Удалить таймаут"
+
+#: modules/nexus/pages/power
+msgid "Add timeout"
+msgstr "Добавить таймаут"
+
+#: modules/nexus/pages/power
+msgctxt "settings page"
+msgid "Lock screen"
+msgstr "Экран блокировки"
+
+#: modules/nexus/pages/power
+msgid "Show the lock screen on demand and before sleep"
+msgstr "Показывать экран блокировки по запросу и перед сном"
+
+#: modules/nexus/pages/power
+msgid "Use wallpaper"
+msgstr "Использовать обои"
+
+#: modules/nexus/pages/power
+msgid "Use the wallpaper instead of a screenshot as the background"
+msgstr "Использовать обои вместо скриншота в качестве фона"
+
+#: modules/nexus/pages/power
+msgid "Recolour logo"
+msgstr "Перекрашивать логотип"
+
+#: modules/nexus/pages/power
+msgid "Tint the logo with the current theme colour"
+msgstr "Окрашивать логотип в цвет текущей темы"
+
+#: modules/nexus/pages/power
+msgid "Hide notifications"
+msgstr "Скрывать уведомления"
+
+#: modules/nexus/pages/power
+msgid "Keep notification content off the lock screen"
+msgstr "Не показывать содержимое уведомлений на экране блокировки"
+
+#: modules/nexus/pages/power
+msgid "Session controls"
+msgstr "Элементы сеанса"
+
+#: modules/nexus/pages/power
+msgid "Show logout and power buttons on hover"
+msgstr "Показывать кнопки выхода и питания при наведении"
+
+#: modules/nexus/pages/power
+msgid "Fingerprint"
+msgstr "Отпечаток пальца"
+
+#: modules/nexus/pages/power
+msgid "Fingerprint unlock"
+msgstr "Вход по отпечатку"
+
+#: modules/nexus/pages/power
+msgid "Unlock with a fingerprint reader"
+msgstr "Разблокировка сканером отпечатков"
+
+#: modules/nexus/pages/power
+msgid "Fingerprint tries"
+msgstr "Попытки отпечатка"
+
+#: modules/nexus/pages/power
+msgid "Attempts before the reader gives up"
+msgstr "Попытки до отключения сканера"
+
+#: modules/nexus/pages/power
+msgid "Face unlock"
+msgstr "Вход по лицу"
+
+#: modules/nexus/pages/power
+msgid "Unlock with Howdy"
+msgstr "Разблокировка через Howdy"
+
+#: modules/nexus/pages/power
+msgid "Face tries"
+msgstr "Попытки лица"
+
+#: modules/nexus/pages/power
+msgid "Attempts before face recognition gives up"
+msgstr "Попытки до отключения распознавания"
+
+#: modules/nexus/pages/power
+msgid "Face unlock on wake"
+msgstr "Вход по лицу при пробуждении"
+
+#: modules/nexus/pages/power
+msgid "Start face recognition when the session wakes"
+msgstr "Начинать распознавание лица при пробуждении сеанса"
+
+#: modules/nexus/pages/power
+msgid "Power & security"
+msgstr "Питание и безопасность"
+
+#: modules/nexus/pages/power
+msgid "Power actions"
+msgstr "Действия питания"
+
+#: modules/nexus/pages/power
+msgid "Lock"
+msgstr "Заблокировать"
+
+#: modules/nexus/pages/power
+msgid "Show the lock screen"
+msgstr "Показать экран блокировки"
+
+#: modules/nexus/pages/power
+msgid "Pause the session, keeping state in memory"
+msgstr "Приостановить сеанс, состояние сохранится в памяти"
+
+#: modules/nexus/pages/power
+msgid "Write state to disk and power off"
+msgstr "Сохранить состояние на диск и выключить питание"
+
+#: modules/nexus/pages/power
+msgid "Turn the computer off"
+msgstr "Выключить компьютер"
+
+#: modules/nexus/pages/power
+msgid "Restart the computer"
+msgstr "Перезагрузить компьютер"
+
+#: modules/nexus/pages/power
+msgid "Power profile"
+msgstr "Профиль питания"
+
+#: modules/nexus/pages/power
+msgid "Balance between performance and battery life"
+msgstr "Баланс между производительностью и временем работы"
+
+#: modules/nexus/pages/power
+msgid "Sleep and lock"
+msgstr "Сон и блокировка"
+
+#: modules/nexus/pages/power
+msgid "Lock before sleep"
+msgstr "Блокировать перед сном"
+
+#: modules/nexus/pages/power
+msgid "Lock the screen as the system goes to sleep"
+msgstr "Блокировать экран при переходе системы в сон"
+
+#: modules/nexus/pages/power
+msgid "Pause idle timers while media is playing"
+msgstr "Приостанавливать таймеры бездействия во время воспроизведения"
+
+#: modules/nexus/pages/power
+msgid "Stay awake while the charger is connected"
+msgstr "Оставаться активным при подключённой зарядке"
+
+#: modules/nexus/pages/power
+msgid "Actions after periods of inactivity"
+msgstr "Действия по истечении периодов бездействия"
+
+#: modules/nexus/pages/power
+msgid "Wallpaper, fingerprint and face unlock"
+msgstr "Обои, отпечаток пальца и вход по лицу"
+
+#: modules/nexus/pages/power
+msgid "Warning levels, titles and icons"
+msgstr "Уровни, заголовки и иконки предупреждений"
+
+#: modules/nexus/pages/power
+msgid "Session menu"
+msgstr "Меню сеанса"
+
+#: modules/nexus/pages/power
+msgid "Logout, shutdown, hibernate and reboot"
+msgstr "Выход, выключение, гибернация и перезагрузка"
+
+#: modules/nexus/pages/power
+msgid "Show the session menu in the drawer"
+msgstr "Показывать меню сеанса в выдвижной панели"
+
+#: modules/nexus/pages/power
+msgid "Distance to drag before the menu opens (pixels)"
+msgstr "Расстояние перетаскивания до открытия меню (пиксели)"
+
+#: modules/nexus/pages/power
+msgid "Navigate the menu with hjkl"
+msgstr "Навигация по меню клавишами hjkl"
+
+#: modules/nexus/pages/power
+msgid "Logout command"
+msgstr "Команда выхода"
+
+#: modules/nexus/pages/power
+msgid "Command and arguments, separated by spaces"
+msgstr "Команда и аргументы, разделённые пробелами"
+
+#: modules/nexus/pages/power
+msgid "Shutdown command"
+msgstr "Команда выключения"
+
+#: modules/nexus/pages/power
+msgid "Hibernate command"
+msgstr "Команда гибернации"
+
+#: modules/nexus/pages/power
+msgid "Reboot command"
+msgstr "Команда перезагрузки"
+
+#: modules/nexus/pages/power
+msgid "Logout icon"
+msgstr "Иконка выхода"
+
+#: modules/nexus/pages/power
+msgid "Shutdown icon"
+msgstr "Иконка выключения"
+
+#: modules/nexus/pages/power
+msgid "Hibernate icon"
+msgstr "Иконка гибернации"
+
+#: modules/nexus/pages/power
+msgid "Reboot icon"
+msgstr "Иконка перезагрузки"
+
+#: modules/nexus/pages/power
+msgid "Sleep, lock screen, battery"
+msgstr "Сон, экран блокировки, батарея"
