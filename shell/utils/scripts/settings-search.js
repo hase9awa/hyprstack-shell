@@ -2974,66 +2974,6 @@ var catalogue = [
     "path": [
       "Power & security"
     ],
-    "label": "Lock",
-    "context": "",
-    "target": "",
-    "match": "Lock",
-    "keywords": "заблокировать сразу lock screen"
-  },
-  {
-    "page": 9,
-    "subpages": [],
-    "path": [
-      "Power & security"
-    ],
-    "label": "Suspend",
-    "context": "",
-    "target": "",
-    "match": "Suspend",
-    "keywords": "спящий режим усыпить suspend sleep сейчас"
-  },
-  {
-    "page": 9,
-    "subpages": [],
-    "path": [
-      "Power & security"
-    ],
-    "label": "Hibernate",
-    "context": "",
-    "target": "",
-    "match": "Hibernate",
-    "keywords": "гибернация спящий с диском hibernate"
-  },
-  {
-    "page": 9,
-    "subpages": [],
-    "path": [
-      "Power & security"
-    ],
-    "label": "Power off",
-    "context": "",
-    "target": "",
-    "match": "Power off",
-    "keywords": "выключение выключить poweroff shutdown"
-  },
-  {
-    "page": 9,
-    "subpages": [],
-    "path": [
-      "Power & security"
-    ],
-    "label": "Reboot",
-    "context": "",
-    "target": "",
-    "match": "Reboot",
-    "keywords": "перезагрузка перезагрузить restart"
-  },
-  {
-    "page": 9,
-    "subpages": [],
-    "path": [
-      "Power & security"
-    ],
     "label": "Power profile",
     "context": "",
     "target": "",
@@ -3086,7 +3026,7 @@ var catalogue = [
     "context": "",
     "target": "",
     "match": "Sleep timeouts",
-    "keywords": "таймауты сна idle бездействие таймеры timers"
+    "keywords": "таймауты сна idle бездействие таймеры timers гибернация suspend"
   },
   {
     "page": 9,
@@ -3122,7 +3062,7 @@ var catalogue = [
     "context": "",
     "target": "",
     "match": "Session menu",
-    "keywords": "сеанс меню выход выключение перезагрузка гибернация"
+    "keywords": "сеанс меню выход выключение перезагрузка гибернация logout shutdown reboot poweroff hibernate"
   },
   {
     "page": 9,

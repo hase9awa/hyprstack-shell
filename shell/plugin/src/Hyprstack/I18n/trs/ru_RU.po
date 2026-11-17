@@ -5666,11 +5666,9 @@ msgid "Paste a profile link or subscription URL"
 msgstr "Вставьте ссылку на профиль или подписку"
 
 
-
 #. VPN controls
 msgid "Disconnect this profile before deleting it"
 msgstr "Отключите профиль перед его удалением"
-
 
 
 #. VPN controls
@@ -5886,8 +5884,6 @@ msgstr "Скопируйте что-нибудь, и оно появится з�
 #: modules/launcher/items/ClipItem.qml services/Emoji.qml
 msgid "Pinned"
 msgstr "Закреплено"
-
-
 
 
 #: modules/launcher/items/ClipItem.qml
@@ -7107,34 +7103,6 @@ msgstr "Начинать распознавание лица при пробуж
 #: modules/nexus/pages/power
 msgid "Power & security"
 msgstr "Питание и безопасность"
-
-#: modules/nexus/pages/power
-msgid "Power actions"
-msgstr "Действия питания"
-
-#: modules/nexus/pages/power
-msgid "Lock"
-msgstr "Заблокировать"
-
-#: modules/nexus/pages/power
-msgid "Show the lock screen"
-msgstr "Показать экран блокировки"
-
-#: modules/nexus/pages/power
-msgid "Pause the session, keeping state in memory"
-msgstr "Приостановить сеанс, состояние сохранится в памяти"
-
-#: modules/nexus/pages/power
-msgid "Write state to disk and power off"
-msgstr "Сохранить состояние на диск и выключить питание"
-
-#: modules/nexus/pages/power
-msgid "Turn the computer off"
-msgstr "Выключить компьютер"
-
-#: modules/nexus/pages/power
-msgid "Restart the computer"
-msgstr "Перезагрузить компьютер"
 
 #: modules/nexus/pages/power
 msgid "Power profile"

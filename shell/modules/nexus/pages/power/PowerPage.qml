@@ -5,7 +5,6 @@ import QtQuick.Layouts
 import Quickshell.Services.UPower
 import Hyprstack.Config
 import Hyprstack.I18n
-import Hyprstack.Services
 import qs.components.controls
 import qs.modules.nexus.common
 
@@ -39,51 +38,9 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
-        // Power actions
-        SectionHeader {
-            first: true
-            text: Tr.tr("Power actions")
-        }
-
-        RowButton {
-            first: true
-            icon: "lock"
-            text: Tr.tr("Lock")
-            subtext: Tr.tr("Show the lock screen")
-            onClicked: SessionManager.lock()
-        }
-
-        RowButton {
-            icon: "bedtime"
-            text: Tr.tr("Suspend")
-            subtext: Tr.tr("Pause the session, keeping state in memory")
-            onClicked: SessionManager.suspend()
-        }
-
-        RowButton {
-            icon: "downloading"
-            text: Tr.tr("Hibernate")
-            subtext: Tr.tr("Write state to disk and power off")
-            onClicked: SessionManager.hibernate()
-        }
-
-        RowButton {
-            icon: "power_settings_new"
-            text: Tr.tr("Power off")
-            subtext: Tr.tr("Turn the computer off")
-            onClicked: SessionManager.poweroff()
-        }
-
-        RowButton {
-            last: true
-            icon: "cached"
-            text: Tr.tr("Reboot")
-            subtext: Tr.tr("Restart the computer")
-            onClicked: SessionManager.reboot()
-        }
-
         // Power profile
         SectionHeader {
+            first: true
             text: Tr.tr("Power profile")
         }
 

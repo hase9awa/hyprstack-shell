@@ -5936,34 +5936,6 @@ msgid "Power & security"
 msgstr ""
 
 #: modules/nexus/pages/power
-msgid "Power actions"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Lock"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Show the lock screen"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Pause the session, keeping state in memory"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Write state to disk and power off"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Turn the computer off"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Restart the computer"
-msgstr ""
-
-#: modules/nexus/pages/power
 msgid "Power profile"
 msgstr ""
 

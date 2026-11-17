@@ -93,11 +93,6 @@ bool SessionManager::exec(const QStringList& command) {
     return false;
 }
 
-void SessionManager::lock() {
-    // Same path as the login1 Lock signal: IdleMonitors engages the session lock.
-    emit lockRequested();
-}
-
 void SessionManager::logout() {
     callSession(u"Terminate"_s);
 }
