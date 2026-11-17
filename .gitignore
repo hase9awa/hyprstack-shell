@@ -42,6 +42,7 @@
 !/distribution/tests/test_updates.py
 !/distribution/tests/vpn-flow.test.cjs
 !/distribution/tests/test_vpn_ui.py
+!/distribution/tests/test_vpn_subscriptions.py
 !/distribution/tests/vpn_ui_shell.qml
 !/distribution/tests/damage_probe.cpp
 !/distribution/tests/test_client_snapshot.py

@@ -5325,6 +5325,10 @@ msgid "Updating subscriptions…"
 msgstr ""
 
 #: modules/vpn/VpnWindow.qml
+msgid "Saving settings…"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
 msgid "Updating connection…"
 msgstr ""
 
@@ -5402,6 +5406,22 @@ msgid "Routing profile"
 msgstr ""
 
 #: modules/vpn/VpnWindow.qml
+msgid "Send hardware ID"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Adds a device identifier header to subscription requests."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "User-Agent"
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
+msgid "Sent with subscription requests. Empty uses hyprstack/<version>."
+msgstr ""
+
+#: modules/vpn/VpnWindow.qml
 msgid "Reconnect after login"
 msgstr ""
 
@@ -5439,4 +5459,24 @@ msgstr ""
 
 #: modules/nexus/pages/NetworkPage.qml
 msgid "External VPN provider"
+msgstr ""
+
+#: assets/vpn.py
+msgid "The subscription device limit has been reached"
+msgstr ""
+
+#: assets/vpn.py
+msgid "Enable hardware ID in VPN settings to load this subscription"
+msgstr ""
+
+#: assets/vpn.py
+msgid "The server requires a device identifier that this system cannot provide"
+msgstr ""
+
+#: assets/vpn.py
+msgid "The subscription server refused the request"
+msgstr ""
+
+#: assets/vpn.py
+msgid "User-Agent must contain only printable ASCII characters"
 msgstr ""

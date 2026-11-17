@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Hyprstack
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
@@ -45,6 +46,8 @@ FloatingWindow {
                 return Tr.tr("Testing latency…");
             case "update":
                 return Tr.tr("Updating subscriptions…");
+            case "settings":
+                return Tr.tr("Saving settings…");
             default:
                 return Tr.tr("Updating connection…");
             }
@@ -436,6 +439,41 @@ FloatingWindow {
                         onActivated: index => ManagedVPN.run("route", {
                                 id: ManagedVPN.routes[index].id
                             })
+                    }
+                    ToggleRow {
+                        id: hwidToggle
+
+                        checked: ManagedVPN.data.sendHwid === true
+                        disabled: root.working
+                        first: true
+                        last: true
+                        objectName: "vpnSendHwidToggle"
+                        text: Tr.tr("Send hardware ID")
+                        subtext: Tr.tr("Adds a device identifier header to subscription requests.")
+
+                        onToggled: ManagedVPN.run("settings", {
+                            sendHwid: checked,
+                            userAgent: uaField.field.text
+                        })
+                    }
+                    TextFieldRow {
+                        id: uaField
+
+                        enabled: !root.working
+                        label: Tr.tr("User-Agent")
+                        subtext: Tr.tr("Sent with subscription requests. Empty uses hyprstack/<version>.")
+                        value: ManagedVPN.data.userAgent ?? ""
+                        placeholderText: `hyprstack/${CUtils.version}`
+                        objectName: "vpnUserAgentField"
+                        maximumLength: 200
+
+                        onEditingFinished: newValue => {
+                            if ((ManagedVPN.data.userAgent ?? "") !== newValue)
+                                ManagedVPN.run("settings", {
+                                    sendHwid: hwidToggle.checked,
+                                    userAgent: newValue
+                                });
+                        }
                     }
                     ToggleRow {
                         checked: GlobalConfig.utilities.vpn.enabled

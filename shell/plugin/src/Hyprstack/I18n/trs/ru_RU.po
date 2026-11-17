@@ -5606,6 +5606,22 @@ msgid "Routing profile"
 msgstr "Профиль маршрутизации"
 
 #. VPN controls
+msgid "Send hardware ID"
+msgstr "Передавать аппаратный идентификатор"
+
+#. VPN controls
+msgid "Adds a device identifier header to subscription requests."
+msgstr "Добавляет заголовок с идентификатором устройства в запросы подписок."
+
+#. VPN controls
+msgid "User-Agent"
+msgstr "User-Agent"
+
+#. VPN controls
+msgid "Sent with subscription requests. Empty uses hyprstack/<version>."
+msgstr "Отправляется в запросах подписок. Пустое значение — hyprstack/<версия>."
+
+#. VPN controls
 msgid "Reconnect after login"
 msgstr "Подключаться после входа"
 
@@ -6566,6 +6582,10 @@ msgid "Updating subscriptions…"
 msgstr "Обновление подписок…"
 
 #: modules/vpn/VpnWindow.qml
+msgid "Saving settings…"
+msgstr "Сохранение настроек…"
+
+#: modules/vpn/VpnWindow.qml
 msgid "Disconnected"
 msgstr "Отключено"
 
@@ -6621,3 +6641,23 @@ msgstr "Выбрать сервер или добавить подключени
 #: modules/nexus/pages/NetworkPage.qml
 msgid "External VPN provider"
 msgstr "Внешний VPN-клиент"
+
+#: assets/vpn.py
+msgid "The subscription device limit has been reached"
+msgstr "Достигнут лимит устройств для этой подписки"
+
+#: assets/vpn.py
+msgid "Enable hardware ID in VPN settings to load this subscription"
+msgstr "Включите передачу идентификатора устройства в настройках VPN, чтобы загрузить подписку"
+
+#: assets/vpn.py
+msgid "The server requires a device identifier that this system cannot provide"
+msgstr "Сервер требует идентификатор устройства, недоступный в этой системе"
+
+#: assets/vpn.py
+msgid "The subscription server refused the request"
+msgstr "Сервер подписки отклонил запрос"
+
+#: assets/vpn.py
+msgid "User-Agent must contain only printable ASCII characters"
+msgstr "User-Agent должен содержать только печатные символы ASCII"
