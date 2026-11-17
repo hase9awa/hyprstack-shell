@@ -203,9 +203,6 @@ QtObject {
                 Component {
                     BatteryWarningsPage {}
                 }
-                Component {
-                    SessionMenuPage {}
-                }
             }
         },
 

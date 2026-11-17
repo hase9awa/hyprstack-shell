@@ -3026,7 +3026,7 @@ var catalogue = [
     "context": "",
     "target": "",
     "match": "Sleep timeouts",
-    "keywords": "таймауты сна idle бездействие таймеры timers гибернация suspend"
+    "keywords": "таймауты сна idle бездействие таймеры timers гибернация suspend перезагрузка reboot выключение poweroff shutdown logout выход"
   },
   {
     "page": 9,
@@ -3051,18 +3051,6 @@ var catalogue = [
     "target": "",
     "match": "Battery warnings",
     "keywords": "батарея предупреждения заряд battery warning"
-  },
-  {
-    "page": 9,
-    "subpages": [],
-    "path": [
-      "Power & security"
-    ],
-    "label": "Session menu",
-    "context": "",
-    "target": "",
-    "match": "Session menu",
-    "keywords": "сеанс меню выход выключение перезагрузка гибернация logout shutdown reboot poweroff hibernate"
   },
   {
     "page": 9,
@@ -3228,66 +3216,6 @@ var catalogue = [
     "target": "",
     "match": "Add level",
     "keywords": "добавить уровень предупреждение"
-  },
-  {
-    "page": 9,
-    "subpages": [
-      4
-    ],
-    "path": [
-      "Power & security",
-      "Session menu"
-    ],
-    "label": "Vim keybinds",
-    "context": "",
-    "target": "",
-    "match": "Vim keybinds",
-    "keywords": "vim hjkl клавиши навигация"
-  },
-  {
-    "page": 9,
-    "subpages": [
-      4
-    ],
-    "path": [
-      "Power & security",
-      "Session menu"
-    ],
-    "label": "Drag threshold",
-    "context": "",
-    "target": "",
-    "match": "Drag threshold",
-    "keywords": "порог перетаскивания drag swipe"
-  },
-  {
-    "page": 9,
-    "subpages": [
-      4
-    ],
-    "path": [
-      "Power & security",
-      "Session menu"
-    ],
-    "label": "Logout command",
-    "context": "",
-    "target": "",
-    "match": "Logout command",
-    "keywords": "команда выхода logout завершение"
-  },
-  {
-    "page": 9,
-    "subpages": [
-      4
-    ],
-    "path": [
-      "Power & security",
-      "Session menu"
-    ],
-    "label": "Shutdown command",
-    "context": "",
-    "target": "",
-    "match": "Shutdown command",
-    "keywords": "команда выключения poweroff shutdown"
   },
   {
     "page": 10,

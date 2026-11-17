@@ -5976,63 +5976,7 @@ msgid "Warning levels, titles and icons"
 msgstr ""
 
 #: modules/nexus/pages/power
-msgid "Session menu"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Logout, shutdown, hibernate and reboot"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Show the session menu in the drawer"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Distance to drag before the menu opens (pixels)"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Navigate the menu with hjkl"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Logout command"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Command and arguments, separated by spaces"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Shutdown command"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Hibernate command"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Reboot command"
-msgstr ""
-
-#: modules/nexus/pages/power
 msgid "Icons"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Logout icon"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Shutdown icon"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Hibernate icon"
-msgstr ""
-
-#: modules/nexus/pages/power
-msgid "Reboot icon"
 msgstr ""
 
 #: modules/nexus/pages/power

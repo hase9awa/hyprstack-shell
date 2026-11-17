@@ -117,19 +117,5 @@ PageBase {
             subtext: Tr.tr("Warning levels, titles and icons")
             onClicked: root.nState.openSubPage(3)
         }
-
-        // Session menu
-        SectionHeader {
-            text: Tr.tr("Session menu")
-        }
-
-        NavRow {
-            first: true
-            last: true
-            icon: "exit_to_app"
-            text: Tr.tr("Session menu")
-            subtext: Tr.tr("Logout, shutdown, hibernate and reboot")
-            onClicked: root.nState.openSubPage(4)
-        }
     }
 }
