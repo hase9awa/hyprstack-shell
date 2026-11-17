@@ -23,6 +23,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
     steps:
       - name: Validate version and publish the tagged source
+        id: publish
         shell: bash
         run: |
           set -euo pipefail
@@ -46,7 +47,6 @@ jobs:
           fi
           gh api "repos/$GH_REPO/contents/CMakeLists.txt?ref=$release_tag" --jq .content | base64 --decode > CMakeLists.txt
           gh api "repos/$GH_REPO/contents/distribution/RELEASE.md?ref=$notes_ref" --jq .content | base64 --decode > release-notes.md
-          gh api "repos/$GH_REPO/contents/docs/media/updates.png?ref=$notes_ref" --jq .content | base64 --decode > updates.png
           python3 - <<'PY'
           import os
           from pathlib import Path
@@ -59,4 +59,51 @@ jobs:
           else
             gh release create "$release_tag" --verify-tag --title "Hyprstack ${release_tag#v}" --notes-file release-notes.md --latest
           fi
-          gh release upload "$release_tag" updates.png --clobber
+          echo "published=true" >> "$GITHUB_OUTPUT"
+
+      - name: Remove obsolete update-page screenshots from releases
+        if: steps.publish.outputs.published == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          import tempfile
+
+          repository = os.environ['GH_REPO']
+          pages = json.loads(subprocess.check_output([
+              'gh', 'api', '--paginate', '--slurp',
+              f'repos/{repository}/releases?per_page=100',
+          ], text=True))
+          screenshot = re.compile(
+              r'(?m)^[ \t]*!\[[^\n\]]*\]\(<?https://github\.com/'
+              + re.escape(repository)
+              + r'/releases/download/[^\s)]+/updates\.png>?\)[ \t]*\n?'
+          )
+          for release in (release for page in pages for release in page):
+              if release.get('draft'):
+                  continue
+              body = release.get('body') or ''
+              cleaned = screenshot.sub('', body)
+              if cleaned != body:
+                  with tempfile.TemporaryDirectory() as directory:
+                      request = Path(directory) / 'release.json'
+                      request.write_text(json.dumps({'body': cleaned.rstrip() + '\n'}))
+                      subprocess.run([
+                          'gh', 'api', '--method', 'PATCH',
+                          f'repos/{repository}/releases/{release["id"]}',
+                          '--input', str(request),
+                      ], check=True, stdout=subprocess.DEVNULL)
+                  print(f'Removed screenshot from {release["tag_name"]} notes')
+              for asset in release.get('assets', []):
+                  if asset['name'].lower() == 'updates.png':
+                      subprocess.run([
+                          'gh', 'api', '--method', 'DELETE',
+                          f'repos/{repository}/releases/assets/{asset["id"]}',
+                      ], check=True, stdout=subprocess.DEVNULL)
+                      print(f'Removed {asset["name"]} from {release["tag_name"]}')
+          PY
