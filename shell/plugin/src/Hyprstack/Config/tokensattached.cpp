@@ -74,6 +74,7 @@ void Tokens::attachedParentChange(
 }
 
 void Tokens::bindAnim() {
+    m_anim->bindProfile(ConfigSingleton::instance()->appearance()->anim());
     m_anim->bindDurations(ConfigSingleton::instance()->appearance()->anim()->durations());
     m_anim->bindCurves(TokensSingleton::instance()->appearance()->curves());
 }

@@ -77,7 +77,11 @@ bool BlobMaterialShader::updateUniformData(RenderState& state, QSGMaterial* newM
     // Inverted radius (offset 116)
     memcpy(buf->data() + 116, &mat->m_invertedRadius, 4);
 
-    // Padding at 120-127 (skip)
+    // These fill the existing std140 gap before invertedOuter, without changing
+    // the shader buffer size or the offsets of the rectangle array.
+    memcpy(buf->data() + 120, &mat->m_cutoutIndex, 4);
+    const float padding = 0;
+    memcpy(buf->data() + 124, &padding, 4);
 
     // Inverted outer (offset 128, 16 bytes)
     memcpy(buf->data() + 128, mat->m_invertedOuter, 16);
@@ -95,7 +99,7 @@ bool BlobMaterialShader::updateUniformData(RenderState& state, QSGMaterial* newM
         memcpy(&maskAsFloat, &r.excludeMask, sizeof(float));
         const float d0[4] = { r.cx, r.cy, r.hw, r.hh };
         const float d1[4] = { maskAsFloat, r.offsetX, r.offsetY, r.minEig };
-        const float d3[4] = { r.screenHalfX, r.screenHalfY, 0.0f, 0.0f };
+        const float d3[4] = { r.screenHalfX, r.screenHalfY, r.kind, 0.0f };
         memcpy(buf->data() + base, d0, 16);
         memcpy(buf->data() + base + 16, d1, 16);
         memcpy(buf->data() + base + 32, r.invDeform, 16);

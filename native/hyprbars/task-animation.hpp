@@ -16,6 +16,7 @@
 #include <hyprutils/utils/ScopeGuard.hpp>
 #include <algorithm>
 #include <chrono>
+#include "motion-profile.hpp"
 
 class CTaskAnimation final : public Render::IWindowTransformer {
   public:
@@ -25,7 +26,8 @@ class CTaskAnimation final : public Render::IWindowTransformer {
         // the rest of the output (and other outputs) outside the damage region.
         const double left = std::min(from.x, to.x), top = std::min(from.y, to.y);
         m_damage = CBox{left, top, std::max(from.x + from.w, to.x + to.w) - left,
-            std::max(from.y + from.h, to.y + to.h) - top}.expand(2);
+            std::max(from.y + from.h, to.y + to.h) - top}.expand(
+                m_profile == HyprstackMotion::Preset::Spring ? std::max({from.w, from.h, to.w, to.h}) * .08 + 2 : 2);
         m_timer = makeShared<CEventLoopTimer>(std::chrono::milliseconds(1), [this](SP<CEventLoopTimer> timer, void*) {
             const auto window = m_window.lock();
             if (!window || !window->mapped()) return;
@@ -45,11 +47,14 @@ class CTaskAnimation final : public Render::IWindowTransformer {
         if (m_timer && g_pEventLoopManager) g_pEventLoopManager->removeTimer(m_timer);
     }
 
-    bool busy() const { return elapsed() < 0.23; }
+    bool busy() const { return m_duration > 0 && elapsed() < m_duration + .01; }
 
     CBox current() const {
-        const double t = std::clamp(elapsed() / 0.22, 0.0, 1.0);
-        const double p = t * t * (3.0 - 2.0 * t);
+        const double t = m_duration > 0 ? std::clamp(elapsed() / m_duration, 0.0, 1.0) : 1;
+        double p = m_profile == HyprstackMotion::Preset::Default ? t * t * (3.0 - 2.0 * t)
+            : HyprstackMotion::eased(t, m_profile);
+        // A spring must never shrink past a tiny taskbar target into negative size.
+        if (m_to.w < m_from.w || m_to.h < m_from.h) p = std::min(1.0, p);
         return {m_from.pos() + (m_to.pos() - m_from.pos()) * p,
             m_from.size() + (m_to.size() - m_from.size()) * p};
     }
@@ -124,6 +129,8 @@ class CTaskAnimation final : public Render::IWindowTransformer {
     CBox m_from, m_to, m_source, m_destination, m_damage;
     bool m_cancelled = false;
     double m_panelTop;
+    double m_duration = HyprstackMotion::duration(.22);
+    HyprstackMotion::Preset m_profile = HyprstackMotion::preset;
     Time::steady_tp m_start = Time::steadyNow();
     SP<CEventLoopTimer> m_timer;
 };

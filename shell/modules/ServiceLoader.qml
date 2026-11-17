@@ -9,6 +9,7 @@ Scope {
 
         IdleInhibitor;
         GameMode;
+        Animations;
         // Its shortcut has to be registered before the first dialog, since
         // the compositor hands the key over only once one is up.
         Dialogs;

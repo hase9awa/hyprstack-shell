@@ -11,6 +11,9 @@ import qs.utils
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
+    readonly property real visualOffsetScale: flowClipped ? 0 : offsetScale
 
     required property ScreenState screenState
     required property bool atBottom
@@ -82,14 +85,14 @@ Item {
     }
 
     visible: offsetScale < 1
-    y: atBottom ? (parent?.height ?? 0) - height + (implicitHeight + 5) * offsetScale
-        : (-implicitHeight - 5) * offsetScale
+    y: atBottom ? (parent?.height ?? 0) - height + (implicitHeight + 5) * visualOffsetScale
+        : (-implicitHeight - 5) * visualOffsetScale
     implicitHeight: contentHeight
     implicitWidth: content.implicitWidth || 854 // Hard coded fallback for first open
-    opacity: 1 - offsetScale
+    opacity: flowClipped ? 1 : (1 - offsetScale) * flowOpacity
 
     Behavior on offsetScale {
-        Anim {}
+        Anim { bounded: true }
     }
 
     Timer {

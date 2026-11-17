@@ -5398,7 +5398,20 @@ msgid "Connection mode"
 msgstr ""
 
 #: modules/vpn/VpnWindow.qml
-msgid "SOCKS5: 127.0.0.1:2080 · HTTP: 127.0.0.1:2081"
+#, qt-format
+msgid "SOCKS5: 127.0.0.1:%1 · HTTP: 127.0.0.1:%2"
+msgstr ""
+
+#: assets/vpn.py
+msgid "The running kernel has no TUN module. Restart the system to finish the kernel update."
+msgstr ""
+
+#: assets/vpn.py
+msgid "The TUN device is unavailable. Enable TUN support before connecting."
+msgstr ""
+
+#: assets/vpn.py
+msgid "No local port is available for the VPN proxy"
 msgstr ""
 
 #: modules/vpn/VpnWindow.qml
@@ -5461,22 +5474,183 @@ msgstr ""
 msgid "External VPN provider"
 msgstr ""
 
-#: assets/vpn.py
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Animations"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell and window presets, live preview and motion speed"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Snappy"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Cinematic"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Reduced motion"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Spring"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Glide"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Goop-inspired springs, soft panel stretch and squishy buttons"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Fluid, restrained transitions inspired by Fluent 2"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Short, precise movements with a quick response"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Measured acceleration and spacious, flowing transitions"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Instant shell transitions with no animated travel"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Original Hyprstack animations and your existing motion tokens"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Gentle spring opening and elastic workspace transitions"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Windows slide into place and workspaces drift smoothly"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Fast opening with a subtle zoom and short workspace travel"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Deep zoom opening and flowing vertical workspace transitions"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Instant window opening, closing, movement and workspace changes"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Original window and workspace animations"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Presets apply immediately and are saved independently."
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell animations"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell preset"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell animation speed"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Window animations"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Window preset"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Game mode temporarily disables window animations. Your preset is kept."
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Replay preview"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Restore defaults"
+msgstr ""
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Viscous panels, workspace splashes and drips on hover"
+msgstr ""
+
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "The subscription device limit has been reached"
 msgstr ""
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "Enable hardware ID in VPN settings to load this subscription"
 msgstr ""
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "The server requires a device identifier that this system cannot provide"
 msgstr ""
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "The subscription server refused the request"
 msgstr ""
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "User-Agent must contain only printable ASCII characters"
+msgstr ""
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "Invalid NaiveProxy extra headers"
+msgstr ""
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "Invalid NaiveProxy server port"
+msgstr ""
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "NaiveProxy requires TLS certificate verification"
+msgstr ""
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "NaiveProxy requires HTTPS or QUIC"
 msgstr ""

@@ -48,6 +48,18 @@ StyledRect {
     property real checkedRadius: Tokens.rounding.medium
     property real defaultRadius: Tokens.rounding.large
 
+    property real motionSquash: GlobalConfig.appearance.anim.shellPreset === "goop" && pressed ? 0.92 : 1
+    transform: Scale {
+        origin.x: root.width / 2
+        origin.y: root.height / 2
+        xScale: 1 / Math.sqrt(root.motionSquash)
+        yScale: root.motionSquash
+    }
+
+    Behavior on motionSquash {
+        Anim { type: Anim.FastSpatial }
+    }
+
     signal clicked
 
     onCheckedChanged: internalChecked = checked

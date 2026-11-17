@@ -104,7 +104,7 @@ DialogWindow {
         function onChoicesChanged(): void { root.selectDefault(); }
     }
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "appChooserSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

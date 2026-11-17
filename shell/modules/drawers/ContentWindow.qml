@@ -171,6 +171,7 @@ StyledWindow {
     }
 
     Item {
+        id: backgroundLayer
         anchors.fill: parent
         opacity: root.surfaceColour.a
 
@@ -185,15 +186,32 @@ StyledWindow {
             shadowOffset: 2 * root.contentItem.Tokens.scale
         }
 
-        BlobInvertedRect {
+        DesktopFrame { group: blobGroup }
+
+        Item {
+            id: frameDensity
             anchors.fill: parent
-            anchors.margins: -50 // Make border thicker to smooth out bulge from closed drawers
-            group: blobGroup
-            radius: root.borderRounding
-            borderLeft: root.borderThickness - anchors.margins - root.sdfBorderOffset
-            borderRight: root.borderThickness - anchors.margins - root.sdfBorderOffset
-            borderTop: bar.topInset - anchors.margins - root.sdfBorderOffset
-            borderBottom: bar.bottomInset - anchors.margins - root.sdfBorderOffset
+            visible: liquidFrame.active
+
+            BlobGroup {
+                id: densityGroup
+                color: "white"
+                smoothing: blobGroup.smoothing
+            }
+
+            DesktopFrame { group: densityGroup }
+        }
+
+        GoopFrameMask {
+            id: liquidFrame
+            anchors.fill: parent
+            frameItem: frameDensity
+            active: GlobalConfig.appearance.anim.shellPreset === "goop"
+                && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.enabled
+            innerRect: Qt.rect(root.borderThickness-root.sdfBorderOffset,
+                bar.topInset-root.sdfBorderOffset,
+                root.width-2*(root.borderThickness-root.sdfBorderOffset),
+                root.height-bar.topInset-bar.bottomInset+2*root.sdfBorderOffset)
         }
 
         PanelBg {
@@ -201,6 +219,8 @@ StyledWindow {
             objectName: "dashboardBackground"
 
             panel: panels.dashboard
+            anchorEdge: panels.dashboard.atBottom ? "bottom" : "top"
+            contentKey: root.screenState.dashboardTab.toString()
             deformAmount: 0.1
         }
 
@@ -208,6 +228,7 @@ StyledWindow {
             id: launcherBg
 
             panel: panels.launcher
+            anchorEdge: "bottom"
             deformAmount: 0.1
         }
 
@@ -215,6 +236,8 @@ StyledWindow {
             id: sessionBg
 
             panel: panels.sessionWrapper
+            motionPanel: panels.session
+            anchorEdge: "right"
             deformAmount: 0.2
             x: panels.x + panels.sessionWrapper.x + panels.session.x
             implicitWidth: panels.session.width
@@ -225,6 +248,7 @@ StyledWindow {
             objectName: "notificationCenterBackground"
 
             panel: panels.sidebar
+            anchorEdge: bar.atBottom ? "bottom" : "right"
             // A single surface keeps the notification list and controls joined.
             deformAmount: panels.utilities.followSidebar ? 0 : 0.03
             implicitHeight: panels.utilities.followSidebar
@@ -236,6 +260,8 @@ StyledWindow {
             id: osdBg
 
             panel: panels.osdWrapper
+            motionPanel: panels.osd
+            anchorEdge: panels.osd.onLeft === true ? "left" : "right"
             deformAmount: 0.25
             x: panels.x + panels.osdWrapper.x + panels.osd.x
             implicitWidth: panels.osd.width
@@ -245,12 +271,16 @@ StyledWindow {
             id: notifsBg
 
             panel: panels.notifications
+            anchorEdge: "right"
         }
 
         PanelBg {
             id: utilsBg
 
             panel: panels.utilities
+            anchorEdge: panels.utilities.atBottom ? "bottom" : "top"
+            maskSurfaceOverride: panels.utilities.followSidebar && !panels.utilities.keepStandaloneOpen
+                ? sidebarBg.liquid : null
             visible: (!panels.utilities.followSidebar || panels.utilities.keepStandaloneOpen)
                 && panel.visible && panel.width > 0 && panel.height > 0
             deformAmount: panels.utilities.followSidebar ? 0 : 0.15
@@ -261,9 +291,15 @@ StyledWindow {
             objectName: "popoutBackground"
 
             // Keep the animated popout background joined to the horizontal bar.
-            property real extraDepth: panels.popouts.isDetached ? 0 : 0.2
+            property real extraDepth: GlobalConfig.appearance.anim.shellPreset === "goop"
+                ? 0 : panels.popouts.isDetached ? 0 : 0.2
+            contentKey: panels.popouts.currentName + ":" + panels.popouts.detachedMode + ":" + panels.popouts.trayRevision
+            stableField: true
+            splashOnContentChange: !panels.popouts.isDetached
+            keepFrameJoin: !panels.popouts.isDetached
 
             panel: panels.popoutsWrapper
+            motionPanel: panels.popouts
             deformAmount: panels.popouts.isDetached ? 0.05 : panels.popouts.hasCurrent ? 0.15 : 0.1
             x: panels.x + panels.popoutsWrapper.x + panels.popouts.x
             y: panels.y + panels.popoutsWrapper.y + panels.popouts.y - (bar.atBottom ? 0 : panels.popouts.height * extraDepth)
@@ -342,17 +378,70 @@ StyledWindow {
         component: panels
     }
 
+    component DesktopFrame: BlobInvertedRect {
+        anchors.fill: parent
+        anchors.margins: -50 // Extend the outside of the frame past the viewport.
+        radius: root.borderRounding
+        borderLeft: root.borderThickness - anchors.margins - root.sdfBorderOffset
+        borderRight: root.borderThickness - anchors.margins - root.sdfBorderOffset
+        borderTop: bar.topInset - anchors.margins - root.sdfBorderOffset
+        borderBottom: bar.bottomInset - anchors.margins - root.sdfBorderOffset
+    }
+
     component PanelBg: BlobRect {
+        id: backgroundShape
         required property Item panel
+        property Item motionPanel: panel
+        property string anchorEdge: bar.atBottom ? "bottom" : "top"
         property real deformAmount: 0.15
+        property string contentKey
+        property bool keepFrameJoin: true
+        property bool stableField: false
+        property bool splashOnContentChange: false
+        property var maskSurfaceOverride: null
+        readonly property alias liquid: liquidPanel
+        readonly property real baseRadius: Tokens.rounding.extraLarge
+
+        GoopSurface {
+            id: liquidPanel
+            anchors.fill: parent
+            hoverTarget: backgroundShape.motionPanel
+            controlsContentMotion: true
+            escapeParent: backgroundLayer
+            frameMask: liquidFrame
+            keepFrameJoin: backgroundShape.keepFrameJoin
+            stableField: backgroundShape.stableField
+            splashOnContentChange: backgroundShape.splashOnContentChange
+            contentMaskSurface: backgroundShape.maskSurfaceOverride ?? liquidPanel
+            paintColor: Qt.rgba(root.surfaceColour.r, root.surfaceColour.g, root.surfaceColour.b, 1)
+            cornerRadius: backgroundShape.baseRadius
+            externalProgress: liquidPanel.goopy ? 1 : backgroundShape.motionPanel.offsetScale !== undefined
+                ? 1 - backgroundShape.motionPanel.offsetScale : -1
+            contentKey: backgroundShape.contentKey
+            anchorEdge: backgroundShape.anchorEdge
+            panelOpen: backgroundShape.visible
+                && (backgroundShape.motionPanel.shouldBeActive
+                    ?? (backgroundShape.motionPanel.hasCurrent !== undefined
+                        ? backgroundShape.motionPanel.hasCurrent || backgroundShape.motionPanel.isDetached
+                        : backgroundShape.motionPanel.visible))
+        }
+
+        Binding {
+            target: backgroundShape.motionPanel
+            property: "flowOpacity"
+            when: liquidPanel.goopy
+            value: liquidPanel.contentOpacity
+            restoreMode: Binding.RestoreBindingOrValue
+        }
 
         visible: panel.visible && panel.width > 0 && panel.height > 0
-        group: visible ? blobGroup : null
+        group: visible && !liquidPanel.goopy ? blobGroup : null
         x: panels.x + panel.x
         y: panels.y + panel.y
         implicitWidth: panel.width
         implicitHeight: panel.height
-        radius: Tokens.rounding.extraLarge
-        deformScale: Hypr.stacking ? 0 : (deformAmount * Config.appearance.deformScale) / 10000
+        radius: baseRadius
+        deformScale: Hypr.stacking || GlobalConfig.appearance.anim.shellPreset === "goop"
+            ? 0 : (deformAmount * Config.appearance.deformScale) / 10000
     }
 }

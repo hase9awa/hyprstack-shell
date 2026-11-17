@@ -2,6 +2,7 @@
 
 #include <qmatrix4x4.h>
 #include <qquickitem.h>
+#include <qpointer.h>
 #include <qvector.h>
 
 #include "blobmaterial.hpp"
@@ -14,8 +15,11 @@ class BlobShape : public QQuickItem {
     Q_OBJECT
     Q_PROPERTY(hyprstack::blobs::BlobGroup* group READ group WRITE setGroup NOTIFY groupChanged)
     Q_PROPERTY(qreal radius READ radius WRITE setRadius NOTIFY radiusChanged)
+    Q_PROPERTY(QRectF surfaceRect READ surfaceRect WRITE setSurfaceRect NOTIFY surfaceRectChanged)
     Q_PROPERTY(QMatrix4x4 deformMatrix READ deformMatrix NOTIFY deformMatrixChanged)
     Q_PROPERTY(QMatrix4x4 rawDeformMatrix READ rawDeformMatrix NOTIFY rawDeformMatrixChanged)
+    // Escaping liquid may share a field with a control without painting over its text.
+    Q_PROPERTY(hyprstack::blobs::BlobShape* cutout READ cutout WRITE setCutout NOTIFY cutoutChanged)
 
     friend class BlobGroup;
 
@@ -28,6 +32,10 @@ public:
 
     [[nodiscard]] qreal radius() const;
     void setRadius(qreal r);
+    QRectF surfaceRect() const { return m_surfaceRect; }
+    void setSurfaceRect(const QRectF& rect);
+    [[nodiscard]] BlobShape* cutout() const { return m_cutout; }
+    void setCutout(BlobShape* shape);
 
     [[nodiscard]] QMatrix4x4 deformMatrix() const;
     [[nodiscard]] QMatrix4x4 rawDeformMatrix() const;
@@ -35,8 +43,10 @@ public:
 signals:
     void groupChanged();
     void radiusChanged();
+    void surfaceRectChanged();
     void deformMatrixChanged();
     void rawDeformMatrixChanged();
+    void cutoutChanged();
 
 protected:
     void componentComplete() override;
@@ -54,6 +64,7 @@ protected:
     virtual void registerWithGroup();
     virtual void unregisterFromGroup();
     void updateCenteredDeformMatrix();
+    QRectF shapeRect() const;
 
     [[nodiscard]] QRectF localPaddedRect(float pad) const;
     [[nodiscard]] QRectF paddedSceneRect(const QPointF& scenePos, float pad) const;
@@ -71,6 +82,7 @@ protected:
 
     BlobGroup* m_group = nullptr;
     qreal m_radius = 0;
+    QRectF m_surfaceRect;
     QMatrix4x4 m_deformMatrix; // identity by default
     QMatrix4x4 m_centeredDeformMatrix;
 
@@ -82,6 +94,8 @@ protected:
     QRectF m_localPaddedRect;
     QVector<BlobRectData> m_cachedRects;
     int m_cachedMyIndex = -2;
+    int m_cachedCutoutIndex = -1;
+    QPointer<BlobShape> m_cutout;
     float m_pendingDx = 0;
     float m_pendingDy = 0;
     bool m_cachedHasInverted = false;

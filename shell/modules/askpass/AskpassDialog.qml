@@ -53,7 +53,7 @@ DialogWindow {
     Component.onCompleted: focusInput()
     onBackingWindowVisibleChanged: if (backingWindowVisible) focusInput()
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "askpassSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

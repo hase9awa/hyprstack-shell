@@ -8,6 +8,9 @@ import qs.modules.launcher.services
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
+    readonly property real visualOffsetScale: flowClipped ? 0 : offsetScale
 
     required property ShellScreen screen
     required property ScreenState screenState
@@ -55,16 +58,16 @@ Item {
     }
 
     visible: offsetScale < 1
-    anchors.bottomMargin: (-implicitHeight - 5) * offsetScale
+    anchors.bottomMargin: (-implicitHeight - 5) * visualOffsetScale
     implicitHeight: content.implicitHeight
     implicitWidth: content.implicitWidth || 630 // Hard coded fallback for first open
-    opacity: 1 - offsetScale
+    opacity: flowClipped ? 1 : (1 - offsetScale) * flowOpacity
 
     Component.onCompleted: Qt.callLater(() => Apps) // Load apps on init
     onVisibleChanged: if (visible && shouldBeActive) Qt.callLater(() => content.item?.focusSearch())
 
     Behavior on offsetScale {
-        Anim {}
+        Anim { bounded: true }
     }
 
     Loader {

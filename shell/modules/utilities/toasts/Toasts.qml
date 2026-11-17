@@ -31,7 +31,7 @@ Item {
             if (!item.modelData.closed && !item.previewHidden)
                 h += item.implicitHeight + spacing;
         }
-        return h;
+        return Math.max(0, h);
     }
 
     Repeater {

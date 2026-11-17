@@ -15,13 +15,24 @@ Item {
     readonly property Popout currentPopout: content.children.find(c => c.shouldBeActive) ?? null
     readonly property Item current: currentPopout?.item ?? null
 
-    readonly property var trayItemsToIndices: SystemTray.items.values.filter(i => i.status !== Status.Passive && !GlobalConfig.bar.tray.hiddenIcons.includes(i.id)).reduce((acc, item, i) => {
-        acc[item.id] = i;
-        return acc;
-    }, {})
-
-    implicitWidth: currentPopout ? currentPopout.implicitWidth + Tokens.padding.large * 2 : 0
-    implicitHeight: currentPopout ? currentPopout.implicitHeight + Tokens.padding.large * 2 : 0
+    readonly property bool flowing: GlobalConfig.appearance.anim.shellPreset==="goop"
+        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.enabled
+    property size readySize: Qt.size(0,0)
+    function captureSize(): void {
+        const p=currentPopout;
+        if(!p?.item || !p.ready || p.implicitWidth<=0 || p.implicitHeight<=0) return;
+        readySize=Qt.size(p.implicitWidth+Tokens.padding.large*2,p.implicitHeight+Tokens.padding.large*2);
+    }
+    onCurrentPopoutChanged: Qt.callLater(captureSize)
+    Connections {
+        target: root.currentPopout
+        function onImplicitWidthChanged(): void {Qt.callLater(root.captureSize);}
+        function onImplicitHeightChanged(): void {Qt.callLater(root.captureSize);}
+        function onReadyChanged(): void {Qt.callLater(root.captureSize);}
+        function onItemChanged(): void {Qt.callLater(root.captureSize);}
+    }
+    implicitWidth: flowing ? readySize.width : currentPopout ? currentPopout.implicitWidth+Tokens.padding.large*2 : 0
+    implicitHeight: flowing ? readySize.height : currentPopout ? currentPopout.implicitHeight+Tokens.padding.large*2 : 0
 
     Item {
         id: content
@@ -131,37 +142,27 @@ Item {
             sourceComponent: LockStatus {}
         }
 
-        Repeater {
-            model: ScriptModel {
-                values: SystemTray.items.values.filter(i => i.hasMenu && i.status !== Status.Passive && !GlobalConfig.bar.tray.hiddenIcons.includes(i.id))
+        Popout {
+            name: root.flowing ? "traymenu" : "goopTrayInactive"
+            ready: item?.populated ?? false
+            sourceComponent: TrayMenu {
+                popouts: root.popouts
+                trayItem: root.popouts.trayItem?.menu ?? null
             }
+        }
+
+        Repeater {
+            model: root.flowing ? [] : SystemTray.items
 
             Popout {
-                id: trayMenu
+                id: trayPopout
+                required property int index
+                required property var modelData
 
-                required property SystemTrayItem modelData
-
-                name: `traymenu${root.trayItemsToIndices[modelData.id]}`
-                sourceComponent: trayMenuComp
-
-                Connections {
-                    function onHasCurrentChanged(): void {
-                        if (root.popouts.hasCurrent && trayMenu.shouldBeActive) {
-                            trayMenu.sourceComponent = null;
-                            trayMenu.sourceComponent = trayMenuComp;
-                        }
-                    }
-
-                    target: root.popouts
-                }
-
-                Component {
-                    id: trayMenuComp
-
-                    TrayMenu {
-                        popouts: root.popouts
-                        trayItem: trayMenu.modelData.menu // qmllint disable unresolved-type
-                    }
+                name: `traymenu${index}`
+                sourceComponent: TrayMenu {
+                    popouts: root.popouts
+                    trayItem: trayPopout.modelData.menu
                 }
             }
         }
@@ -178,6 +179,12 @@ Item {
 
         opacity: 0
         active: false
+
+        PopoutContentReveal {
+            target: popout.item
+            active: root.flowing && popout.shouldBeActive && popout.name !== "network" && popout.name !== "tasks"
+            revision: popout.name === "traymenu" ? root.popouts.trayRevision : 0
+        }
 
         states: State {
             name: "active"

@@ -210,7 +210,8 @@ void BlobRect::setBottomRightRadius(qreal r) {
 }
 
 void BlobRect::cornerRadii(float out[4]) const {
-    const auto maxR = static_cast<float>(std::min(width(), height())) * 0.5f;
+    const auto rect = shapeRect();
+    const auto maxR = static_cast<float>(std::min(rect.width(), rect.height())) * 0.5f;
     const auto base = std::min(static_cast<float>(m_radius), maxR);
     out[0] = std::min(m_topRightRadius >= 0 ? static_cast<float>(m_topRightRadius) : base, maxR);
     out[1] = std::min(m_bottomRightRadius >= 0 ? static_cast<float>(m_bottomRightRadius) : base, maxR);

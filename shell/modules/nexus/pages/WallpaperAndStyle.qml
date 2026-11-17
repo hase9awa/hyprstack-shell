@@ -47,6 +47,16 @@ PageBase {
             onClicked: root.nState.openSubPage(4)
         }
 
+        NavRow {
+            objectName: "appearanceAnimations"
+            first: true
+            last: true
+            icon: "animation"
+            text: Tr.tr("Animations")
+            subtext: Tr.tr("Shell and window presets, live preview and motion speed")
+            onClicked: root.nState.openSubPage(5)
+        }
+
         StyledClippingRect {
             id: wallWrapper
 

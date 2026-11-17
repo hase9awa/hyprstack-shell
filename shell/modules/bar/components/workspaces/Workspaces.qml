@@ -43,6 +43,18 @@ StyledClippingRect {
     }
 
     property real blur: onSpecial ? 1 : 0
+    property bool initialized: false
+    readonly property bool fluidMotion: (activeIndicator.item as ActiveIndicator)?.fluidMotion ?? false
+    readonly property real listExtent: workspaces.layoutHeight + workspaces.anchors.margins * 2
+    property real flowingExtent: listExtent
+    readonly property real indicatorExtent: fluidMotion
+        ? activeIndicator.item.y + activeIndicator.item.height + workspaces.anchors.margins : 0
+
+    Component.onCompleted: initialized = true
+    onActiveWsIdChanged: if (initialized) Qt.callLater(() => {
+        const indicator = activeIndicator.item as ActiveIndicator;
+        indicator?.liquid.pulse();
+    })
 
     function workspaceIndex(id: int): int {
         if (!Config.bar.workspaces.showUnoccupied)
@@ -55,12 +67,15 @@ StyledClippingRect {
     }
 
     implicitWidth: Tokens.sizes.bar.innerWidth
-    implicitHeight: workspaces.layoutHeight + workspaces.anchors.margins * 2
+    // The liquid overflow lives outside this clipping rectangle. Keep the
+    // native filled capsule inside it while a hidden workspace is removed.
+    implicitHeight: fluidMotion ? Math.max(flowingExtent, indicatorExtent) : listExtent
 
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.full
 
     Item {
+        id: normalContent
         anchors.fill: parent
         scale: root.onSpecial ? 0.8 : 1
         opacity: root.onSpecial ? 0.5 : 1
@@ -143,6 +158,7 @@ StyledClippingRect {
         }
 
         Loader {
+            id: activeIndicator
             asynchronous: true
             anchors.left: workspaces.left
             anchors.right: workspaces.right
@@ -150,6 +166,8 @@ StyledClippingRect {
             active: Config.bar.workspaces.activeIndicator
 
             sourceComponent: ActiveIndicator {
+                liquidEffects: !root.onSpecial && root.blur === 0 && normalContent.scale === 1 && normalContent.opacity === 1
+                geometryRevision: normalContent.scale
                 activeWs: {
                     workspaces.itemsDirty;
                     return workspaces.itemAtIndex(root.activeWsIdx) as Workspace;
@@ -223,6 +241,12 @@ StyledClippingRect {
     }
 
     Behavior on implicitHeight {
+        enabled: !root.fluidMotion
         Anim {}
+    }
+
+    Behavior on flowingExtent {
+        enabled: root.fluidMotion
+        Anim { bounded: true }
     }
 }

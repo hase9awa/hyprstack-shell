@@ -1,5 +1,7 @@
 #include "blobgroup.hpp"
 
+#include <algorithm>
+
 #include "blobinvertedrect.hpp"
 #include "blobshape.hpp"
 

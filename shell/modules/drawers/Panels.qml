@@ -60,7 +60,7 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         x: onLeft ? 0 : (parent?.width ?? 0) - width - sideOffset
-        clip: !onLeft && (sidebar.visible || session.visible)
+        clip: !onLeft && (sidebar.visible || session.visible) && !osd.flowClipped
 
         implicitWidth: osd.implicitWidth * (1 - osd.offsetScale)
         implicitHeight: osd.implicitHeight
@@ -95,7 +95,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         anchors.rightMargin: sidebar.width * (1 - sidebar.offsetScale)
-        clip: sidebar.visible
+        clip: sidebar.visible && !session.flowClipped
 
         implicitWidth: session.implicitWidth * (1 - session.offsetScale)
         implicitHeight: session.implicitHeight
@@ -152,17 +152,21 @@ Item {
         atBottom: screenState.sidebar || sidebar.visible || !root.bar.atBottom
 
         y: atBottom ? parent.height - height
-            + (movesWithSidebar ? (sidebar.atBottom ? sidebar.slideDistance : 0) : height + 5) * offsetScale
-            : -(height + 5) * offsetScale
+            + (movesWithSidebar ? (sidebar.atBottom ? sidebar.slideDistance : 0) : height + 5) * visualOffsetScale
+            : -(height + 5) * visualOffsetScale
         anchors.right: parent.right
     }
 
     Toasts.Toasts {
         id: toasts
 
-        anchors.bottom: sidebar.visible || !utilities.atBottom ? parent.bottom : utilities.top
-        anchors.right: sidebar.left
-        anchors.margins: Tokens.padding.medium
+        // Flow-clipped panels retain their settled geometry while hidden.
+        // Avoid only the portion actually on screen, rather than that box.
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.rightMargin: Tokens.padding.medium + sidebar.width * Math.max(0, Math.min(1, 1-sidebar.offsetScale))
+        anchors.bottomMargin: Tokens.padding.medium + (utilities.atBottom
+            ? utilities.height * Math.max(0, Math.min(1, 1-utilities.offsetScale)) : 0)
     }
 
     Sidebar.Wrapper {
@@ -189,7 +193,7 @@ Item {
             }
 
             PropertyChanges {
-                sidebar.y: root.sidebarTop + sidebar.slideDistance * sidebar.offsetScale
+                sidebar.y: root.sidebarTop + sidebar.slideDistance * sidebar.visualOffsetScale
                 sidebar.height: Math.max(0, root.height - root.sidebarTop - utilities.height)
             }
         }

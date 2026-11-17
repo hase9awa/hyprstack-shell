@@ -42,7 +42,9 @@
 !/distribution/tests/test_updates.py
 !/distribution/tests/vpn-flow.test.cjs
 !/distribution/tests/test_vpn_ui.py
+!/distribution/tests/test_vpn_backend.py
 !/distribution/tests/test_vpn_subscriptions.py
+!/distribution/tests/test_vpn_protocols.py
 !/distribution/tests/vpn_ui_shell.qml
 !/distribution/tests/damage_probe.cpp
 !/distribution/tests/test_client_snapshot.py
@@ -59,6 +61,13 @@
 !/distribution/tests/test_workspace_panel.py
 !/distribution/tests/workspace_panel_shell.qml
 !/distribution/tests/test_media_viewer.py
+!/distribution/tests/test_animation_presets.py
+!/distribution/tests/MotionTestDialogs.qml
+!/distribution/tests/compare_goopui_frames.cjs
+!/distribution/tests/compare_goopui_masks.py
+!/distribution/tests/motion_tray.cpp
+!/distribution/tests/virtual-pointer.xml
+!/distribution/tests/goop-physics.test.cjs
 !/distribution/tests/media_viewer_client.c
 
 !/native/

@@ -11,7 +11,7 @@ import qs.components.containers
 import qs.components.controls
 import qs.services
 
-StyledWindow {
+DialogWindow {
     id: root
 
     required property var flow
@@ -29,17 +29,14 @@ StyledWindow {
 
     // The key that closes a window cannot close a layer surface, so the
     // shell is asked to, and this answers it the way Escape does.
-    signal closeRequested
-
-    Component.onDestruction: Dialogs.unregister(root)
     onCloseRequested: root.cancel()
 
     name: "polkit"
     Config.screen: screen?.name ?? ""
     Tokens.screen: screen?.name ?? ""
     visible: !!flow && !flow.isCompleted && !flow.isCancelled
-    implicitWidth: Math.min(480 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
-    implicitHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
+    dialogWidth: Math.min(480 * Tokens.scale, (screen?.width ?? 528) - 48 * Tokens.scale)
+    dialogHeight: Math.min(contents.implicitHeight + Tokens.padding.large * 2,
         (screen?.height ?? 720) - 48 * Tokens.scale)
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
@@ -90,7 +87,6 @@ StyledWindow {
     onBackingWindowVisibleChanged: if (backingWindowVisible) focusInput()
     Component.onCompleted: {
         resetInput();
-        Dialogs.register(root);
     }
 
     Connections {
@@ -104,7 +100,7 @@ StyledWindow {
         function onIsCancelledChanged(): void { root.resetInput(); }
     }
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "polkitSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer
@@ -207,18 +203,38 @@ StyledWindow {
                     StyledTextField {
                         id: response
 
+                        readonly property bool shapedPassword: !root.flow?.responseVisible && !root.revealResponse
+
                         objectName: "polkitResponse"
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
                         placeholderText: root.prompt
                         leadingIcon: root.flow?.responseVisible ? "keyboard" : "lock"
                         echoMode: root.flow?.responseVisible || root.revealResponse ? TextInput.Normal : TextInput.Password
+                        inputTextVisible: !shapedPassword
                         inputMethodHints: root.flow?.responseVisible ? Qt.ImhNone : Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
                         readOnly: !root.awaitingResponse || root.submitting
                         activeFocusOnTab: true
                         focus: root.awaitingResponse
                         onAccepted: root.submit()
                         Keys.onEscapePressed: root.cancel()
+
+                        Item {
+                            anchors.fill: parent
+                            anchors.leftMargin: response.leftPadding
+                            anchors.rightMargin: response.rightPadding
+                            anchors.topMargin: response.topPadding
+                            anchors.bottomMargin: response.bottomPadding
+                            clip: true
+
+                            PasswordCharacters {
+                                objectName: "polkitPasswordShapes"
+                                anchors.centerIn: parent
+                                anchors.horizontalCenterOffset: implicitWidth > parent.width ? -(implicitWidth - parent.width) / 2 : 0
+                                buffer: response.text
+                                visible: response.shapedPassword
+                            }
+                        }
                     }
 
                     IconButton {

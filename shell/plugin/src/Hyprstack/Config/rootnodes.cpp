@@ -76,6 +76,12 @@ void ConfigRoot::bindTokens() {
     m_appearance->spacing()->bindTokens(tokens->spacing());
     m_appearance->padding()->bindTokens(tokens->padding());
     m_appearance->anim()->durations()->bindTokens(tokens->animDurations());
+    auto* motion = fallbackNode() ? static_cast<ConfigRoot*>(fallbackNode())->appearance()->anim() : m_appearance->anim();
+    const auto updateMotion = [this, motion] {
+        m_appearance->anim()->durations()->setPreset(motion->shellPreset());
+    };
+    connect(motion, &AppearanceAnim::shellPresetChanged, this, updateMotion);
+    updateMotion();
     const auto updateScale = [this] {
         const auto scale = m_appearance->effectiveScale();
         m_appearance->rounding()->setUiScale(scale);

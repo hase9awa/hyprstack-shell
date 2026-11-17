@@ -260,6 +260,7 @@ class AnimDurations : public settings::ObjectNode {
 
 public:
     void bindTokens(AnimDurationTokens* tokens);
+    void setPreset(const QString& preset);
 
     [[nodiscard]] int small() const;
     [[nodiscard]] int normal() const;
@@ -276,12 +277,16 @@ signals:
     void valuesChanged();
 
 private:
+    [[nodiscard]] int duration(int token, int role) const;
     AnimDurationTokens* m_tokens = nullptr;
+    int m_preset = 0;
 };
 
 class AppearanceAnim : public settings::ObjectNode {
     CONFIG_NODE(AppearanceAnim, settings::ObjectNode)
 
+    CONFIG_GLOBAL_PROPERTY(QString, shellPreset, u"default"_s)
+    CONFIG_GLOBAL_PROPERTY(QString, windowPreset, u"default"_s)
     CONFIG_SUBOBJECT(AnimDurations, durations)
 };
 

@@ -98,7 +98,7 @@ Item {
             scale: root.focused ? 2 / 3 : root.isOccupied ? 1 / 3 : 1 / 4
 
             animationEasing: Tokens.anim.expressiveDefaultSpatial
-            animationDuration: Tokens.anim.durations.expressiveDefaultSpatial * Tokens.anim.durations.scale
+            animationDuration: Tokens.anim.durations.expressiveDefaultSpatial
 
             Behavior on color {
                 CAnim {}

@@ -43,7 +43,7 @@ DialogWindow {
     // it is; the user can still answer it with the pointer.
     WlrLayershell.keyboardFocus: visible && request.modal ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "accessSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

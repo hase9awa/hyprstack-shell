@@ -15,7 +15,12 @@ Item {
 
     required property HyprlandMonitor monitor
 
-    readonly property int activeSpecialId: monitor?.lastIpcObject.specialWorkspace?.id ?? 0
+    readonly property int activeSpecialId: {
+        const special = monitor?.lastIpcObject.specialWorkspace;
+        // Current Hyprland reports a workspace address and name here, while
+        // Quickshell supplies the numeric id used by the workspace model.
+        return Hypr.workspaces.values.find(w => w.name === special?.name)?.id ?? special?.id ?? 0;
+    }
     readonly property var wsIds: {
         const allMonitors = !Config.bar.workspaces.perMonitor;
         return Hypr.workspaces.values.filter(w => w.name.startsWith("special:") && (allMonitors || w.monitor === root.monitor)).map(w => w.id);
@@ -190,6 +195,7 @@ Item {
         active: Config.bar.workspaces.activeIndicator
 
         sourceComponent: ActiveIndicator {
+            geometryRevision: root.scale
             activeWs: root.activeWs
             mask: view
             color: Colours.palette.m3tertiary

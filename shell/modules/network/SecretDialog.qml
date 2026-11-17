@@ -92,7 +92,7 @@ DialogWindow {
         }
     }
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "nmSecretSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

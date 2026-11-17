@@ -105,7 +105,7 @@ DialogWindow {
         }
     }
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "bluezPairSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

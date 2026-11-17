@@ -2,6 +2,66 @@
 
 // Static metadata: searching never creates hidden pages or starts their services.
 var catalogue = [
+{
+  "page": 0,
+  "subpages": [
+    5
+  ],
+  "path": [
+    "Wallpaper & style",
+    "Animations"
+  ],
+  "label": "Animations",
+  "context": "",
+  "target": "",
+  "match": "",
+  "keywords": "animation motion presets пресеты анимации движение goop fluent cinematic"
+},
+{
+  "page": 0,
+  "subpages": [
+    5
+  ],
+  "path": [
+    "Wallpaper & style",
+    "Animations"
+  ],
+  "label": "Shell preset",
+  "context": "",
+  "target": "shellAnimationPreset",
+  "match": "Shell preset",
+  "keywords": "shell interface animation motion preset оболочка интерфейс goop fluent cinematic пресет"
+},
+{
+  "page": 0,
+  "subpages": [
+    5
+  ],
+  "path": [
+    "Wallpaper & style",
+    "Animations"
+  ],
+  "label": "Window preset",
+  "context": "",
+  "target": "windowAnimationPreset",
+  "match": "Window preset",
+  "keywords": "window workspace animation motion preset spring glide cinematic окна рабочие столы пресет"
+},
+{
+  "page": 0,
+  "subpages": [
+    5
+  ],
+  "path": [
+    "Wallpaper & style",
+    "Animations"
+  ],
+  "label": "Shell animation speed",
+  "context": "",
+  "target": "shellAnimationSpeed",
+  "match": "Shell animation speed",
+  "keywords": "shell animation refresh speed duration скорость анимаций длительность"
+},
   {
     "page": 0,
     "subpages": [],
@@ -2988,6 +3048,7 @@ var catalogue = [
 // End catalogue
 
 var aliases = [
+    ["анимац", "animation"], ["пресет", "preset"], ["прессет", "preset"], ["оболоч", "shell"],
     ["тен", "shadow"], ["отступ", "gap"], ["гэп", "gap"], ["геп", "gap"],
     ["рамк", "border"], ["скругл", "rounding"], ["радиус", "radius"], ["угл", "corner"],
     ["масш", "scale"], ["монитор", "screen"], ["экран", "screen"],

@@ -5,8 +5,10 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import Hyprstack.I18n
+import Hyprstack.Config
 import Hyprstack.Services
 import qs.components.misc
+import qs.components
 import qs.utils
 import "KeyboardLayouts.js" as KeyboardLayouts
 import "ClientSnapshot.js" as ClientSnapshot
@@ -57,7 +59,13 @@ Singleton {
     signal configReloaded
 
     Behavior on stackingProgress {
-        NumberAnimation { duration: 420; easing.type: Easing.OutCubic }
+        StyledAnim {
+            bounded: true
+            defaultDuration: 420
+            defaultEasing: Easing.OutCubic
+            presetDuration: Tokens.anim.durations.expressiveDefaultSpatial
+            presetEasing: Tokens.anim.expressiveDefaultSpatial
+        }
     }
 
     function windowState(toplevel: HyprlandToplevel): var {

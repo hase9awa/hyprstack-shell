@@ -1,4 +1,5 @@
 #include "appearanceconfig.hpp"
+#include "motionpresets.hpp"
 
 #include "tokens.hpp"
 
@@ -147,49 +148,63 @@ int AppearancePadding::extraExtraLarge() const {
 
 // AnimDurations
 
+void AnimDurations::setPreset(const QString& preset) {
+    const auto index = motion::presetIndex(preset);
+    if (m_preset == index) return;
+    m_preset = index;
+    emit valuesChanged();
+}
+
+int AnimDurations::duration(int token, int role) const {
+    const auto value = m_preset == 0 ? token
+        : motion::durations.at(static_cast<std::size_t>(m_preset - 1)).at(static_cast<std::size_t>(role));
+    const auto factor = std::isfinite(m_scale) ? std::clamp(m_scale, 0.0, 10.0) : 1.0;
+    return static_cast<int>(value * factor);
+}
+
 void AnimDurations::bindTokens(AnimDurationTokens* tokens) {
     m_tokens = tokens;
     connectTokenSignals(tokens, this);
 }
 
 int AnimDurations::small() const {
-    return m_tokens ? static_cast<int>(m_tokens->small() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->small(), 0) : 0;
 }
 
 int AnimDurations::normal() const {
-    return m_tokens ? static_cast<int>(m_tokens->normal() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->normal(), 1) : 0;
 }
 
 int AnimDurations::large() const {
-    return m_tokens ? static_cast<int>(m_tokens->large() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->large(), 2) : 0;
 }
 
 int AnimDurations::extraLarge() const {
-    return m_tokens ? static_cast<int>(m_tokens->extraLarge() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->extraLarge(), 3) : 0;
 }
 
 int AnimDurations::expressiveFastSpatial() const {
-    return m_tokens ? static_cast<int>(m_tokens->expressiveFastSpatial() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->expressiveFastSpatial(), 4) : 0;
 }
 
 int AnimDurations::expressiveDefaultSpatial() const {
-    return m_tokens ? static_cast<int>(m_tokens->expressiveDefaultSpatial() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->expressiveDefaultSpatial(), 5) : 0;
 }
 
 int AnimDurations::expressiveSlowSpatial() const {
-    return m_tokens ? static_cast<int>(m_tokens->expressiveSlowSpatial() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->expressiveSlowSpatial(), 6) : 0;
 }
 
 int AnimDurations::expressiveFastEffects() const {
-    return m_tokens ? static_cast<int>(m_tokens->expressiveFastEffects() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->expressiveFastEffects(), 7) : 0;
 }
 
 int AnimDurations::expressiveDefaultEffects() const {
-    return m_tokens ? static_cast<int>(m_tokens->expressiveDefaultEffects() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->expressiveDefaultEffects(), 8) : 0;
 }
 
 int AnimDurations::expressiveSlowEffects() const {
-    return m_tokens ? static_cast<int>(m_tokens->expressiveSlowEffects() * m_scale) : 0;
+    return m_tokens ? duration(m_tokens->expressiveSlowEffects(), 9) : 0;
 }
 
 } // namespace hyprstack::config

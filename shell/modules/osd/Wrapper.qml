@@ -8,6 +8,9 @@ import qs.services
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
+    readonly property real visualOffsetScale: flowClipped ? 0 : offsetScale
 
     required property ShellScreen screen
     required property ScreenState screenState
@@ -40,16 +43,17 @@ Item {
     }
 
     visible: offsetScale < 1
-    // Slide-out offset, kept as x so flipping the side never toggles anchors.
+    // Keep side changes free of competing anchors and slide the original
+    // wrapper only when the liquid mask does not own the reveal.
     x: root.onLeft
-        ? (-root.implicitWidth - 5) * root.offsetScale
-        : (parent?.width ?? 0) - root.width + (root.implicitWidth + 5 + root.sidebarOffset) * root.offsetScale
+        ? (-root.implicitWidth - 5) * root.visualOffsetScale
+        : (parent?.width ?? 0) - root.width + (root.implicitWidth + 5 + root.sidebarOffset) * root.visualOffsetScale
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
-    opacity: 1 - offsetScale
+    opacity: flowClipped ? 1 : (1 - offsetScale) * flowOpacity
 
     Behavior on offsetScale {
-        Anim {}
+        Anim { bounded: true }
     }
 
     Connections {

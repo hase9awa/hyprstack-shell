@@ -1,18 +1,21 @@
 # Сторонние компоненты и лицензии
 
-Hyprstack 1.3.0 включает изменённый код перечисленных проектов. Интерфейс и
+Hyprstack 1.5.0 включает изменённый код перечисленных проектов. Интерфейс и
 имена компонентов используют Hyprstack; исходные названия ниже сохраняют
-указание авторства. Дата изменений: 25.10.2026.
+указание авторства. Дата изменений: 17.11.2026.
 
 | Компонент | Источник | Лицензия | Локальный файл лицензии |
 | --- | --- | --- | --- |
 | Оболочка и нативные модули QML, на основе Caelestia shell 2.5.0 | https://github.com/caelestia-dots/shell | GPL-3.0 | `shell/LICENSE` |
 | Нативные декорации окон, изменённый hyprbars | https://github.com/hyprwm/hyprland-plugins/tree/7644cecdb947060682891a0db2a0cdc5c0b9e704/hyprbars | BSD-3-Clause | `native/hyprbars/LICENSE` |
 | M3Shapes, коммит `8a6fe8961749887d677700b6508e0c9249968b7e` | https://github.com/soramanew/m3shapes | Apache-2.0 | `third_party/m3shapes/LICENSE` |
+| Итоговый runtime goopUI, коммит `4859a8b5e8272b479ac2c22899234065ff626fe4`, с адаптацией для Qt Quick | https://github.com/Tmmcmasters/goopui | MIT | `shell/utils/vendor/goopui/LICENSE` |
 | Google Sans Flex | https://github.com/googlefonts/google-sans-flex | SIL OFL-1.1 | `shell/assets/google-sans-flex/LICENSE` |
 | Material Symbols Rounded | https://github.com/google/material-design-icons | Apache-2.0 | `shell/assets/material-symbols/LICENSE` |
 
 Исходники включённых нативных библиотек предоставляются в этой поставке.
+Для жидких анимаций включён готовый JavaScript runtime с указанием авторства;
+исходный TypeScript-проект goopUI в поставку не входит.
 Изменения включают оформление и названия Hyprstack, команды управления рабочим
 столом, запуск и завершение сеанса, стандартную конфигурацию, размещение окон и
 обзор, историю уведомлений, цветовые темы, кэширование изображений, управление

@@ -17,6 +17,9 @@ struct BlobRectData {
     float invDeform[4] = { 1, 0, 0, 1 };
     // Screen-space AABB half-extents of the deformed rect
     float screenHalfX = 0, screenHalfY = 0;
+    // Liquid primitives reuse the spare components of the AABB uniform.
+    // 0: rounded rect, 1: ellipse, 2: tapered filament.
+    float kind = 0;
     // Effective per-corner radii (tr, br, bl, tl), pre-computed on CPU
     float radius[4] = { 0, 0, 0, 0 };
     // Bitmask of indices in this rect's m_cachedRects that mutually exclude (or are excluded by) this rect.
@@ -37,6 +40,7 @@ public:
     float m_smoothFactor = 32.0f;
     int m_rectCount = 0;
     int m_myIndex = -2;
+    int m_cutoutIndex = -1;
     QColor m_color{ 0x44, 0x88, 0xff };
     int m_hasInverted = 0;
     float m_invertedRadius = 0;

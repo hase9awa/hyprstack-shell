@@ -6,6 +6,7 @@ qml_module(hyprstack-blobs
         blobrect.cpp
         blobinvertedrect.cpp
         blobmaterial.cpp
+        blobfield.cpp
     LIBRARIES
         Qt::Quick
 )
@@ -17,4 +18,9 @@ qt_add_shaders(hyprstack-blobs "blob_shaders"
     FILES
         shaders/blob.frag
         shaders/blob.vert
+        shaders/goop-blur.frag
+        shaders/goop-edge.frag
+        shaders/goop-frame.frag
+        shaders/goop-content.frag
+        shaders/goop.vert
 )

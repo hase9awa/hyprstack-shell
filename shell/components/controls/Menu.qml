@@ -91,7 +91,7 @@ MouseArea {
             y: root.expanded ? 0 : (root.thisSideY === Menu.Bottom ? -4 : 4) * root.Tokens.scale
 
             Behavior on y {
-                NumberAnimation { duration: 90; easing.type: Easing.OutCubic }
+                StyledAnim { defaultDuration: 90; defaultEasing: Easing.OutCubic }
             }
         }
 

@@ -1,4 +1,5 @@
 import QtQuick
+import Hyprstack.Config
 import qs.components
 
 Logo {
@@ -10,7 +11,12 @@ Logo {
     ParallelAnimation {
         running: !root.skipIntroAnimation
         onFinished: root.animationCompleted()
-        NumberAnimation { target: root; property: "opacity"; to: 1; duration: 240 }
-        NumberAnimation { target: root; property: "scale"; to: 1; duration: 320; easing.type: Easing.OutCubic }
+        StyledAnim {
+            target: root; property: "opacity"; to: 1
+            defaultDuration: 240
+            presetDuration: Tokens.anim.durations.expressiveDefaultEffects
+            presetEasing: Tokens.anim.expressiveDefaultEffects
+        }
+        StyledAnim { target: root; property: "scale"; to: 1; defaultDuration: 320; defaultEasing: Easing.OutCubic }
     }
 }

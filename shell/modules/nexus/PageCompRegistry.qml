@@ -40,6 +40,9 @@ QtObject {
                 Component {
                     ApplicationColours {}
                 }
+                Component {
+                    AnimationSettings {}
+                }
             }
         },
 

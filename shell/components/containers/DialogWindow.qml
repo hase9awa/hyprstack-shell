@@ -22,6 +22,10 @@ StyledWindow {
     // window is the whole screen.
     property real dialogWidth
     property real dialogHeight
+    readonly property real pixelRatio: Math.max(1, root.devicePixelRatio)
+    function alignPixel(value: real): real {
+        return Math.round(value * pixelRatio) / pixelRatio;
+    }
     default property alias contents: frame.data
 
     // What the key that closes windows means here, since the compositor
@@ -53,6 +57,7 @@ StyledWindow {
 
     Item {
         id: frame
+        objectName: "dialogFrame"
 
         // The size that arrives while the dialog is still being built is the
         // one it opens at; growing into it from nothing would only look like
@@ -60,10 +65,10 @@ StyledWindow {
         property bool settled
 
         // Centred until it is dragged, which replaces these outright.
-        x: (root.width - width) / 2
-        y: (root.height - height) / 2
-        width: root.dialogWidth
-        height: root.dialogHeight
+        x: root.alignPixel((root.width - width) / 2)
+        y: root.alignPixel((root.height - height) / 2)
+        width: root.alignPixel(root.dialogWidth)
+        height: root.alignPixel(root.dialogHeight)
 
         Component.onCompleted: settled = true
 
@@ -96,8 +101,8 @@ StyledWindow {
             onPositionChanged: {
                 if (!drag.active)
                     return;
-                frame.x = CUtils.clamp(frame.x, 0, Math.max(0, root.width - frame.width));
-                frame.y = CUtils.clamp(frame.y, 0, Math.max(0, root.height - frame.height));
+                frame.x = root.alignPixel(CUtils.clamp(frame.x, 0, Math.max(0, root.width - frame.width)));
+                frame.y = root.alignPixel(CUtils.clamp(frame.y, 0, Math.max(0, root.height - frame.height)));
             }
         }
     }

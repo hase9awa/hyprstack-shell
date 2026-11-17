@@ -19,13 +19,19 @@
 #include <nlohmann/json.hpp>
 #include <chrono>
 #include <vector>
+#include "motion-profile.hpp"
 
 namespace HyprstackCamera {
 using Clock = std::chrono::steady_clock;
 using Json = nlohmann::json;
-static constexpr double duration = .28;
-static double phase(Clock::time_point start) { return std::clamp(std::chrono::duration<double>(Clock::now()-start).count()/duration, 0.0, 1.0); }
-static double eased(double t) { return 1-std::pow(1-t, 3); }
+static double phase(Clock::time_point start) {
+    const auto duration = HyprstackMotion::duration(.28, true);
+    return duration > 0 ? std::clamp(std::chrono::duration<double>(Clock::now()-start).count()/duration, 0.0, 1.0) : 1;
+}
+static double eased(double t) {
+    return HyprstackMotion::preset == HyprstackMotion::Preset::Default ? 1-std::pow(1-t, 3)
+        : HyprstackMotion::eased(t, HyprstackMotion::preset);
+}
 static Layout::Tiled::CScrollingAlgorithm* scrollingLayout(PHLWORKSPACE workspace) {
     const auto algorithm = workspace && workspace->space() ? workspace->space()->algorithm() : nullptr;
     return algorithm ? dynamic_cast<Layout::Tiled::CScrollingAlgorithm*>(algorithm->tiledAlgo().get()) : nullptr;

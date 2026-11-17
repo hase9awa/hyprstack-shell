@@ -8,6 +8,7 @@ namespace hyprstack::config {
 
 class AnimCurves;
 class AnimDurations;
+class AppearanceAnim;
 
 class AnimTokens : public QObject {
     Q_OBJECT
@@ -35,6 +36,7 @@ public:
 
     void bindCurves(AnimCurves* curves);
     void bindDurations(AnimDurations* durations);
+    void bindProfile(AppearanceAnim* profile);
 
     [[nodiscard]] QEasingCurve emphasized() const;
     [[nodiscard]] QEasingCurve emphasizedAccel() const;
@@ -57,9 +59,11 @@ signals:
 private:
     void rebuildCurves();
     static QEasingCurve buildCurve(const QList<qreal>& points);
+    static QEasingCurve springCurve(qreal response, qreal damping, qreal duration);
 
     AnimCurves* m_curves = nullptr;
     AnimDurations* m_durations = nullptr;
+    AppearanceAnim* m_profile = nullptr;
 
     QEasingCurve m_emphasized;
     QEasingCurve m_emphasizedAccel;

@@ -70,6 +70,13 @@ BlobShape::BlobShape(QQuickItem* parent)
     setFlag(ItemHasContents);
 }
 
+void BlobShape::setCutout(BlobShape* shape) {
+    if (m_cutout == shape) return;
+    m_cutout = shape;
+    emit cutoutChanged();
+    if (m_group) m_group->markDirty();
+}
+
 BlobGroup* BlobShape::group() const {
     return m_group;
 }
@@ -102,6 +109,17 @@ void BlobShape::setRadius(qreal r) {
 
 QMatrix4x4 BlobShape::deformMatrix() const {
     return m_centeredDeformMatrix;
+}
+
+QRectF BlobShape::shapeRect() const {
+    return m_surfaceRect.isValid() ? m_surfaceRect : QRectF(0, 0, width(), height());
+}
+
+void BlobShape::setSurfaceRect(const QRectF& rect) {
+    if (m_surfaceRect == rect) return;
+    m_surfaceRect = rect;
+    emit surfaceRectChanged();
+    if (m_group) m_group->markDirty();
 }
 
 QMatrix4x4 BlobShape::rawDeformMatrix() const {
@@ -159,7 +177,8 @@ bool BlobShape::isCornerExcluded(const BlobShape* other) const {
 }
 
 void BlobShape::cornerRadii(float out[4]) const {
-    const auto maxR = static_cast<float>(std::min(width(), height())) * 0.5f;
+    const auto rect = shapeRect();
+    const auto maxR = static_cast<float>(std::min(rect.width(), rect.height())) * 0.5f;
     const auto r = std::min(static_cast<float>(m_radius), maxR);
     out[0] = r;
     out[1] = r;
@@ -203,11 +222,12 @@ QRectF BlobShape::localPaddedRect(float pad) const {
     if (isInvertedRect())
         return { 0, 0, width(), height() };
 
-    const auto hw = static_cast<float>(width()) * 0.5f;
-    const auto hh = static_cast<float>(height()) * 0.5f;
+    const auto rect = shapeRect();
+    const auto hw = static_cast<float>(rect.width()) * 0.5f;
+    const auto hh = static_cast<float>(rect.height()) * 0.5f;
     const auto totalPad = static_cast<double>(pad + deformPadding(m_deformMatrix, hw, hh));
 
-    return { -totalPad, -totalPad, width() + 2.0 * totalPad, height() + 2.0 * totalPad };
+    return rect.adjusted(-totalPad, -totalPad, totalPad, totalPad);
 }
 
 QRectF BlobShape::paddedSceneRect(const QPointF& scenePos, float pad) const {
@@ -231,10 +251,11 @@ void BlobShape::writeRectData(BlobRectData& r, const QPointF& scenePos) const {
     const float m01 = dm(0, 1);
     const float m11 = dm(1, 1);
 
-    r.cx = static_cast<float>(scenePos.x() + width() / 2.0);
-    r.cy = static_cast<float>(scenePos.y() + height() / 2.0);
-    r.hw = static_cast<float>(width() / 2.0);
-    r.hh = static_cast<float>(height() / 2.0);
+    const auto rect = shapeRect();
+    r.cx = static_cast<float>(scenePos.x() + rect.x() + rect.width() / 2.0);
+    r.cy = static_cast<float>(scenePos.y() + rect.y() + rect.height() / 2.0);
+    r.hw = static_cast<float>(rect.width() / 2.0);
+    r.hh = static_cast<float>(rect.height() / 2.0);
     cornerRadii(r.radius);
     r.offsetX = dm(0, 3);
     r.offsetY = dm(1, 3);
@@ -260,6 +281,7 @@ void BlobShape::writeRectData(BlobRectData& r, const QPointF& scenePos) const {
 void BlobShape::collectNearbyRects(float pad, QVector<BlobShape*>& rectShapes) {
     m_cachedRects.clear();
     m_cachedMyIndex = -2;
+    m_cachedCutoutIndex = -1;
 
     const QRectF myPadded(static_cast<double>(m_cachedPaddedX), static_cast<double>(m_cachedPaddedY),
         static_cast<double>(m_cachedPaddedW), static_cast<double>(m_cachedPaddedH));
@@ -290,6 +312,8 @@ void BlobShape::collectNearbyRects(float pad, QVector<BlobShape*>& rectShapes) {
 
         if (other == this)
             m_cachedMyIndex = static_cast<int>(m_cachedRects.size());
+        if (other == m_cutout)
+            m_cachedCutoutIndex = static_cast<int>(m_cachedRects.size());
 
         BlobRectData r;
         other->writeRectData(r, otherScene);
@@ -429,7 +453,7 @@ void BlobShape::applyCornerFill(float smoothFactor, const QVector<BlobShape*>& r
         // Combine base radii with fill factors into effective per-corner radii
         auto& ri = m_cachedRects[i];
         for (int k = 0; k < 4; ++k) {
-            ri.radius[k] = std::max(ri.radius[k] * factors[k], k_minR);
+            ri.radius[k] = std::min(std::max(ri.radius[k] * factors[k], k_minR), std::min(ri.hw, ri.hh));
         }
     }
 }
@@ -481,6 +505,7 @@ QSGNode* BlobShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     material->m_paddedH = m_cachedPaddedH;
     material->m_smoothFactor = static_cast<float>(m_group->smoothing());
     material->m_myIndex = m_cachedMyIndex;
+    material->m_cutoutIndex = m_cachedCutoutIndex;
     material->m_color = m_group->color();
     material->m_shadowColor = m_group->shadowColor();
     material->m_shadowSize = static_cast<float>(m_group->shadowSize());

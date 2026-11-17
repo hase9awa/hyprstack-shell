@@ -14,6 +14,10 @@ StackView {
 
     required property PopoutState popouts
     required property QsMenuHandle trayItem
+    readonly property bool flowing: GlobalConfig.appearance.anim.shellPreset==="goop"
+        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.enabled
+    readonly property bool populated: (currentItem as SubMenu)?.hasChildren ?? false
+    onTrayItemChanged: if(depth>1) pop(null,StackView.Immediate)
 
     implicitWidth: (currentItem as SubMenu)?.hasChildren ? currentItem.implicitWidth : -Tokens.padding.large * 2
     implicitHeight: (currentItem as SubMenu)?.hasChildren ? currentItem.implicitHeight : -Tokens.padding.large * 2
@@ -43,16 +47,16 @@ StackView {
         id: menu
 
         required property QsMenuHandle handle
-        readonly property bool hasChildren: menuOpener.children.values.some(e => !e.isSeparator)
+        readonly property bool hasChildren: menuOpener.children.values.some(e => e && !e.isSeparator)
         property bool isSubMenu
         property bool shown
 
         padding: Tokens.padding.small
         spacing: Tokens.spacing.small
 
-        opacity: shown ? 1 : 0
+        opacity: root.flowing ? 1 : shown ? 1 : 0
         transform: Translate {
-            y: menu.shown ? 0 : 6 * menu.Tokens.scale
+            y: root.flowing || menu.shown ? 0 : 6 * menu.Tokens.scale
             Behavior on y { Anim {} }
         }
 
@@ -82,19 +86,19 @@ StackView {
                 required property QsMenuEntry modelData
 
                 implicitWidth: Tokens.sizes.bar.trayMenuWidth
-                implicitHeight: modelData.isSeparator ? 1 : children.implicitHeight
+                implicitHeight: !modelData ? 0 : modelData.isSeparator ? 1 : children.implicitHeight
 
                 radius: Tokens.rounding.full
-                color: modelData.isSeparator ? Colours.palette.m3outlineVariant : "transparent"
+                color: modelData?.isSeparator ? Colours.palette.m3outlineVariant : "transparent"
 
                 Loader {
                     id: children
 
-                    asynchronous: true
+                    asynchronous: !root.flowing
                     anchors.left: parent.left
                     anchors.right: parent.right
 
-                    active: !item.modelData.isSeparator
+                    active: !!item.modelData && !item.modelData.isSeparator
 
                     sourceComponent: Item {
                         implicitHeight: label.implicitHeight
@@ -105,10 +109,11 @@ StackView {
                             anchors.rightMargin: -Tokens.padding.small
 
                             radius: item.radius
-                            disabled: !item.modelData.enabled
+                            disabled: !item.modelData?.enabled
 
                             onClicked: {
                                 const entry = item.modelData;
+                                if (!entry) return;
                                 if (entry.hasChildren)
                                     root.push(subMenuComp.createObject(null, {
                                         handle: entry,
@@ -127,13 +132,13 @@ StackView {
                             asynchronous: true
                             anchors.left: parent.left
 
-                            active: item.modelData.icon !== ""
+                            active: !!item.modelData?.icon
 
                             sourceComponent: IconImage {
                                 asynchronous: true
                                 implicitSize: label.implicitHeight
 
-                                source: item.modelData.icon
+                                source: item.modelData?.icon ?? ""
                             }
                         }
 
@@ -144,13 +149,13 @@ StackView {
                             anchors.leftMargin: icon.active ? Tokens.spacing.medium : 0
 
                             text: labelMetrics.elidedText
-                            color: item.modelData.enabled ? Colours.palette.m3onSurface : Colours.palette.m3outline
+                            color: item.modelData?.enabled ? Colours.palette.m3onSurface : Colours.palette.m3outline
                         }
 
                         TextMetrics {
                             id: labelMetrics
 
-                            text: item.modelData.text
+                            text: item.modelData?.text ?? ""
                             font: label.font
 
                             elide: Text.ElideRight
@@ -164,11 +169,11 @@ StackView {
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.right: parent.right
 
-                            active: item.modelData.hasChildren
+                            active: item.modelData?.hasChildren ?? false
 
                             sourceComponent: MaterialIcon {
                                 text: "chevron_right"
-                                color: item.modelData.enabled ? Colours.palette.m3onSurface : Colours.palette.m3outline
+                                color: item.modelData?.enabled ? Colours.palette.m3onSurface : Colours.palette.m3outline
                             }
                         }
                     }

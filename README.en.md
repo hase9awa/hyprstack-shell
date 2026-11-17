@@ -56,7 +56,7 @@ in settings.
   and wallpapers.
 - **Notifications.** History, grouping, actions and Do Not Disturb.
 - **System controls.** Audio, networking, Bluetooth, screenshots and recording.
-- **VPN.** VLESS/XHTTP/Reality, Trojan, VMess, Shadowsocks, Hysteria2 and TUIC
+- **VPN.** VLESS/XHTTP/Reality, Trojan, VMess, Shadowsocks, Hysteria2, TUIC and NaiveProxy
   using sing-box/Xray, profile and subscription imports, TUN and local proxies.
   Connect from quick actions or the taskbar; open VPN settings under Network.
 - **Dashboard.** Calendar, media controls, system status and weather.
@@ -64,6 +64,10 @@ in settings.
   colour synchronization for GTK, Qt, Java Swing and popular terminals,
   interface scaling, gaps, corners, transparency and animations.
 - **Lock and authentication.** PAM screen lock and built-in Polkit, Bluetooth pairing and NetworkManager secret agents.
+
+Choose shell and window animation presets under **Wallpaper and style → Animations**.
+Goop adds fluid menu entrances, splashes and hover drips; the original animations
+remain available as the Default preset.
 
 ## Installation
 

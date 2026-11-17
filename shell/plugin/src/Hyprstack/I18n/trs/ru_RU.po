@@ -5678,8 +5678,21 @@ msgid "VPN tunnel authorization failed or was cancelled"
 msgstr "Разрешение на работу VPN-туннеля не получено или отменено"
 
 #. VPN controls
-msgid "SOCKS5: 127.0.0.1:2080 · HTTP: 127.0.0.1:2081"
-msgstr "SOCKS5: 127.0.0.1:2080 · HTTP: 127.0.0.1:2081"
+#, qt-format
+msgid "SOCKS5: 127.0.0.1:%1 · HTTP: 127.0.0.1:%2"
+msgstr "SOCKS5: 127.0.0.1:%1 · HTTP: 127.0.0.1:%2"
+
+#. VPN controls
+msgid "The running kernel has no TUN module. Restart the system to finish the kernel update."
+msgstr "Для работающего ядра нет модуля TUN. Перезагрузите систему, чтобы завершить обновление ядра."
+
+#. VPN controls
+msgid "The TUN device is unavailable. Enable TUN support before connecting."
+msgstr "Устройство TUN недоступно. Включите поддержку TUN перед подключением."
+
+#. VPN controls
+msgid "No local port is available for the VPN proxy"
+msgstr "Нет свободного локального порта для прокси VPN"
 
 #. VPN controls
 msgid "All traffic"
@@ -6642,22 +6655,183 @@ msgstr "Выбрать сервер или добавить подключени
 msgid "External VPN provider"
 msgstr "Внешний VPN-клиент"
 
-#: assets/vpn.py
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Animations"
+msgstr "Анимации"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell and window presets, live preview and motion speed"
+msgstr "Пресеты оболочки и окон, предпросмотр и скорость движения"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Snappy"
+msgstr "Быстрый"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Cinematic"
+msgstr "Кинематографичный"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Reduced motion"
+msgstr "Без движения"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Spring"
+msgstr "Пружина"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Glide"
+msgstr "Скольжение"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Goop-inspired springs, soft panel stretch and squishy buttons"
+msgstr "Пружинное движение в стиле Goop, мягкое растяжение панелей и упругие кнопки"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Fluid, restrained transitions inspired by Fluent 2"
+msgstr "Плавные сдержанные переходы по мотивам Fluent 2"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Short, precise movements with a quick response"
+msgstr "Короткие точные движения с быстрым откликом"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Measured acceleration and spacious, flowing transitions"
+msgstr "Размеренное ускорение и выразительные плавные переходы"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Instant shell transitions with no animated travel"
+msgstr "Мгновенные переходы оболочки без анимированного перемещения"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Original Hyprstack animations and your existing motion tokens"
+msgstr "Исходные анимации Hyprstack с вашими текущими параметрами движения"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Gentle spring opening and elastic workspace transitions"
+msgstr "Мягкое пружинное открытие и упругие переходы между рабочими столами"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Windows slide into place and workspaces drift smoothly"
+msgstr "Скользящее появление окон и плавное движение рабочих столов"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Fast opening with a subtle zoom and short workspace travel"
+msgstr "Быстрое открытие с лёгким увеличением и короткие переходы рабочих столов"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Deep zoom opening and flowing vertical workspace transitions"
+msgstr "Выразительное увеличение при открытии и плавные вертикальные переходы рабочих столов"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Instant window opening, closing, movement and workspace changes"
+msgstr "Мгновенное открытие, закрытие, перемещение окон и переключение рабочих столов"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Original window and workspace animations"
+msgstr "Исходные анимации окон и рабочих столов"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Presets apply immediately and are saved independently."
+msgstr "Пресеты применяются сразу и сохраняются независимо друг от друга."
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell animations"
+msgstr "Анимации оболочки"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell preset"
+msgstr "Пресет оболочки"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Shell animation speed"
+msgstr "Скорость анимаций оболочки"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Window animations"
+msgstr "Анимации окон"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Window preset"
+msgstr "Пресет окон"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Game mode temporarily disables window animations. Your preset is kept."
+msgstr "Игровой режим временно отключает анимации окон. Выбранный пресет сохраняется."
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Replay preview"
+msgstr "Повторить предпросмотр"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Restore defaults"
+msgstr "Восстановить по умолчанию"
+
+
+#: modules/nexus/pages/AnimationSettings.qml
+msgid "Viscous panels, workspace splashes and drips on hover"
+msgstr "Вязкие панели, брызги при смене рабочих столов и капли при наведении"
+
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "The subscription device limit has been reached"
 msgstr "Достигнут лимит устройств для этой подписки"
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "Enable hardware ID in VPN settings to load this subscription"
 msgstr "Включите передачу идентификатора устройства в настройках VPN, чтобы загрузить подписку"
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "The server requires a device identifier that this system cannot provide"
 msgstr "Сервер требует идентификатор устройства, недоступный в этой системе"
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "The subscription server refused the request"
 msgstr "Сервер подписки отклонил запрос"
 
-#: assets/vpn.py
+#: assets/vpn.py assets/vpn_profiles.py
 msgid "User-Agent must contain only printable ASCII characters"
 msgstr "User-Agent должен содержать только печатные символы ASCII"
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "Invalid NaiveProxy extra headers"
+msgstr "Неверные дополнительные заголовки NaiveProxy"
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "Invalid NaiveProxy server port"
+msgstr "Неверный порт сервера NaiveProxy"
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "NaiveProxy requires TLS certificate verification"
+msgstr "NaiveProxy требует проверки сертификата TLS"
+
+#: assets/vpn.py assets/vpn_profiles.py
+msgid "NaiveProxy requires HTTPS or QUIC"
+msgstr "NaiveProxy требует HTTPS или QUIC"

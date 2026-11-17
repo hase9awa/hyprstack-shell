@@ -55,6 +55,18 @@ static bool superUsed = true;
 static bool superHeld() { return superPressedKeys.contains(125) || superPressedKeys.contains(126); }
 static int soloSuperLua(lua_State* L) { lua_pushboolean(L, !superUsed); return 1; }
 
+static int motionPresetLua(lua_State* L) {
+    const auto preset = HyprstackMotion::fromName(luaL_checkstring(L, 1));
+    const bool gameMode = lua_toboolean(L, 2);
+    if (preset != HyprstackMotion::preset || gameMode != HyprstackMotion::gameMode) {
+        if (HyprstackCamera::cameras) HyprstackCamera::cameras->settle();
+        HyprstackMotion::preset = preset;
+        HyprstackMotion::gameMode = gameMode;
+    }
+    lua_pushboolean(L, true);
+    return 1;
+}
+
 static void onNewWindow(PHLWINDOW window) {
     if (!window->backend().traits().suggestsNoBorder) {
         if (std::ranges::any_of(window->presentation().decorations(), [](const auto& d) { return d->getDisplayName() == "Hyprbar"; }))
@@ -339,6 +351,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "clear_buttons", ::clearLuaButtons);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "animate_window", ::animateLuaWindow);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "solo_super", ::soloSuperLua);
+        HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "motion_preset", ::motionPresetLua);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "clear_focus", ::clearFocusLua);
         HyprlandAPI::addLuaFunction(PHANDLE, "hyprbars", "task_focused", ::taskFocusedLua);
     static auto superKey = Event::bus()->m_events.input.keyboard.key.listen([](IKeyboard::SKeyEvent event, Event::SCallbackInfo&) {

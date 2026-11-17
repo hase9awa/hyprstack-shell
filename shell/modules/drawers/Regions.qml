@@ -97,8 +97,8 @@ Region {
         panel: root.panels.popoutsWrapper
         x: root.panels.x + root.panels.popoutsWrapper.reserved.x
         y: root.panels.y + root.panels.popoutsWrapper.reserved.y
-        width: root.panels.popoutsWrapper.reserved.width
-        height: root.panels.popoutsWrapper.reserved.height
+        width: panel.visible ? root.panels.popoutsWrapper.reserved.width : 0
+        height: panel.visible ? root.panels.popoutsWrapper.reserved.height : 0
     }
 
     component R: Region {

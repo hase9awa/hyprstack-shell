@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import base64
 import copy
+import errno
 import fcntl
 import hashlib
 import hmac
@@ -48,6 +49,11 @@ RELEASES = {
     'xray': ('26.10.21', 'https://github.com/XTLS/Xray-core/releases/download/v26.10.21/', {
         'x86_64': ('Xray-linux-64.zip', '0eec3ed4163c273d8c8bf821f7d219e257921cf584aa3fb970715e458e631978'),
         'aarch64': ('Xray-linux-arm64-v8a.zip', 'd1304946c486d98e6b886e9b931eaaaebb23835b30e217638037b7f2721d4e9c')})}
+# CGO variants include Cronet in the executable, including when installed with
+# network capabilities. The existing purego core is upgraded on first Naive use.
+NAIVE_RELEASES = {
+    'x86_64': ('sing-box-1.14.4-linux-amd64-glibc.tar.gz', '231e57c18378f780a08de832844a1ca9716e17a7bcf82964b350844d243c03ac'),
+    'aarch64': ('sing-box-1.14.4-linux-arm64-glibc.tar.gz', '241cb4ccbf1a003235f8a969cc25d28cc74487df52721f6de28be7e37eae2ae9')}
 
 
 class VpnError(Exception):
@@ -98,6 +104,53 @@ def can_tun(path):
         return False
 
 
+def tun_error():
+    try:
+        descriptor = os.open('/dev/net/tun', os.O_RDWR | os.O_CLOEXEC)
+        os.close(descriptor)
+    except OSError as error:
+        if error.errno in (errno.ENODEV, errno.ENXIO, errno.ENOENT):
+            if not Path('/usr/lib/modules', os.uname().release).is_dir():
+                return 'The running kernel has no TUN module. Restart the system to finish the kernel update.'
+            return 'The TUN device is unavailable. Enable TUN support before connecting.'
+    return ''
+
+
+def proxy_ports(previous):
+    """Keep both chosen ports reserved until allocation is complete."""
+    reservations = []
+    result = {}
+    try:
+        for key, default in (('socksPort', 2080), ('httpPort', 2081)):
+            preferred = previous.get(key, default)
+            for attempt in range(16):
+                tcp, udp = socket.socket(), None
+                try:
+                    tcp.bind(('127.0.0.1', preferred if attempt == 0 else 0))
+                    port = tcp.getsockname()[1]
+                    if key == 'socksPort':
+                        udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        udp.bind(('127.0.0.1', port))
+                except OSError as error:
+                    tcp.close()
+                    if udp is not None:
+                        udp.close()
+                    if error.errno != errno.EADDRINUSE:
+                        raise VpnError('No local port is available for the VPN proxy') from error
+                    continue
+                reservations.append(tcp)
+                if udp is not None:
+                    reservations.append(udp)
+                result[key] = port
+                break
+            else:
+                raise VpnError('No local port is available for the VPN proxy')
+        return result
+    finally:
+        for reservation in reservations:
+            reservation.close()
+
+
 def dns_policy():
     user = json.dumps(pwd.getpwuid(os.getuid()).pw_name)
     return ('// Hyprstack: DNS changes for its own tunnel only.\n'
@@ -117,6 +170,9 @@ def dns_authorized():
 
 
 def binary(engine):
+    local = RUNTIME / engine
+    if local.is_file() and not local.is_symlink():
+        return local
     privileged = PRIVILEGED / engine
     if can_tun(privileged):
         return privileged
@@ -197,11 +253,24 @@ def download(url, limit=MAX_IMPORT, subscription=False):
     return content
 
 
-def install(engine):
-    if binary(engine).is_file():
+def naive_runtime_ready(path):
+    try:
+        result = subprocess.run([str(path), 'version'], capture_output=True, text=True, timeout=5)
+        return result.returncode == 0 and 'with_naive_outbound' in result.stdout and (
+            'CGO: enabled' in result.stdout or (path.parent / 'libcronet.so').is_file())
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def has_naive(value):
+    return any(p['engine'] == 'sing-box' and p['type'] == 'naive' for p in value['profiles'])
+
+
+def install(engine, *, naive=False):
+    if binary(engine).is_file() and (not naive or naive_runtime_ready(binary(engine))):
         return
     version, prefix, platforms = RELEASES[engine]
-    asset = platforms.get(os.uname().machine)
+    asset = (NAIVE_RELEASES if naive else platforms).get(os.uname().machine)
     if not asset:
         raise VpnError('Install the VPN core using your package manager')
     filename, checksum = asset
@@ -275,7 +344,8 @@ def configuration(profile, mode='proxy', route='all', port=2080, http_port=2081)
     outbound['tag'] = 'vpn'
     private = ['127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '169.254.0.0/16', '::1/128', 'fc00::/7', 'fe80::/10']
     bypass = routing_rules() if route == 'bypass-ru' else {}
-    ipv4_bypass = bool(bypass) and not direct_ipv6_available()
+    ipv4_only = not direct_ipv6_available()
+    ipv4_bypass = bool(bypass) and ipv4_only
     if profile['engine'] == 'sing-box':
         inbounds = [{'type': 'socks', 'tag': 'socks', 'listen': '127.0.0.1', 'listen_port': port}]
         if http_port:
@@ -307,7 +377,8 @@ def configuration(profile, mode='proxy', route='all', port=2080, http_port=2081)
     if mode == 'tun':
         inbounds.append({'tag': 'tun', 'protocol': 'tun', 'settings': {'name': 'hyprstack-vpn', 'mtu': 1500,
                          'gateway': ['172.19.0.1/30', 'fdfe:dcba:9876::1/126'],
-                         'autoSystemRoutingTable': ['0.0.0.0/0', '::/0'], 'autoOutboundsInterface': 'auto'},
+                         'autoSystemRoutingTable': ['0.0.0.0/0', '::/0'], 'autoOutboundsInterface': 'auto',
+                         'autoSystemDnsToGateway': True},
                          'sniffing': {'enabled': True, 'destOverride': ['http', 'tls', 'quic'], 'routeOnly': True}})
     rules = [{'type': 'field', 'inboundTag': ['tun'], 'port': 53, 'outboundTag': 'dns'},
              {'type': 'field', 'ip': private, 'outboundTag': 'direct'}]
@@ -327,7 +398,7 @@ def configuration(profile, mode='proxy', route='all', port=2080, http_port=2081)
         dns_servers.insert(0, {'address': dns_servers[0], 'domains': domains, 'queryStrategy': 'UseIPv4', 'skipFallback': True})
     return {'log': {'loglevel': 'warning'}, 'inbounds': inbounds,
             'outbounds': [outbound, direct, {'tag': 'dns', 'protocol': 'dns'}],
-            'dns': {'servers': dns_servers, 'queryStrategy': 'UseIP'},
+            'dns': {'servers': dns_servers, 'queryStrategy': 'UseIPv4' if ipv4_only else 'UseIP'},
             'routing': {'domainStrategy': 'IPIfNonMatch', 'rules': rules}}
 
 
@@ -338,7 +409,7 @@ def command(engine, config, check=False):
 
 
 def validate(profile):
-    install(profile['engine'])
+    install(profile['engine'], naive=profile['engine'] == 'sing-box' and profile['type'] == 'naive')
     with tempfile.TemporaryDirectory(prefix='.check-', dir=ROOT) as temporary:
         path = Path(temporary) / 'config.json'
         atomic_json(path, configuration(profile, http_port=0))
@@ -365,8 +436,11 @@ def status():
     return {'connected': bool(connected), 'state': 'connected' if connected else 'disconnected',
             'reason': '', 'authUrl': '', 'server': session.get('name', '') if connected else '',
             'selectedProfile': value['selectedProfile'], 'mode': value['mode'],
-            'installed': all(binary(e).is_file() for e in engines),
+            'installed': all(binary(e).is_file() for e in engines) and (
+                not has_naive(value) or naive_runtime_ready(binary('sing-box'))),
             'canTun': all(can_tun(binary(e)) for e in engines) and dns_authorized(),
+            'tunError': tun_error(),
+            'socksPort': session.get('socksPort', 2080), 'httpPort': session.get('httpPort', 2081),
             'engine': session.get('engine', '') if connected else '', 'engines': sorted(engines)}
 
 
@@ -396,10 +470,11 @@ def service(action):
 
 
 def ready():
-    if not status()['connected']:
+    current = status()
+    if not current['connected']:
         return False
     try:
-        with socket.create_connection(('127.0.0.1', 2080), timeout=.5) as stream:
+        with socket.create_connection(('127.0.0.1', current['socksPort']), timeout=.5) as stream:
             stream.sendall(b'\x05\x01\x00')
             return stream.recv(2) == b'\x05\x00'
     except OSError:
@@ -409,19 +484,25 @@ def ready():
 def connect(value=None):
     value = value or model()
     profile = selected(value)
+    if profile['engine'] == 'sing-box' and profile['type'] == 'naive':
+        install('sing-box', naive=True)
     if not binary(profile['engine']).is_file():
         raise VpnError('The VPN core is not installed')
     if value['mode'] == 'tun' and (not can_tun(binary(profile['engine'])) or not dns_authorized()):
         raise VpnError('Authorize the VPN tunnel in VPN settings first')
-    config = configuration(profile, value['mode'], value['route'])
+    if value['mode'] == 'tun' and (reason := tun_error()):
+        raise VpnError(reason)
+    old_config, old_session = read_json(ROOT / 'config.json'), read_json(ROOT / 'session.json')
+    was_connected = status()['connected']
+    ports = ({key: old_session.get(key, default) for key, default in (('socksPort', 2080), ('httpPort', 2081))}
+             if was_connected and old_session else proxy_ports(old_session or {}))
+    config = configuration(profile, value['mode'], value['route'], ports['socksPort'], ports['httpPort'])
     atomic_json(ROOT / 'pending.json', config)
     completed = subprocess.run(command(profile['engine'], ROOT / 'pending.json', True), capture_output=True, timeout=20)
     if completed.returncode:
         raise VpnError('The profile configuration is invalid or unsupported')
-    old_config, old_session = read_json(ROOT / 'config.json'), read_json(ROOT / 'session.json')
-    was_connected = status()['connected']
     os.replace(ROOT / 'pending.json', ROOT / 'config.json')
-    atomic_json(ROOT / 'session.json', {k: profile[k] for k in ('id', 'name', 'type', 'engine')} | {'mode': value['mode']})
+    atomic_json(ROOT / 'session.json', {k: profile[k] for k in ('id', 'name', 'type', 'engine')} | {'mode': value['mode']} | ports)
     try:
         service('restart')
         deadline = time.monotonic() + 15
@@ -498,6 +579,8 @@ def latency(profile):
 
 
 def authorize(value):
+    if has_naive(value):
+        install('sing-box', naive=True)
     engines = sorted(e for e in required(value) if not can_tun(binary(e)))
     if not engines and dns_authorized():
         return
@@ -573,7 +656,7 @@ def dispatch(action, payload):
         value = model()
         if action == 'install':
             for engine in required(value):
-                install(engine)
+                install(engine, naive=engine == 'sing-box' and has_naive(value))
         elif action == 'authorize':
             authorize(value)
         elif action == 'connect':

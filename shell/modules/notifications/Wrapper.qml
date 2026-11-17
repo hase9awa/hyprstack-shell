@@ -3,6 +3,8 @@ import qs.components
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
 
     required property ScreenState screenState
     required property Item sidebarPanel
@@ -10,6 +12,7 @@ Item {
     property alias sessionPanel: content.sessionPanel
     property alias utilitiesPanel: content.utilitiesPanel
 
+    opacity: flowOpacity
     visible: height > 0
     anchors.topMargin: -5
     implicitWidth: Math.max(sidebarPanel.width, content.implicitWidth)

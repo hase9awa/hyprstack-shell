@@ -6,6 +6,9 @@ import qs.components
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
+    readonly property real visualOffsetScale: flowClipped ? 0 : offsetScale
 
     required property ScreenState screenState
     required property bool sidebarVisible
@@ -16,13 +19,13 @@ Item {
     property real sidebarOffset: sidebarVisible ? 14 : 0
 
     visible: offsetScale < 1
-    anchors.rightMargin: (-implicitWidth - 5 - sidebarOffset) * offsetScale
+    anchors.rightMargin: (-implicitWidth - 5 - sidebarOffset) * visualOffsetScale
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight || 510 // Hard coded fallback for first open
-    opacity: 1 - offsetScale
+    opacity: flowClipped ? 1 : (1 - offsetScale) * flowOpacity
 
     Behavior on offsetScale {
-        Anim {}
+        Anim { bounded: true }
     }
 
     Loader {

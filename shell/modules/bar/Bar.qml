@@ -6,6 +6,7 @@ import "components/workspaces"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Services.SystemTray
 import Hyprstack.Config
 import qs.components
 import qs.services
@@ -59,7 +60,19 @@ Item {
         }
     }
 
+    // Keep a tray menu alive while the pointer crosses the small icon gaps.
+    function missPopout(): void {
+        if(popouts.flowClipped && popouts.hasCurrent && !popouts.isDetached) trayGap.restart();
+        else popouts.hasCurrent=false;
+    }
+    Timer {
+        id: trayGap
+        interval: 140
+        onTriggered: if(!root.popouts.parent.hovered) root.popouts.hasCurrent=false
+    }
+
     function checkPopout(x: real): void {
+        trayGap.stop();
         if (tasks.visible && tasks.contains(mapToItem(tasks, x, height / 2))) {
             closeTray();
             return;
@@ -70,7 +83,7 @@ Item {
             closeTray();
 
         if (!ch) {
-            popouts.hasCurrent = false;
+            missPopout();
             return;
         }
 
@@ -83,7 +96,7 @@ Item {
                 popouts.currentCenter = Qt.binding(() => icon.mapToItem(root, icon.width / 2, 0).x);
                 popouts.hasCurrent = true;
             } else {
-                popouts.hasCurrent = false;
+                missPopout();
             }
         } else if (id === "tray" && Config.bar.popouts.tray) {
             const tray = ch.item as Tray;
@@ -97,15 +110,17 @@ Item {
                     }
                 }
                 const trayItem = tray.items.itemAt(index);
-                if (trayItem) {
-                    popouts.currentName = `traymenu${index}`;
+                if (trayItem?.modelData.hasMenu) {
+                    popouts.trayItem = trayItem.modelData;
+                    popouts.currentName = popouts.flowClipped ? "traymenu"
+                        : "traymenu" + SystemTray.items.values.indexOf(trayItem.modelData);
                     popouts.currentCenter = Qt.binding(() => trayItem.mapToItem(root, trayItem.width / 2, 0).x);
                     popouts.hasCurrent = true;
                 } else {
-                    popouts.hasCurrent = false;
+                    missPopout();
                 }
             } else {
-                popouts.hasCurrent = false;
+                missPopout();
                 tray.expanded = true;
             }
         } else if (id === "activeWindow" && Config.bar.popouts.activeWindow && Config.bar.activeWindow.showOnHover) {
@@ -113,7 +128,7 @@ Item {
             popouts.currentCenter = (ch.item as Item).mapToItem(root, (ch.item as Item).width / 2, 0).x ?? 0;
             popouts.hasCurrent = true;
         } else {
-            popouts.hasCurrent = false;
+            missPopout();
         }
     }
 

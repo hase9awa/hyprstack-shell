@@ -417,8 +417,17 @@ FloatingWindow {
                         Layout.fillWidth: true
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.small
-                        text: Tr.tr("SOCKS5: 127.0.0.1:2080 · HTTP: 127.0.0.1:2081")
+                        text: Tr.tr("SOCKS5: 127.0.0.1:%1 · HTTP: 127.0.0.1:%2")
+                            .arg(ManagedVPN.data.socksPort ?? 2080).arg(ManagedVPN.data.httpPort ?? 2081)
                         visible: ManagedVPN.data.mode === "proxy"
+                        wrapMode: Text.Wrap
+                    }
+                    StyledText {
+                        Layout.fillWidth: true
+                        color: Colours.palette.m3error
+                        font: Tokens.font.body.small
+                        text: Tr.tr(ManagedVPN.data.tunError ?? "")
+                        visible: ManagedVPN.data.mode === "tun" && text.length > 0
                         wrapMode: Text.Wrap
                     }
                     StyledText {
@@ -575,7 +584,7 @@ FloatingWindow {
                         inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
                         objectName: "vpnImportInput"
                         padding: root.contentItem.Tokens.padding.medium
-                        placeholderText: importType.currentIndex === 1 ? "https://…" : "vless://…\ntrojan://…"
+                        placeholderText: importType.currentIndex === 1 ? "https://…" : "vless://…\ntrojan://…\nnaive+https://…"
                         placeholderTextColor: Colours.palette.m3onSurfaceVariant
                         selectByMouse: true
                         textFormat: TextEdit.PlainText

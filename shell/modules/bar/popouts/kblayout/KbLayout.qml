@@ -47,37 +47,41 @@ ColumnLayout {
         spacing: Tokens.spacing.small
 
         add: Transition {
-            NumberAnimation {
+            StyledAnim {
                 properties: "opacity"
                 from: 0
                 to: 1
-                duration: 140
+                defaultDuration: 140
+                presetDuration: Tokens.anim.durations.expressiveFastEffects
+                presetEasing: Tokens.anim.expressiveFastEffects
             }
-            NumberAnimation {
+            StyledAnim {
                 properties: "y"
-                duration: 180
-                easing.type: Easing.OutCubic
+                defaultDuration: 180
+                defaultEasing: Easing.OutCubic
             }
         }
         remove: Transition {
-            NumberAnimation {
+            StyledAnim {
                 properties: "opacity"
                 to: 0
-                duration: 100
+                defaultDuration: 100
+                presetDuration: Tokens.anim.durations.expressiveFastEffects
+                presetEasing: Tokens.anim.expressiveFastEffects
             }
         }
         move: Transition {
-            NumberAnimation {
+            StyledAnim {
                 properties: "y"
-                duration: 180
-                easing.type: Easing.OutCubic
+                defaultDuration: 180
+                defaultEasing: Easing.OutCubic
             }
         }
         displaced: Transition {
-            NumberAnimation {
+            StyledAnim {
                 properties: "y"
-                duration: 180
-                easing.type: Easing.OutCubic
+                defaultDuration: 180
+                defaultEasing: Easing.OutCubic
             }
         }
 
@@ -175,21 +179,25 @@ ColumnLayout {
             running: false
 
             ParallelAnimation {
-                NumberAnimation {
+                StyledAnim {
                     target: activeRow
                     property: "opacity"
                     to: 0.0
-                    duration: 70
+                    defaultDuration: 70
+                    presetDuration: Tokens.anim.durations.expressiveFastEffects
+                    presetEasing: Tokens.anim.expressiveFastEffects
                 }
             }
 
             ParallelAnimation {
-                NumberAnimation {
+                StyledAnim {
                     target: activeRow
                     property: "opacity"
                     to: 1.0
-                    duration: 160
-                    easing.type: Easing.OutCubic
+                    defaultDuration: 160
+                    presetDuration: Tokens.anim.durations.expressiveFastEffects
+                    presetEasing: Tokens.anim.expressiveFastEffects
+                    defaultEasing: Easing.OutCubic
                 }
             }
         }

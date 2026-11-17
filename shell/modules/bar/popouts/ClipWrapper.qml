@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Window
 import Quickshell
+import Hyprstack.Config
 import qs.components
 import qs.modules.bar.popouts // Need to import this module so the Wrapper type is the same as others
 
@@ -16,6 +18,12 @@ Item {
     readonly property bool hovered: hover.hovered
     readonly property real targetOffsetScale: content.isDetached || content.hasCurrent ? 0 : 1
     property real offsetScale: targetOffsetScale
+    property real flowingCenter: content.currentCenter-borderThickness
+    readonly property real pixelRatio: Math.max(1, Screen.devicePixelRatio)
+
+    function alignPixel(value: real): real {
+        return Math.round(value * pixelRatio) / pixelRatio;
+    }
 
     // Where the popout settles once it finishes opening. Hover tests use this
     // instead of the animated geometry, which is both cheaper and keeps the
@@ -41,30 +49,43 @@ Item {
             Math.max(y + height, targetY + targetHeight) - top);
     }
 
-    visible: width > 0 && height > 0
-    clip: true
+    visible: width > 0 && height > 0 && (!content.flowClipped || offsetScale<1 || content.hasCurrent || content.isDetached)
+    clip: !content.flowClipped
 
     HoverHandler { id: hover }
 
     implicitWidth: content.implicitWidth
-    implicitHeight: Math.max(0, content.implicitHeight * (1 - offsetScale))
+    implicitHeight: Math.max(0, content.implicitHeight * (content.flowClipped ? 1 : 1 - offsetScale))
 
     // A detached panel keeps growing from the centre, so it follows its
     // animated size rather than the settled one, rounded to whole pixels
     // or it renders blurred between two of them.
-    x: content.isDetached ? Math.round((parent.width - width) / 2) : targetX
-    y: content.isDetached ? Math.round((parent.height - height) / 2) : atBottom ? parent.height - height : 0
+    x: content.isDetached ? alignPixel((parent.width - width) / 2)
+        : content.flowClipped ? alignPixel(Math.max(0,Math.min(flowingCenter-width/2,parent.width-width))) : targetX
+    y: content.isDetached ? alignPixel((parent.height - height) / 2)
+        : atBottom ? (content.flowClipped ? alignPixel(parent.height - height) : parent.height - height) : 0
 
     Behavior on offsetScale {
-        NumberAnimation { duration: 240; easing.type: Easing.OutCubic }
+        StyledAnim {
+            bounded: true
+            defaultDuration: 240
+            defaultEasing: Easing.OutCubic
+            presetDuration: Tokens.anim.durations.expressiveDefaultSpatial
+            presetEasing: Tokens.anim.expressiveDefaultSpatial
+        }
     }
 
     Behavior on x {
-        enabled: root.offsetScale === 0 && !content.isDetached
+        enabled: !content.flowClipped && root.offsetScale === 0 && !content.isDetached
         Anim {
             duration: content.animLength
             easing: content.animCurve
         }
+    }
+
+    Behavior on flowingCenter {
+        enabled: content.flowClipped && root.offsetScale===0 && !content.isDetached
+        SmoothedAnimation { velocity: -1; duration: content.geometryDuration; maximumEasingTime: content.geometryDuration/3 }
     }
 
     Wrapper {
@@ -74,7 +95,7 @@ Item {
         offsetScale: root.offsetScale
 
         anchors.horizontalCenter: parent.horizontalCenter
-        y: root.atBottom ? root.height - height + (height + 5) * root.offsetScale
-            : (-height - 5) * root.offsetScale
+        y: root.atBottom ? root.height - height + (height + 5) * content.visualOffsetScale
+            : (-height - 5) * content.visualOffsetScale
     }
 }

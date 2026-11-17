@@ -20,6 +20,9 @@ NumberAnimation {
     }
 
     property int type: Anim.DefaultSpatial
+    // Visibility and size gates must never cross their endpoints. Goop keeps
+    // its spring on accents; the actual panel follows a bounded travel curve.
+    property bool bounded: false
 
     duration: {
         if (type < Anim.StandardSmall || type > Anim.SlowEffects)
@@ -43,6 +46,8 @@ NumberAnimation {
         return Tokens.anim.durations[types[idx]];
     }
     easing: {
+        if (bounded && GlobalConfig.appearance.anim.shellPreset === "goop")
+            return Tokens.anim.expressiveDefaultEffects;
         if (type === Anim.FastSpatial)
             return Tokens.anim.expressiveFastSpatial;
         if (type === Anim.DefaultSpatial)

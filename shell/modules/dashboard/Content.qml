@@ -206,6 +206,7 @@ Item {
     Behavior on implicitWidth {
         enabled: root.visible && root.readyToOpen
         Anim {
+            bounded: true
             type: Anim.Standard
             duration: Tokens.anim.durations.expressiveFastSpatial
         }
@@ -214,6 +215,7 @@ Item {
     Behavior on implicitHeight {
         enabled: root.visible && root.readyToOpen
         Anim {
+            bounded: true
             type: Anim.Standard
             duration: Tokens.anim.durations.expressiveFastSpatial
         }

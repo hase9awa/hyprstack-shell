@@ -16,6 +16,8 @@ layout(std140, binding = 0) uniform buf {
     vec4 color;
     int hasInverted;
     float invertedRadius;
+    int cutoutIndex;
+    float fieldPadding;
     vec4 invertedOuter;
     vec4 invertedInner;
     vec4 rectData[80];
@@ -40,6 +42,32 @@ float sdRoundedBox4(vec2 p, vec2 center, vec2 halfSize, vec4 r) {
 float sdBox(vec2 p, vec2 center, vec2 halfSize) {
     vec2 d = abs(p - center) - halfSize;
     return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0);
+}
+
+float liquidDistance(vec2 p, vec2 halfSize, vec4 radii, float kind) {
+    if (kind > 1.5) {
+        // Union of circles whose radius changes linearly along the filament.
+        // Minimise distance-to-circle along the segment analytically.
+        float span = max(radii.z, 0.0001);
+        float slope = clamp((radii.y - radii.x) / span, -0.9999, 0.9999);
+        vec2 q = p + vec2(0.0, span * 0.5);
+        float t = clamp(q.y + slope * abs(q.x) / sqrt(1.0 - slope * slope), 0.0, span);
+        return length(q - vec2(0.0, t)) - mix(radii.x, radii.y, t / span);
+    }
+    if (kind > 0.5) {
+        // Gradient-corrected ellipse distance preserves its curved silhouette
+        // while the falling drop stretches without changing its area.
+        vec2 axes = max(halfSize, vec2(0.001));
+        float k0 = length(p / axes);
+        float k1 = length(p / (axes * axes));
+        return k1 > 0.00001 ? k0 * (k0 - 1.0) / k1 : -min(axes.x, axes.y);
+    }
+    return sdRoundedBox4(p, vec2(0.0), halfSize, radii);
+}
+
+float liquidMin(float a, float b, float k) {
+    float h = max(k - abs(a - b), 0.0) / k;
+    return min(a, b) - h * h * h * k / 6.0;
 }
 
 float smin(float a, float b, float k) {
@@ -68,6 +96,18 @@ float smaxSharpA(float a, float b, float k) {
 
 void main() {
     vec2 pixel = vec2(paddedX, paddedY) + qt_TexCoord0 * vec2(paddedW, paddedH);
+    float hostCoverage = 0.0;
+    if (myIndex == -3 && rectCount > 0) {
+        vec4 host = rectData[0];
+        vec4 invHost = rectData[2];
+        vec2 hostPoint = mat2(invHost.xy, invHost.zw) * (pixel - host.xy);
+        float hostSdf = liquidDistance(hostPoint, host.zw, rectData[4], rectData[3].z) * rectData[1].w;
+        float hostFw = max(fwidth(hostSdf), 0.001);
+        // The real window keeps rendering its interior. Do not spend the
+        // liquid pass on pixels wholly inside it, or composite them twice.
+        if (hostSdf < -2.0 * hostFw) discard;
+        hostCoverage = 1.0 - smoothstep(-hostFw, hostFw, hostSdf);
+    }
 
     // Phase 1: compute per-rect SDF, track owner. We can't smin yet because excluded
     // pairs need to skip the smooth blend, which requires pairwise pass below.
@@ -87,7 +127,10 @@ void main() {
 
         // AABB early-out: skip rects far from this pixel
         vec2 extent = sh.xy + vec2(max(smoothFactor * 1.5, shadowData.x + abs(shadowData.y)));
-        if (abs(pixel.x - center.x) > extent.x || abs(pixel.y - center.y) > extent.y) {
+        // A whole field spans the space between the globs. Replacing a
+        // distance by infinity there corrupts fwidth and paints AABB-shaped
+        // streaks, so that path evaluates the actual continuous distance.
+        if (myIndex != -3 && (abs(pixel.x - center.x) > extent.x || abs(pixel.y - center.y) > extent.y)) {
             dArr[i] = 1e10;
             continue;
         }
@@ -97,7 +140,8 @@ void main() {
         vec2 transformedPixel = center + invDeform * (pixel - center);
 
         // Use pre-computed effective per-corner radii
-        float d = sdRoundedBox4(transformedPixel, center, rect.zw, radii);
+        float d = myIndex == -3 ? liquidDistance(transformedPixel - center, rect.zw, radii, sh.z)
+            : sdRoundedBox4(transformedPixel, center, rect.zw, radii);
 
         // Use pre-computed minimum eigenvalue for SDF correction
         d *= max(props.w, 0.01);
@@ -158,9 +202,17 @@ void main() {
         mergedSdf = min(mergedSdf, dArr[i]);
     }
 
+    if (myIndex == -3) {
+        // There are no pair exclusions in the liquid field. A fixed-order
+        // union is linear in the drop count and keeps the necks continuous.
+        mergedSdf = dArr[0];
+        for (int i = 1; i < rectCount; i++)
+            mergedSdf = liquidMin(mergedSdf, dArr[i], smoothFactor);
+    }
+
     // Phase 3: pair-wise smin contributions, skipping excluded pairs. Pair smin <= min,
     // so taking the min over all non-excluded pair smins gives the smoothly-merged SDF.
-    for (int i = 0; i < rectCount; i++) {
+    for (int i = 0; myIndex != -3 && i < rectCount; i++) {
         if (dArr[i] >= 1e9)
             continue;
         int excludeMask = floatBitsToInt(rectData[i * 5 + 1].x);
@@ -262,7 +314,7 @@ void main() {
     // blend zones to prevent gaps (mergedSdf < smoothFactor means in blend)
     // myIndex == -1: inverted rect renders border-owned pixels
     // myIndex >= 0: individual rect renders its owned pixels
-    if (owner != myIndex && mergedSdf > smoothFactor)
+    if (myIndex != -3 && owner != myIndex && mergedSdf > smoothFactor)
         discard;
 
     float fw = fwidth(mergedSdf);
@@ -270,6 +322,15 @@ void main() {
     float sceneStep = max(length(vec2(dFdx(pixel.x), dFdy(pixel.x))), 0.001);
     float yDirection = sign(dFdy(pixel.y));
     float alpha = 1.0 - smoothstep(-fw, fw, mergedSdf);
+    if (myIndex == -3) {
+        // Add only the missing coverage. A simple cutout paints the host's
+        // antialiasing fringe a second time and creates a bright outline,
+        // especially on translucent surfaces.
+        alpha = max(0.0, alpha - hostCoverage) / max(1.0 - hostCoverage * qt_Opacity, 0.0001);
+    } else if (cutoutIndex >= 0 && cutoutIndex < rectCount)
+        // Overlap the host's antialiasing fringe. Complementary half-alpha
+        // edges otherwise leave a dark seam where the fluid meets the control.
+        alpha *= smoothstep(-2.0 * fw, -fw, dArr[cutoutIndex]);
     float shadowAlpha = 0.0;
     if (shadowColor.a > 0.0 && shadowData.x > 0.0 && owner == myIndex) {
         // Gaussian edge profile from the already-computed distance field.

@@ -728,8 +728,7 @@ local function workspace_animation()
         camera("gestures", vars.gestureFingers, vars.workspaceSwipeFingers)
         camera("enable", scrolling)
     end
-    hl.animation({ leaf = "workspaces", enabled = scrolling and not camera, speed = 5,
-        bezier = "standard", style = "slidevert" })
+    require("hyprland.animations").workspaces(scrolling, camera ~= nil)
 end
 
 local function settle_animation()
@@ -1471,7 +1470,8 @@ function layouts.restore_window(window, focus)
                 minimize_timers[window.address] = nil
             end
         end
-        minimize_timers[window.address] = hl.timer(finish_restore, { timeout = 240, type = "oneshot" })
+        minimize_timers[window.address] = hl.timer(finish_restore,
+            { timeout = require("hyprland.animations").task_delay(), type = "oneshot" })
     else
         visual_animation(window, "clear")
     end
@@ -1539,7 +1539,8 @@ function layouts.action(operation, address, stable_id)
                 finish_minimize(window, hidden)
             end
         end
-        minimize_timers[window.address] = hl.timer(await_animation, { timeout = 240, type = "oneshot" })
+        minimize_timers[window.address] = hl.timer(await_animation,
+            { timeout = require("hyprland.animations").task_delay(), type = "oneshot" })
         save()
     elseif operation == "maximize" or operation == "maximize-set" or operation == "maximize-unset" or operation == "maximize-snap" then
         if record.minimized then layouts.restore_window(window) end

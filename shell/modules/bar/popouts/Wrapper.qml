@@ -12,6 +12,10 @@ import qs.modules.windowinfo
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
+    readonly property real visualOffsetScale: flowClipped ? 0 : offsetScale
+    opacity: flowOpacity
 
     required property ShellScreen screen
     required property real offsetScale
@@ -28,6 +32,8 @@ Item {
     property alias currentName: popoutState.currentName
     property alias hasCurrent: popoutState.hasCurrent
     property alias taskButton: popoutState.taskButton
+    property alias trayItem: popoutState.trayItem
+    readonly property int trayRevision: popoutState.trayRevision
     property real currentCenter
 
     property string detachedMode
@@ -36,13 +42,17 @@ Item {
     // Dummy object so Tokens attached prop resolves to global config
     // Anim configs are not per-monitor
     readonly property QtObject dummy: QtObject {}
-    property int animLength: dummy.Tokens.anim.durations.expressiveDefaultSpatial
-    property var animCurve: dummy.Tokens.anim.expressiveDefaultSpatial // The easingCurve type is Qt 6.11+ so we gotta use var for now
+    property bool slowMotion: false
+    readonly property string motionRole: `expressive${slowMotion ? "Slow" : "Default"}Spatial`
+    readonly property int animLength: dummy.Tokens.anim.durations[motionRole]
+    readonly property int geometryDuration: Math.round(animLength*.65)
+    property real flowingWidth: nonAnimWidth
+    property real flowingHeight: nonAnimHeight
+    readonly property var animCurve: GlobalConfig.appearance.anim.shellPreset === "goop"
+        ? dummy.Tokens.anim.expressiveDefaultEffects : dummy.Tokens.anim[motionRole]
 
     function setAnims(detach: bool): void {
-        const type = `expressive${detach ? "Slow" : "Default"}Spatial`;
-        animLength = dummy.Tokens.anim.durations[type];
-        animCurve = dummy.Tokens.anim[type];
+        slowMotion = detach;
     }
 
     function detach(mode: string): void {
@@ -62,8 +72,17 @@ Item {
         detachedMode = "";
     }
 
-    implicitWidth: nonAnimWidth
-    implicitHeight: nonAnimHeight
+    implicitWidth: flowClipped ? flowingWidth : nonAnimWidth
+    implicitHeight: flowClipped ? flowingHeight : nonAnimHeight
+
+    Behavior on flowingWidth {
+        enabled: root.flowClipped && root.offsetScale<1
+        SmoothedAnimation { velocity: -1; duration: root.geometryDuration; maximumEasingTime: root.geometryDuration/3 }
+    }
+    Behavior on flowingHeight {
+        enabled: root.flowClipped && root.offsetScale<1
+        SmoothedAnimation { velocity: -1; duration: root.geometryDuration; maximumEasingTime: root.geometryDuration/3 }
+    }
 
     focus: hasCurrent
     Keys.onEscapePressed: {
@@ -155,6 +174,7 @@ Item {
     }
 
     Behavior on implicitWidth {
+        enabled: !root.flowClipped
         Anim {
             duration: root.animLength
             easing: root.animCurve
@@ -162,7 +182,7 @@ Item {
     }
 
     Behavior on implicitHeight {
-        enabled: root.offsetScale < 1
+        enabled: root.offsetScale < 1 && !root.flowClipped
 
         Anim {
             duration: root.animLength
@@ -202,7 +222,8 @@ Item {
                     Anim {
                         type: Anim.DefaultEffects
                         property: "opacity"
-                        duration: comp.spatialOnly ? 0 : comp.Tokens.anim.durations.expressiveDefaultEffects
+                        duration: comp.spatialOnly ? 0 : GlobalConfig.appearance.anim.shellPreset === "goop"
+                            ? root.animLength : comp.Tokens.anim.durations.expressiveDefaultEffects
                     }
                 }
             },
@@ -214,7 +235,8 @@ Item {
                     Anim {
                         type: Anim.DefaultEffects
                         property: "opacity"
-                        duration: comp.spatialOnly ? 0 : comp.Tokens.anim.durations.expressiveDefaultEffects
+                        duration: comp.spatialOnly ? 0 : GlobalConfig.appearance.anim.shellPreset === "goop"
+                            ? root.animLength : comp.Tokens.anim.durations.expressiveDefaultEffects
                     }
                     PropertyAction {
                         property: "active"

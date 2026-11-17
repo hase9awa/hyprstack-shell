@@ -74,6 +74,10 @@ Item {
     Item {
         id: indicator
         property real position: bar.currentIndex
+        property real trailingPosition: bar.currentIndex
+        readonly property bool gooey: GlobalConfig.appearance.anim.shellPreset === "goop"
+        readonly property real trailWidth: gooey ? Math.abs(position - trailingPosition)
+            * bar.availableWidth / Math.max(1, bar.count) : 0
 
         anchors.top: bar.bottom
         anchors.topMargin: 5 * Tokens.scale
@@ -81,9 +85,9 @@ Item {
         implicitWidth: {
             const tab = bar.currentItem;
             if (tab)
-                return tab.implicitWidth;
+                return tab.implicitWidth + trailWidth;
             const width = bar.availableWidth / Math.max(1, bar.count);
-            return width;
+            return width + trailWidth;
         }
         implicitHeight: 3 * Tokens.scale
 
@@ -91,7 +95,7 @@ Item {
             const tab = bar.currentItem;
             const width = bar.availableWidth / Math.max(1, bar.count);
             const tabWidth = tab?.implicitWidth ?? width;
-            return width * position + (width - tabWidth) / 2;
+            return width * (gooey ? Math.min(position, trailingPosition) : position) + (width - tabWidth) / 2;
         }
 
         clip: true
@@ -110,6 +114,13 @@ Item {
             Anim {
                 type: Anim.Standard
                 duration: Tokens.anim.durations.expressiveFastSpatial
+            }
+        }
+
+        Behavior on trailingPosition {
+            Anim {
+                duration: indicator.gooey ? Tokens.anim.durations.expressiveSlowSpatial : 0
+                type: Anim.SlowSpatial
             }
         }
 

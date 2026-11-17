@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(hyprstack VERSION 1.4.14 LANGUAGES CXX)
+project(hyprstack VERSION 1.5.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_DATADIR}/hyprstack/lib" CACHE PATH "Private runtime libraries" FORCE)
 
@@ -49,6 +49,9 @@ if(HYPRSTACK_BUILD_NATIVE)
     endif()
     message(STATUS "${headers_output}")
     add_library(hyprstack-bars MODULE native/hyprbars/main.cpp native/hyprbars/barDeco.cpp native/hyprbars/BarPassElement.cpp)
+    # Distribution headers may have upstream mtimes older than our objects.
+    # Changing the compositor ABI must still force a matching plugin rebuild.
+    target_compile_definitions(hyprstack-bars PRIVATE HYPRSTACK_BUILD_ABI_HASH="${hypr_abi}")
     set_target_properties(hyprstack-bars PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED ON PREFIX "" )
     target_link_libraries(hyprstack-bars PRIVATE PkgConfig::Native)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -75,4 +78,5 @@ install(FILES shell/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack" REN
 install(FILES THIRD_PARTY.md DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack")
 install(FILES native/hyprbars/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/licenses" RENAME hyprbars-BSD-3-Clause)
 install(FILES third_party/m3shapes/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/licenses" RENAME M3Shapes-Apache-2.0)
+install(FILES shell/utils/vendor/goopui/LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/hyprstack/licenses" RENAME goopUI-MIT)
 install(FILES shell/assets/logo.svg DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps" RENAME hyprstack.svg)

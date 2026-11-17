@@ -35,7 +35,7 @@ DialogWindow {
         (screen?.height ?? 720) - 48 * Tokens.scale)
     WlrLayershell.keyboardFocus: visible && request.modal ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "wallpaperSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

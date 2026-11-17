@@ -234,7 +234,7 @@ LazyLoader {
                 rejected();
         }
 
-        StyledClippingRect {
+        GoopWindowSurface {
             anchors.fill: parent
             radius: Tokens.rounding.large
             color: Colours.tPalette.m3surface

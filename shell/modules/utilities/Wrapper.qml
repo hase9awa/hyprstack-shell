@@ -10,6 +10,9 @@ import qs.modules.bar.popouts as BarPopouts
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
+    readonly property real visualOffsetScale: flowClipped ? 0 : offsetScale
 
     required property ScreenState screenState
     required property Sidebar.Wrapper sidebar
@@ -45,11 +48,11 @@ Item {
     implicitHeight: content.implicitHeight + totalPadding
     implicitWidth: followSidebar ? sidebar.width : Tokens.sizes.utilities.width
     anchors.rightMargin: movesWithSidebar ? sidebar.anchors.rightMargin : 0
-    opacity: 1 - offsetScale
+    opacity: flowClipped ? 1 : (1 - offsetScale) * flowOpacity
 
     Behavior on detachedOffsetScale {
         enabled: !root.movesWithSidebar
-        Anim {}
+        Anim { bounded: true }
     }
 
     Loader {

@@ -7,12 +7,16 @@ import qs.services
 TextField {
     id: root
 
+    property bool inputTextVisible: true
+    property color textColor: Colours.palette.m3onSurface
+    property color textSelectionColor: Qt.alpha(Colours.palette.m3primary, 0.4)
+
     implicitWidth: contentWidth + leftPadding + rightPadding
     implicitHeight: contentHeight + topPadding + bottomPadding
 
-    color: Colours.palette.m3onSurface
+    color: inputTextVisible ? textColor : "transparent"
     placeholderTextColor: Colours.palette.m3onSurfaceVariant // No anim cause placeholder is custom
-    selectionColor: Qt.alpha(Colours.palette.m3primary, 0.4)
+    selectionColor: inputTextVisible ? textSelectionColor : "transparent"
     selectedTextColor: color
 
     font: Tokens.font.body.small
@@ -22,11 +26,11 @@ TextField {
 
     cursorDelegate: Item {}
 
-    Behavior on color {
+    Behavior on textColor {
         CAnim {}
     }
 
-    Behavior on selectionColor {
+    Behavior on textSelectionColor {
         CAnim {}
     }
 
@@ -34,6 +38,7 @@ TextField {
         id: cursor
 
         property bool disableBlink
+        visible: root.inputTextVisible
 
         x: root.cursorRectangle.x
         y: root.cursorRectangle.y

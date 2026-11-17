@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import urllib.parse as url
 
 
@@ -16,6 +17,16 @@ def decode64(value):
 
 def number(value):
     return int(value)
+
+
+def naive_headers(value):
+    result = {}
+    for line in value.splitlines():
+        key, separator, content = line.partition(':')
+        if not separator or not re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", key) or any(ord(c) < 32 and c != '\t' for c in content):
+            raise ProfileError('Invalid NaiveProxy extra headers')
+        result[key] = content.strip()
+    return result
 
 
 def tls_options(query, server):
@@ -102,7 +113,7 @@ def link(text):
     server = parsed.hostname
     if not server:
         raise ProfileError('The profile has no server address')
-    port = parsed.port or (443 if scheme in ('trojan', 'vless', 'hysteria2', 'hy2', 'tuic', 'https') else 1080)
+    port = parsed.port or (443 if scheme in ('trojan', 'vless', 'hysteria2', 'hy2', 'tuic', 'https', 'naive', 'naive+https', 'naive+quic') else 1080)
     user = url.unquote(parsed.username or '')
     password = url.unquote(parsed.password or '')
     name = url.unquote(parsed.fragment) or scheme.upper()
@@ -114,7 +125,18 @@ def link(text):
             settings['packetEncoding'] = query['packetEncoding']
         return native({'protocol': 'vless', 'settings': settings, 'streamSettings': xray_transport(query)}, name)
     outbound = {'type': scheme, 'server': server, 'server_port': port}
-    if scheme == 'trojan':
+    if scheme in ('naive', 'naive+https', 'naive+quic'):
+        if parsed.port == 0:
+            raise ProfileError('Invalid NaiveProxy server port')
+        if query.get('insecure', query.get('allowInsecure')) in ('1', 'true'):
+            raise ProfileError('NaiveProxy requires TLS certificate verification')
+        outbound.update(type='naive', username=user, password=password,
+                        tls={'enabled': True, 'server_name': query.get('sni') or query.get('peer') or server})
+        if scheme == 'naive+quic':
+            outbound['quic'] = True
+        if query.get('extra-headers'):
+            outbound['extra_headers'] = naive_headers(query['extra-headers'])
+    elif scheme == 'trojan':
         outbound['password'] = user + (':' + password if parsed.password is not None else '')
         if query.get('security', 'tls') != 'none':
             outbound['tls'] = tls_options(query, server)
@@ -168,6 +190,14 @@ def parse(text):
     if text[:1] in ('{', '['):
         data = json.loads(text)
         if isinstance(data, dict):
+            if isinstance(data.get('proxy'), str) and not any(k in data for k in ('type', 'protocol', 'outbounds')):
+                proxy = data['proxy']
+                if url.urlsplit(proxy).scheme not in ('https', 'quic'):
+                    raise ProfileError('NaiveProxy requires HTTPS or QUIC')
+                profile = link('naive+' + proxy)
+                if data.get('extra-headers'):
+                    profile['outbound']['extra_headers'] = naive_headers(data['extra-headers'])
+                return [profile]
             items = data.get('outbounds', [data])
         else:
             items = data

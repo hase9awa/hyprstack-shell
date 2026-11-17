@@ -8,6 +8,9 @@ import qs.services
 
 Item {
     id: root
+    property real flowOpacity: 1
+    property bool flowClipped: false
+    readonly property real visualOffsetScale: flowClipped ? 0 : offsetScale
 
     required property ScreenState screenState
     required property bool atBottom
@@ -21,10 +24,10 @@ Item {
     property real offsetScale: shouldBeActive && readyToOpen ? 0 : 1
 
     visible: offsetScale < 1
-    clip: true
-    anchors.rightMargin: atBottom ? 0 : (-implicitWidth - 5) * offsetScale
+    clip: !flowClipped
+    anchors.rightMargin: atBottom ? 0 : (-implicitWidth - 5) * visualOffsetScale
     implicitWidth: Tokens.sizes.sidebar.width
-    opacity: 1 - offsetScale
+    opacity: flowClipped ? 1 : (1 - offsetScale) * flowOpacity
 
     onShouldBeActiveChanged: {
         if (shouldBeActive)
@@ -37,9 +40,12 @@ Item {
     Keys.onEscapePressed: root.screenState.sidebar = false
 
     Behavior on offsetScale {
-        NumberAnimation {
-            duration: Tokens.anim.durations.expressiveDefaultSpatial * 0.6
-            easing.type: Easing.InOutSine
+        StyledAnim {
+            bounded: true
+            defaultDuration: Tokens.anim.durations.expressiveDefaultSpatial * 0.6
+            defaultEasing: Easing.InOutSine
+            presetDuration: Tokens.anim.durations.expressiveDefaultSpatial
+            presetEasing: Tokens.anim.expressiveDefaultSpatial
         }
     }
 

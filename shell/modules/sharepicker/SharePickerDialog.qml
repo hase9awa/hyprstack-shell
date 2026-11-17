@@ -53,7 +53,7 @@ DialogWindow {
     // The screen the pointer is on is the one most likely meant.
     Component.onCompleted: map.selectedName = (Screens.screens.find(s => s.name === Hypr.focusedMonitor?.name) ?? Screens.screens[0])?.name ?? ""
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "sharePickerSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

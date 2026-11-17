@@ -87,7 +87,7 @@ DialogWindow {
         }
     }
 
-    StyledRect {
+    GoopWindowSurface {
         objectName: "screenshotSurface"
         anchors.fill: parent
         color: Colours.palette.m3surfaceContainer

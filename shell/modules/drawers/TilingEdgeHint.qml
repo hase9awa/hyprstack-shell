@@ -37,7 +37,7 @@ Item {
 
     Behavior on offsetScale {
         enabled: !root.nativeState.instant
-        Anim {}
+        Anim { bounded: true }
     }
 
     readonly property string registration: JSON.stringify(geometry())
