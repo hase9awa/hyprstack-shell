@@ -1180,6 +1180,26 @@ var catalogue = [
   },
   {
     "page": 4,
+    "subpages": [2],
+    "path": ["Panels", "Taskbar"],
+    "label": "VPN quick actions on hover",
+    "context": "",
+    "target": "taskbarVpnQuickActions",
+    "match": "VPN quick actions on hover",
+    "keywords": "Connect disconnect server profile popout быстрые действия VPN наведение"
+  },
+  {
+    "page": 4,
+    "subpages": [2],
+    "path": ["Panels", "Taskbar"],
+    "label": "Notification quick actions on hover",
+    "context": "",
+    "target": "taskbarNotificationQuickActions",
+    "match": "Notification quick actions on hover",
+    "keywords": "Do not disturb read clear history popout быстрые действия уведомления наведение"
+  },
+  {
+    "page": 4,
     "subpages": [
       2
     ],

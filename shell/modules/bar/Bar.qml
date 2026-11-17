@@ -88,7 +88,12 @@ Item {
         }
 
         const id = ch.entryId;
-        if (id === "statusIcons" && Config.bar.popouts.statusIcons) {
+        if ((id === "vpn" && Config.bar.popouts.vpn)
+                || (id === "notifications" && Config.bar.popouts.notifications && !root.screenState.sidebar)) {
+            popouts.currentName = id;
+            popouts.currentCenter = Qt.binding(() => ch.item.mapToItem(root, ch.item.width / 2, 0).x);
+            popouts.hasCurrent = true;
+        } else if (id === "statusIcons" && Config.bar.popouts.statusIcons) {
             const items = (ch.item as StatusIcons).items;
             const icon = items.childAt(mapToItem(items, x, height / 2).x, items.height / 2);
             if (icon) {
@@ -231,6 +236,7 @@ Item {
                     delegate: EntryWrapper {
                         VpnToggle {
                             objectName: "taskbarVpnToggle"
+                            screenState: root.screenState
                         }
                     }
                 }

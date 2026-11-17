@@ -9,14 +9,17 @@ from __future__ import annotations
 import argparse
 import base64
 import copy
+from concurrent.futures import ThreadPoolExecutor
 import errno
 import fcntl
 import hashlib
 import hmac
+import http.client
 import json
 import os
 from pathlib import Path
 import pwd
+import re
 import secrets
 import shutil
 import socket
@@ -446,7 +449,9 @@ def status():
 
 def overview():
     value = model()
-    return {**status(), 'profiles': [{k: p[k] for k in ('id', 'name', 'type', 'group', 'latency_ms', 'engine')} for p in value['profiles']],
+    countries = cached_locations(value['profiles'])
+    return {**status(), 'profiles': [{**{k: p[k] for k in ('id', 'name', 'type', 'group', 'latency_ms', 'engine')},
+                                    'country': countries.get(p['id'], '')} for p in value['profiles']],
             'groups': [{k: g[k] for k in ('id', 'name', 'subscription')} for g in value['groups']],
             'sendHwid': value['sendHwid'], 'userAgent': value['userAgent'],
             'routes': [{'id': 'all', 'name': 'All traffic', 'active': value['route'] == 'all'},
@@ -531,8 +536,9 @@ def receive(stream, size):
     return result
 
 
-def latency(profile):
-    validate(profile)
+def latency(profile, *, location=False):
+    if not location:
+        validate(profile)
     with tempfile.TemporaryDirectory(prefix='.test-', dir=ROOT) as temporary:
         with socket.socket() as reservation:
             reservation.bind(('127.0.0.1', 0))
@@ -557,7 +563,7 @@ def latency(profile):
                     stream.sendall(b'\x05\x01\x00')
                     if receive(stream, 2) != b'\x05\x00':
                         raise VpnError('The VPN connection test failed')
-                    host = b'www.gstatic.com'
+                    host = b'www.cloudflare.com' if location else b'www.gstatic.com'
                     stream.sendall(b'\x05\x01\x00\x03' + bytes([len(host)]) + host + struct.pack('>H', 443))
                     header = receive(stream, 4)
                     if header[1] != 0:
@@ -565,6 +571,13 @@ def latency(profile):
                     receive(stream, {1: 4, 4: 16}.get(header[3], 0) or receive(stream, 1)[0])
                     receive(stream, 2)
                     with ssl.create_default_context().wrap_socket(stream, server_hostname=host.decode()) as secure:
+                        if location:
+                            secure.sendall(b'GET /cdn-cgi/trace HTTP/1.1\r\nHost: www.cloudflare.com\r\nConnection: close\r\n\r\n')
+                            response = http.client.HTTPResponse(secure)
+                            response.begin()
+                            body = response.read(16384).decode('ascii', errors='replace')
+                            country = re.search(r'^loc=([A-Z]{2})\s*$', body, re.MULTILINE)
+                            return country[1] if response.status == 200 and country and country[1] not in ('XX', 'ZZ') else ''
                         secure.sendall(b'GET /generate_204 HTTP/1.1\r\nHost: www.gstatic.com\r\nConnection: close\r\n\r\n')
                         if b' 204 ' not in secure.recv(1024).split(b'\r\n', 1)[0]:
                             raise VpnError('The VPN connection test failed')
@@ -576,6 +589,69 @@ def latency(profile):
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait()
+
+
+def location_signature(profile):
+    return hashlib.sha256(json.dumps(profile['outbound'], sort_keys=True).encode()).hexdigest()
+
+
+def named_country(profile):
+    flag = re.search(r'([\U0001f1e6-\U0001f1ff]{2})', profile.get('name', ''))
+    return ''.join(chr(ord(letter) - 0x1f1e6 + 65) for letter in flag[1]) if flag else ''
+
+
+def cached_locations(profiles):
+    cached = read_json(ROOT / 'locations.json', {})
+    if not isinstance(cached, dict):
+        cached = {}
+    result = {}
+    for profile in profiles:
+        entry = cached.get(profile['id'], {})
+        if not isinstance(entry, dict):
+            entry = {}
+        country = named_country(profile)
+        if not country and entry.get('signature') == location_signature(profile):
+            country = entry.get('country', '')
+        if re.fullmatch('[A-Z]{2}', country) and country not in ('XX', 'ZZ'):
+            result[profile['id']] = country
+    return result
+
+
+def locations():
+    """Cache the exit country through isolated proxies, without changing the VPN.
+
+    Country names supplied as flags need no network lookup. Other profiles use
+    Cloudflare's trace endpoint through that profile's own SOCKS/TLS connection;
+    there is no direct-IP geolocation request or automatic core installation.
+    """
+    profiles = model()['profiles']
+    cached = read_json(ROOT / 'locations.json', {})
+    if not isinstance(cached, dict):
+        cached = {}
+    now = time.time()
+    pending = []
+    for profile in profiles:
+        entry = cached.get(profile['id'], {})
+        if not isinstance(entry, dict):
+            entry = {}
+        ttl = 7 * 86400 if entry.get('country') else 3600
+        if (not named_country(profile) and binary(profile['engine']).is_file()
+                and (entry.get('signature') != location_signature(profile)
+                     or now - entry.get('checked', 0) > ttl)):
+            pending.append(profile)
+
+    def probe(profile):
+        try:
+            country = latency(profile, location=True)
+        except Exception:
+            country = ''
+        return profile['id'], {'signature': location_signature(profile), 'country': country, 'checked': now}
+
+    if pending:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            cached.update(pool.map(probe, pending))
+        atomic_json(ROOT / 'locations.json', cached)
+    return cached_locations(profiles)
 
 
 def authorize(value):
@@ -640,6 +716,8 @@ def dispatch(action, payload):
         return status()
     if action == 'overview':
         return overview()
+    if action == 'locations':
+        return locations()
     if action == 'serve':
         session = read_json(ROOT / 'session.json')
         if session is None:
@@ -732,7 +810,7 @@ def dispatch(action, payload):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('serve', 'status', 'overview', 'install', 'authorize', 'connect', 'disconnect', 'import', 'update', 'select', 'mode', 'route', 'settings', 'delete', 'test'))
+    parser.add_argument('action', choices=('serve', 'status', 'overview', 'locations', 'install', 'authorize', 'connect', 'disconnect', 'import', 'update', 'select', 'mode', 'route', 'settings', 'delete', 'test'))
     args = parser.parse_args()
     try:
         payload = json.load(sys.stdin) if args.action in ('import', 'select', 'mode', 'route', 'settings', 'delete', 'test') else {}

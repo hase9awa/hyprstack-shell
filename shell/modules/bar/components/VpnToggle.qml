@@ -7,6 +7,7 @@ import qs.services
 
 Item {
     id: root
+    property ScreenState screenState
 
     readonly property bool connected: VPN.connected && VPN.status.state !== "error" && VPN.status.state !== "needs-auth"
     readonly property bool busy: VPN.connecting || VPN.disconnecting || (VPN.active.name === "native" && ManagedVPN.busy)
@@ -15,21 +16,20 @@ Item {
 
     implicitWidth: icon.implicitHeight + Tokens.padding.small
     implicitHeight: icon.implicitHeight
-    activeFocusOnTab: !busy
-    Accessible.role: Accessible.CheckBox
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
     Accessible.name: Tr.tr("VPN")
     Accessible.description: statusText
-    Accessible.checkable: true
-    Accessible.checked: connected
-    Accessible.onToggleAction: root.toggle()
+    Accessible.onPressAction: root.activate()
 
-    function toggle(): void {
-        if (!busy)
-            VPN.toggle();
+    function activate(): void {
+        if (screenState)
+            ShellState.componentsFor(screenState.modelData)?.panels?.popouts.close();
+        ManagedVPN.openSettings();
     }
 
-    Keys.onSpacePressed: root.toggle()
-    Keys.onReturnPressed: root.toggle()
+    Keys.onSpacePressed: root.activate()
+    Keys.onReturnPressed: root.activate()
 
     StateLayer {
         id: hitArea
@@ -38,9 +38,8 @@ Item {
         implicitWidth: root.implicitWidth
         implicitHeight: root.implicitHeight + Tokens.padding.small
         radius: Tokens.rounding.full
-        disabled: root.busy
         manualHoverOverride: root.activeFocus
-        onClicked: root.toggle()
+        onClicked: root.activate()
     }
 
     MaterialIcon {
@@ -53,7 +52,7 @@ Item {
         opacity: root.busy ? 0.5 : 1
     }
 
-    ToolTip.visible: hitArea.containsMouse || root.activeFocus
-    ToolTip.text: root.statusText + "\n" + (root.busy ? Tr.tr("Please wait…") : root.connected ? Tr.tr("Disconnect") : Tr.tr("Connect"))
+    ToolTip.visible: (hitArea.containsMouse && !Config.bar.popouts.vpn) || root.activeFocus
+    ToolTip.text: root.statusText + "\n" + Tr.tr("Open settings")
     ToolTip.delay: 400
 }

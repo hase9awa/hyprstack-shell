@@ -14,6 +14,12 @@ Item {
     Accessible.role: Accessible.Button
     Accessible.name: Tr.tr("Notification center")
     Accessible.description: Tr.tr("Unread notifications: %1").arg(Notifs.unreadCount)
+    Accessible.onPressAction: root.activate()
+
+    function activate(): void {
+        ShellState.componentsFor(root.screenState.modelData)?.panels?.popouts.close();
+        ShellState.setNotificationCenter(root.screenState, !root.screenState.sidebar);
+    }
 
     StateLayer {
         anchors.fill: undefined
@@ -21,7 +27,7 @@ Item {
         implicitWidth: implicitHeight
         implicitHeight: icon.implicitHeight + Tokens.padding.small
         radius: Tokens.rounding.full
-        onClicked: ShellState.setNotificationCenter(root.screenState, !root.screenState.sidebar)
+        onClicked: root.activate()
     }
 
     MaterialIcon {

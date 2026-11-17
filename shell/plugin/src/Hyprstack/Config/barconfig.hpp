@@ -27,6 +27,8 @@ class BarPopouts : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, activeWindow, true)
     CONFIG_PROPERTY(bool, tray, true)
     CONFIG_PROPERTY(bool, statusIcons, true)
+    CONFIG_PROPERTY(bool, vpn, true)
+    CONFIG_PROPERTY(bool, notifications, true)
 };
 
 class BarWorkspaces : public settings::ObjectNode {

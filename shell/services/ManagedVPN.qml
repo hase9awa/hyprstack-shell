@@ -25,6 +25,7 @@ Singleton {
     property bool loaded: false
     property var window: null
     property var windowComponent: null
+    property var locationCodes: ({})
 
     signal operationFinished(command: string, success: bool)
 
@@ -44,6 +45,11 @@ Singleton {
             return;
         }
         read.running = true;
+    }
+
+    function refreshLocations(): void {
+        if (!locationRead.running)
+            locationRead.running = true;
     }
 
     function run(command: string, value: var): void {
@@ -71,9 +77,23 @@ Singleton {
             }
         }
         refresh();
+        refreshLocations();
     }
 
     Component.onCompleted: refresh()
+
+    Process {
+        id: locationRead
+        command: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "locations"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const value = JSON.parse(text);
+                    if (!value.error) root.locationCodes = value;
+                } catch (_) {}
+            }
+        }
+    }
 
     Process {
         id: read

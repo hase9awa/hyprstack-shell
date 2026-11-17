@@ -141,6 +141,26 @@ PageBase {
         }
 
         SectionHeader {
+            text: Tr.tr("Quick actions")
+        }
+
+        ToggleRow {
+            first: true
+            objectName: "taskbarVpnQuickActions"
+            text: Tr.tr("VPN quick actions on hover")
+            checked: root.targetConfig.bar.popouts.vpn
+            onToggled: root.targetConfig.bar.popouts.vpn = checked
+        }
+
+        ToggleRow {
+            last: true
+            objectName: "taskbarNotificationQuickActions"
+            text: Tr.tr("Notification quick actions on hover")
+            checked: root.targetConfig.bar.popouts.notifications
+            onToggled: root.targetConfig.bar.popouts.notifications = checked
+        }
+
+        SectionHeader {
             text: Tr.tr("Components")
         }
 

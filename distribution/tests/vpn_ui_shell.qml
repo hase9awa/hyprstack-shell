@@ -8,10 +8,12 @@ import qs.modules.nexus
 import qs.modules.dashboard.dash
 import qs.modules.nexus.pages
 import "fixtures" as Fixtures
+import "modules/bar/popouts" as Popouts
 
 ShellRoot {
     Component.onCompleted: GlobalConfig.general.language = "en"
     ScreenState { id: state; modelData: Quickshell.screens[0]; dashboard: true }
+    Popouts.PopoutState { id: quickState; screen: Quickshell.screens[0] }
     FloatingWindow {
         id: host
         visible: true
@@ -33,7 +35,15 @@ ShellRoot {
             }
         }
         AboutPage { id: about; visible: false; width: 600; height: 600; nState: null }
-        Fixtures.VpnToggle { id: barVpn; x: 480; y: 30 }
+        Fixtures.VpnToggle { id: barVpn; x: 480; y: 30; screenState: state }
+        Fixtures.NotificationCenterButton { id: barNotifs; x: 520; y: 30; screenState: state }
+        Row {
+            id: quickPreview
+            visible: false
+            x: 20; y: 120; spacing: 32
+            Popouts.VpnQuickActions { id: quickVpn; popouts: quickState }
+            Popouts.NotificationQuickActions { id: quickNotifs; popouts: quickState }
+        }
         TestCase {
             name: "FriendlyVpn"
             when: ManagedVPN.window !== null && ManagedVPN.loaded
@@ -59,8 +69,8 @@ ShellRoot {
                 VPN.nativeSelected = true;
                 ManagedVPN.error = "";
                 const value = Object.assign({profiles:[
-                    {id:"a12bc34d",name:"Server A",type:"trojan",latency_ms:23},
-                    {id:"b56de78f",name:"Server B",type:"vless",latency_ms:-1}],
+                    {id:"a12bc34d",name:"Server A",type:"trojan",latency_ms:23,country:"DE"},
+                    {id:"b56de78f",name:"Server B",type:"vless",latency_ms:-1,country:"FR"}],
                     groups:[],routes:[{id:"all",name:"All traffic",active:true}],
                     selectedProfile:"a12bc34d",mode:"tun",connected:false,
                     installed:true,canTun:true,fixtureSerial:++serial}, changes ?? {});
@@ -70,7 +80,74 @@ ShellRoot {
             }
             function init() { fixture({}); }
             function cleanup() {
+                quickPreview.visible = false;
+                dashboardPreview.visible = true;
                 console.log("VPN_UI_CASE " + qtest_results.functionName + " failed=" + qtest_results.failed);
+            }
+            function quickControl(name, parent) {
+                if (parent.objectName === name) return parent;
+                for (const child of parent.children ?? []) {
+                    const found = quickControl(name,child);
+                    if (found) return found;
+                }
+                return null;
+            }
+            function showQuickActions() {
+                dashboardPreview.visible = false;
+                quickState.hasCurrent = true;
+                quickPreview.visible = true;
+                wait(80);
+            }
+            function test_quick_vpn_connect_select_and_disconnect() {
+                showQuickActions();
+                compare(ManagedVPN.data.operations.length,0);
+                click(quickControl("vpnQuickToggle",quickVpn));
+                tryVerify(() => !ManagedVPN.busy && ManagedVPN.connected);
+                click(quickControl("vpnQuickProfile_b56de78f",quickVpn));
+                tryVerify(() => !ManagedVPN.busy && ManagedVPN.data.selectedProfile === "b56de78f");
+                compare(ManagedVPN.connected,true);
+                click(quickControl("vpnQuickToggle",quickVpn));
+                tryVerify(() => !ManagedVPN.busy && !ManagedVPN.connected);
+                compare(JSON.stringify(ManagedVPN.data.operations),JSON.stringify(["connect","select","disconnect"]));
+            }
+            function test_quick_vpn_settings_close_the_popout() {
+                showQuickActions();
+                click(quickControl("vpnQuickSettings",quickVpn));
+                compare(quickState.hasCurrent,false);
+                tryCompare(ManagedVPN.window,"visible",true);
+                compare(ManagedVPN.data.operations.length,0);
+            }
+            function test_quick_vpn_lists_every_connection_and_displays_country_flags() {
+                fixture({profiles:Array.from({length:12},(_,i)=>({id:"node"+i,name:"Server "+i,
+                    type:"vless",latency_ms:-1,country:i===0?"DE":"FI"})),selectedProfile:"node0"});
+                showQuickActions();
+                const list=quickControl("vpnQuickProfiles",quickVpn);
+                compare(list.count,12);
+                compare(quickControl("vpnQuickFlag_node0",quickVpn).text,"🇩🇪");
+                list.positionViewAtEnd();wait(100);
+                const last=quickControl("vpnQuickProfile_node11",quickVpn);
+                verify(!!last);
+                compare(quickControl("vpnQuickFlag_node11",quickVpn).text,"🇫🇮");
+                click(last);
+                tryVerify(()=>!ManagedVPN.busy && ManagedVPN.data.selectedProfile==="node11");
+            }
+            function test_notification_quick_actions_are_explicit_and_use_the_same_screen() {
+                Notifs.unreadCount=2;Notifs.notClosed=[1,2];Notifs.dnd=false;
+                Notifs.readCalls=0;Notifs.clearCalls=0;ShellState.sidebar=false;
+                showQuickActions();
+                compare(Notifs.unreadCount,2);
+                compare(Notifs.readCalls,0);
+                click(quickControl("notificationQuickDnd",quickNotifs));
+                compare(Notifs.dnd,true);
+                click(quickControl("notificationQuickRead",quickNotifs));
+                compare(Notifs.unreadCount,0);compare(Notifs.readCalls,1);
+                verify(quickControl("notificationQuickRead",quickNotifs).disabled);
+                click(quickControl("notificationQuickClear",quickNotifs));
+                compare(Notifs.notClosed.length,0);compare(Notifs.clearCalls,1);
+                verify(quickControl("notificationQuickClear",quickNotifs).disabled);
+                click(quickControl("notificationQuickOpen",quickNotifs));
+                compare(quickState.hasCurrent,false);compare(ShellState.sidebar,true);
+                compare(ShellState.requestedScreen,quickState.screen);
             }
             function test_about_has_no_plugin_placeholder() {
                 verify(about.pluginCount === undefined);
@@ -152,13 +229,24 @@ ShellRoot {
                 tryVerify(() => ManagedVPN.data.selectedProfile === "b56de78f" && !ManagedVPN.busy);
                 verify(!ManagedVPN.connected);
             }
-            function test_bar_icon_connects_and_disconnects_directly() {
-                click(barVpn);
-                tryVerify(() => ManagedVPN.connected && !ManagedVPN.busy);
-                compare(ManagedVPN.data.operations[0], "connect");
-                click(barVpn);
-                tryVerify(() => !ManagedVPN.connected && !ManagedVPN.busy);
-                compare(ManagedVPN.data.operations[1], "disconnect");
+            function test_bar_vpn_icon_opens_settings_without_changing_the_connection() {
+                for (const connected of [false,true]) {
+                    fixture({connected:connected});
+                    const before=ShellState.closedPopouts;
+                    click(barVpn);wait(50);
+                    compare(ShellState.closedPopouts,before+1);
+                    compare(ManagedVPN.connected,connected);
+                    compare(ManagedVPN.data.operations.length,0);
+                }
+            }
+            function test_bar_notification_icon_closes_the_popout_when_opening_the_center() {
+                state.sidebar=false;
+                const before=ShellState.closedPopouts;
+                click(barNotifs);
+                compare(state.sidebar,true);
+                compare(ShellState.closedPopouts,before+1);
+                click(barNotifs);
+                compare(state.sidebar,false);
             }
             function test_import_success_closes_the_form_and_failure_keeps_input() {
                 click(control("vpnAddConnectionButton"));

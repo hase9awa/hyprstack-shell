@@ -31,6 +31,36 @@ class VpnStartupTests(unittest.TestCase):
         self.environment.stop()
         self.temporary.cleanup()
 
+    def test_country_cache_uses_each_profile_without_changing_connection_or_installing(self):
+        before = json.loads(json.dumps(self.model))
+        with patch.object(vpn, 'model', return_value=self.model), patch.object(vpn, 'binary', return_value=self.core), \
+             patch.object(vpn, 'latency', return_value='FI') as probe, patch.object(vpn, 'service') as service, \
+             patch.object(vpn, 'install') as install:
+            self.assertEqual(vpn.locations(), {'test':'FI'})
+            self.assertEqual(vpn.locations(), {'test':'FI'})
+            probe.assert_called_once_with(self.profile, location=True)
+            service.assert_not_called(); install.assert_not_called()
+            self.assertEqual(self.model, before)
+            self.profile['outbound']['tag'] = 'changed'
+            self.assertEqual(vpn.cached_locations(self.model['profiles']), {})
+            probe.return_value = 'DE'
+            self.assertEqual(vpn.locations(), {'test':'DE'})
+
+    def test_named_flags_need_no_network_and_all_profiles_are_included(self):
+        self.model['profiles'] = [dict(self.profile,id=str(i),name='🇫🇷 Server '+str(i)) for i in range(12)]
+        with patch.object(vpn, 'model', return_value=self.model), patch.object(vpn, 'latency') as probe:
+            self.assertEqual(vpn.locations(), {str(i):'FR' for i in range(12)})
+            probe.assert_not_called()
+
+    def test_failed_location_lookups_are_cached_and_optional_cache_corruption_is_ignored(self):
+        (self.root/'locations.json').write_text('[]')
+        self.assertEqual(vpn.cached_locations([self.profile]), {})
+        with patch.object(vpn, 'model', return_value=self.model), patch.object(vpn, 'binary', return_value=self.core), \
+             patch.object(vpn, 'latency', side_effect=vpn.VpnError('offline')) as probe:
+            self.assertEqual(vpn.locations(), {})
+            self.assertEqual(vpn.locations(), {})
+            self.assertEqual(probe.call_count,1)
+
     def test_busy_tcp_ports_choose_distinct_free_ports(self):
         with socket.socket() as socks, socket.socket() as http:
             socks.bind(('127.0.0.1', 0))

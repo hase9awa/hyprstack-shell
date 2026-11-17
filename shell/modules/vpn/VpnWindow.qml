@@ -12,6 +12,7 @@ import qs.components.controls
 import qs.modules.nexus.common
 import qs.services
 import "../../utils/scripts/vpn-flow.js" as Flow
+import "../../utils/scripts/vpn-location.js" as Location
 
 FloatingWindow {
     id: root
@@ -313,7 +314,9 @@ FloatingWindow {
                             objectName: "vpnProfile_" + modelData.id
                             subLabel.color: Colours.palette.m3onSurfaceVariant
                             subtext: modelData.type.toUpperCase() + (modelData.latency_ms > 0 ? " · " + Tr.tr("%1 ms").arg(modelData.latency_ms) : "")
-                            text: modelData.name
+                            text: Location.flag(Object.assign({}, modelData,
+                                {country: ManagedVPN.locationCodes[modelData.id] || modelData.country || ""}))
+                                + " " + Location.label(modelData)
                             trailingIcon: selected && root.connected ? "vpn_key" : selected ? "check" : ""
 
                             Accessible.onPressAction: root.selectProfile(modelData.id)

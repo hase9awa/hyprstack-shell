@@ -5654,3 +5654,23 @@ msgstr ""
 #: assets/vpn.py assets/vpn_profiles.py
 msgid "NaiveProxy requires HTTPS or QUIC"
 msgstr ""
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Quick actions"
+msgstr ""
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "VPN quick actions on hover"
+msgstr ""
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Notification quick actions on hover"
+msgstr ""
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Open notification center"
+msgstr ""
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Mark all as read"
+msgstr ""

@@ -585,6 +585,34 @@ ShellRoot {
                 offset:parts.panels.popoutsWrapper.offsetScale,serial:flow?.serial??0,
                 morph:flow?.morphSerial??0,circles:flow?.renderFrame.circles.length??0});
         }
+        function quickActions(action: string): string {
+            const parts=ShellState.componentsFor(Screens.screens[0]),bar=parts?.bar?.content;
+            if(action==="enable") {
+                const entries=GlobalConfig.bar.entries;
+                const vpn=entries.values.find(item=>item.id==="vpn");
+                if(vpn)vpn.enabled=true;else entries.insert({id:"vpn",enabled:true});
+                GlobalConfig.bar.showNotifications=true;
+                GlobalConfig.sidebar.enabled=true;
+                GlobalConfig.bar.popouts.vpn=GlobalConfig.bar.popouts.notifications=true;
+            } else if(action==="disable") {
+                GlobalConfig.bar.popouts.vpn=GlobalConfig.bar.popouts.notifications=false;
+                parts.panels.popouts.close();
+            }
+            const entries=bar?.entryItems??[],entry=entries.find(i=>i.entryId===action);
+            if(entry?.item){const p=entry.item.mapToItem(bar,entry.item.width/2,entry.item.height/2);bar.checkPopout(p.x);}
+            if(action==="click-notifications" || action==="click-vpn") {
+                const button=entries.find(i=>i.entryId===action.slice(6))?.item;
+                if(button)input.clickItem(button);
+            } else if(action==="close-settings" && ManagedVPN.window) ManagedVPN.window.visible=false;
+            const current=parts?.panels?.popouts?.current;
+            const flow=root.findWhere(parts?.rootWindow?.contentItem,i=>i.objectName==="popoutBackground")?.liquid;
+            return JSON.stringify({entries:entries.map(i=>i.entryId),name:parts?.panels?.popouts.currentName,
+                has:parts?.panels?.popouts.hasCurrent,card:current?.objectName,width:current?.width,height:current?.height,
+                serial:flow?.serial,morph:flow?.morphSerial,circles:flow?.renderFrame.circles.length,
+                offset:parts?.panels?.popoutsWrapper.offsetScale,settingsOpen:ManagedVPN.window!==null,
+                sidebar:ShellState.forScreen(Screens.screens[0]).sidebar,
+                dnd:Notifs.dnd,unread:Notifs.unreadCount});
+        }
         function panels(action: string): string {
             if(action==="start") {GlobalConfig.dashboard.showOnHover=false;root.panelTest=true;host.visible=false;}
             const screen=Screens.screens[0];
@@ -652,7 +680,8 @@ def main(args):
                     *(["--portal-probe"] if args.portal_probe else []),
                     *(["--geometry-probe"] if args.geometry_probe else []),
                     *(["--workspace-drip-probe"] if args.workspace_drip_probe else []),
-                    *(["--ui-probe"] if args.ui_probe else [])], check=True)
+                    *(["--ui-probe"] if args.ui_probe else []),
+                    *(["--quick-actions-probe"] if args.quick_actions_probe else [])], check=True)
         return
     # Hyprland's long instance signature leaves little room in a Unix socket
     # path. Keep the event socket comfortably below Qt's platform limit.
@@ -743,6 +772,51 @@ def main(args):
     def animations(): return {v["name"]:v for v in json.loads(run(["hyprctl", "-j", "animations"]))[0]}
     def evaluate(code): return run(["hyprctl", "eval", code])
 
+    def check_quick_actions():
+        ipc("quickActions","enable")
+        wait(lambda:all(name in json.loads(ipc("quickActions","status"))["entries"]
+             for name in ("vpn","notifications")),"quick action icons")
+        for preset in ("default","goop"):
+            ipc("select","shell",preset)
+            ipc("quickActions","vpn")
+            wait(lambda:json.loads(ipc("quickActions","status")).get("card")=="vpnQuickActions","VPN hover content")
+            wait(lambda:json.loads(ipc("quickActions","status"))["offset"]==0,"VPN hover opens")
+            before=json.loads(ipc("quickActions","status"))
+            for name,card in (("notifications","notificationQuickActions"),("vpn","vpnQuickActions")):
+                ipc("quickActions",name)
+                wait(lambda:json.loads(ipc("quickActions","status")).get("card")==card,name+" hover content")
+                time.sleep(.2)
+                info=json.loads(ipc("quickActions","status"))
+                assert info["has"] and info["width"]>0 and info["height"]>0,info
+                assert not info["settingsOpen"] and info["dnd"]==before["dnd"] and info["unread"]==before["unread"],info
+                if preset=="goop":
+                    assert info["offset"]==0 and info["serial"]==before["serial"],info
+                    assert info["morph"]>before["morph"] and info["circles"]>0,info
+                run(["grim","-o","MOTION-TEST",str(base/("quick-"+preset+"-"+name+".png"))])
+            print("PASS real VPN and notification hover menus, no actions on hover and continuous transitions",preset,flush=True)
+        ipc("quickActions","notifications")
+        wait(lambda:json.loads(ipc("quickActions","status")).get("card")=="notificationQuickActions","notification menu before click")
+        ipc("quickActions","click-notifications")
+        wait(lambda:json.loads(ipc("quickActions","status"))["sidebar"] and not json.loads(ipc("quickActions","status"))["has"],
+             "full notification center replaces hover menu")
+        ipc("quickActions","notifications");time.sleep(.25)
+        assert not json.loads(ipc("quickActions","status"))["has"],"Notification hover reopened over the full center"
+        ipc("quickActions","click-notifications")
+        wait(lambda:not json.loads(ipc("quickActions","status"))["sidebar"],"close notification center")
+        ipc("quickActions","vpn")
+        wait(lambda:json.loads(ipc("quickActions","status"))["has"],"VPN menu before click")
+        ipc("quickActions","click-vpn")
+        wait(lambda:json.loads(ipc("quickActions","status"))["settingsOpen"] and not json.loads(ipc("quickActions","status"))["has"],
+             "VPN icon replaces hover with settings")
+        ipc("quickActions","close-settings")
+        print("PASS main icons close the hover menu and open the full settings/notification center",flush=True)
+        ipc("quickActions","disable")
+        time.sleep(.8)
+        for name in ("vpn","notifications"):
+            ipc("quickActions",name);time.sleep(.2)
+            assert not json.loads(ipc("quickActions","status"))["has"],name+" ignored disabled popout setting"
+        ipc("quickActions","enable")
+
     def check_content_reveal():
         from PIL import Image
         ipc("liquid","close","");time.sleep(.6)
@@ -829,6 +903,13 @@ def main(args):
         assert status()["durations"] == [200,400,600,1000,350,500,650,150,200,300], status()
         assert evaluate('assert(hl.plugin.hyprbars.motion_preset)') == "ok"
         print("PASS original shell tokens, native plugin and settings page", flush=True)
+        if args.quick_actions_probe:
+            ipc("panels","start")
+            wait(lambda:json.loads(ipc("panels","status"))["ready"],"quick action drawers")
+            check_quick_actions()
+            text=(base/"shell.log").read_text()
+            assert not any(word in text for word in ("TypeError:","ReferenceError:","Binding loop","Failed to load configuration")),text[-12000:]
+            return
         if args.workspace_drip_probe:
             ipc("select","shell","goop")
             ipc("panels","start")
@@ -1428,4 +1509,5 @@ if __name__ == "__main__":
     parser.add_argument("--portal-probe", action="store_true")
     parser.add_argument("--geometry-probe", action="store_true")
     parser.add_argument("--workspace-drip-probe", action="store_true")
+    parser.add_argument("--quick-actions-probe", action="store_true")
     main(parser.parse_args())

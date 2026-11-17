@@ -18,8 +18,10 @@ BACKEND = '''import json,os,sys
 from pathlib import Path
 path=Path(os.environ['XDG_STATE_HOME'])/'fake-vpn.json'
 action=sys.argv[1]
-payload=json.load(sys.stdin) if action not in ('overview','status') else {}
+payload=json.load(sys.stdin) if action not in ('overview','status','locations') else {}
 value=json.loads(path.read_text()) if path.exists() else {'profiles':[],'routes':[],'selectedProfile':-1,'mode':'tun','connected':False,'installed':True,'canTun':True,'operations':[]}
+if action=='locations':
+ print(json.dumps({p['id']:p.get('country','') for p in value['profiles']}));sys.exit(0)
 if action=='fixture':
  value=payload;value['operations']=[]
 elif action not in ('overview','status'):
@@ -45,6 +47,7 @@ QtObject {
  property bool nativeSelected: true
  property bool otherConnected: false
  readonly property var active: ({name:nativeSelected?"native":"external",displayName:nativeSelected?"VPN":"Other VPN"})
+ readonly property var selected: ({id:"test-provider"})
  readonly property bool connected: nativeSelected ? ManagedVPN.connected : otherConnected
  readonly property bool connecting: ManagedVPN.busy && ManagedVPN.action==="connect"
  readonly property bool disconnecting: ManagedVPN.busy && ManagedVPN.action==="disconnect"
@@ -52,6 +55,7 @@ QtObject {
  function selectManagedProvider(): bool { if(otherConnected)return false;nativeSelected=true;return true; }
  function checkStatus(): void {}
  function disconnect(): void { if(!nativeSelected)otherConnected=false;else ManagedVPN.run("disconnect",{}); }
+ function connect(): void { ManagedVPN.run("connect",{}); }
  function toggle(): void { ManagedVPN.run(connected?"disconnect":"connect",{}); }
 }
 '''
@@ -81,7 +85,11 @@ class VpnInterfaceTests(unittest.TestCase):
             copy("modules/dashboard/dash/Resources.qml", ROOT / "shell/modules/dashboard/dash/Resources.qml")
             copy("modules/nexus/pages/AboutPage.qml", ROOT / "shell/modules/nexus/pages/AboutPage.qml")
             copy("fixtures/VpnToggle.qml", ROOT / "shell/modules/bar/components/VpnToggle.qml")
+            copy("fixtures/NotificationCenterButton.qml", ROOT / "shell/modules/bar/components/NotificationCenterButton.qml")
+            for name in ("PopoutState", "VpnQuickActions", "NotificationQuickActions"):
+                copy("modules/bar/popouts/" + name + ".qml", ROOT / "shell/modules/bar/popouts" / (name + ".qml"))
             copy("utils/scripts/vpn-flow.js", ROOT / "shell/utils/scripts/vpn-flow.js")
+            copy("utils/scripts/vpn-location.js", ROOT / "shell/utils/scripts/vpn-location.js")
             for name in ("RowButton", "ConnectedRect", "ToggleRow", "TextFieldRow", "InfoRow", "SectionHeader", "AnimatedLogo"):
                 copy("modules/nexus/common/" + name + ".qml", ROOT / "shell/modules/nexus/common" / (name + ".qml"))
             write("modules/nexus/common/PageBase.qml", '''import QtQuick
@@ -92,6 +100,30 @@ import QtQuick
 QtObject { property int opened:0; property var lastScreen; function create(parent,props) {opened++;lastScreen=props.screen;} }
 ''')
             write("services/VPN.qml", VPN)
+            write("services/Notifs.qml", '''pragma Singleton
+import QtQuick
+QtObject {
+ property int unreadCount: 2
+ property var notClosed: [1,2]
+ property bool dnd: false
+ property int readCalls: 0
+ property int clearCalls: 0
+ function markAllRead() { unreadCount=0;readCalls++; }
+ function clearAll() { unreadCount=0;notClosed=[];clearCalls++; }
+}
+''')
+            write("services/ShellState.qml", '''pragma Singleton
+import QtQuick
+QtObject {
+ id: root
+ property var requestedScreen
+ property bool sidebar: false
+ property int closedPopouts: 0
+ function forScreen(screen) { requestedScreen=screen;return this; }
+ function setNotificationCenter(state,open) { state.sidebar=open; }
+ function componentsFor(screen) { return {panels:{popouts:{close:function(){root.closedPopouts++;}}}}; }
+}
+''')
             write("services/Hypr.qml", 'pragma Singleton\nimport QtQuick\nQtObject {readonly property bool stacking:false}\n')
             write("services/Effects.qml", 'pragma Singleton\nimport QtQuick\nQtObject {readonly property bool uiShadowsEnabled:false;readonly property real shadowOpacity:0.35;readonly property real shadowSize:18}\n')
             names = set()

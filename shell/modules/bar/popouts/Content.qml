@@ -121,6 +121,20 @@ Item {
         }
 
         Popout {
+            name: "vpn"
+            sourceComponent: VpnQuickActions {
+                popouts: root.popouts
+            }
+        }
+
+        Popout {
+            name: "notifications"
+            sourceComponent: NotificationQuickActions {
+                popouts: root.popouts
+            }
+        }
+
+        Popout {
             name: "battery"
             sourceComponent: Battery {}
         }

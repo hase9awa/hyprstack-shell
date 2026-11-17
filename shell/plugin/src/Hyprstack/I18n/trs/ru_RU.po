@@ -6835,3 +6835,23 @@ msgstr "NaiveProxy требует проверки сертификата TLS"
 #: assets/vpn.py assets/vpn_profiles.py
 msgid "NaiveProxy requires HTTPS or QUIC"
 msgstr "NaiveProxy требует HTTPS или QUIC"
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Quick actions"
+msgstr "Быстрые действия"
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "VPN quick actions on hover"
+msgstr "Быстрые действия VPN при наведении"
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Notification quick actions on hover"
+msgstr "Быстрые действия уведомлений при наведении"
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Open notification center"
+msgstr "Открыть центр уведомлений"
+
+#: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
+msgid "Mark all as read"
+msgstr "Отметить всё прочитанным"
