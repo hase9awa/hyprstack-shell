@@ -34,6 +34,12 @@ Scope {
         if (passwd.active)
             return;
 
+        // Wayland-повтор делается на клиенте: если отпускание клавиши запаздывает
+        // (стыл modeset при пробуждении экрана), Qt забрасывает в поле пачку
+        // одинаковых символов. В пароле удержание полезно только для Backspace.
+        if (event.isAutoRepeat && event.key !== Qt.Key_Backspace)
+            return;
+
         // Trigger howdy on enter while empty buffer
         if (howdy.canAttempt && !howdy.active && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) && buffer.length === 0)
             return howdy.start(); // Gate on active so double enter still allows empty password
