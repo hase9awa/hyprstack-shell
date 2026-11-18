@@ -5982,3 +5982,111 @@ msgstr ""
 #: modules/nexus/pages/power
 msgid "Sleep, lock screen, battery"
 msgstr ""
+
+#: modules/nexus/PageRegistry.qml
+msgid "Effects, tearing, auto-enable"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Effects"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Turn off window and shell animations"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable background blur"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable window shadows"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Gaps and borders"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Collapse gaps and thin the borders"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Rounded corners"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Square off window corners"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Wobble"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Stop windows wobbling when dragged"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Glow"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable the glow effect"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Motion blur"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable motion blur"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Tearing"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Allow tearing for lower latency"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Auto-enable"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Fullscreen apps"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Turn on game mode while an app is fullscreen"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Window class"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Matched against the class of the focused window"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "e.g. steam"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Remove rule"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Add rule"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Notify on auto-enable"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Show a toast when a rule switches game mode on or off"
+msgstr ""

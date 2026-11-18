@@ -3221,6 +3221,186 @@ var catalogue = [
     "page": 10,
     "subpages": [],
     "path": [
+      "Game mode"
+    ],
+    "label": "Game mode",
+    "context": "",
+    "target": "",
+    "match": "",
+    "keywords": "game mode gaming games игра игровой режим производительность performance tearing рывки"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Effects",
+    "context": "",
+    "target": "",
+    "match": "Effects",
+    "keywords": "effects эффекты отключать disable"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Animations",
+    "context": "",
+    "target": "",
+    "match": "Animations",
+    "keywords": "animations анимации отключить"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Blur",
+    "context": "",
+    "target": "",
+    "match": "Blur",
+    "keywords": "blur размытие"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Shadows",
+    "context": "",
+    "target": "",
+    "match": "Shadows",
+    "keywords": "shadows тени"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Gaps and borders",
+    "context": "",
+    "target": "",
+    "match": "Gaps and borders",
+    "keywords": "gaps borders отступы рамки"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Rounded corners",
+    "context": "",
+    "target": "",
+    "match": "Rounded corners",
+    "keywords": "rounding скругление углы"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Wobble",
+    "context": "",
+    "target": "",
+    "match": "Wobble",
+    "keywords": "wobble дрожание окон"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Glow",
+    "context": "",
+    "target": "",
+    "match": "Glow",
+    "keywords": "glow свечение"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Motion blur",
+    "context": "",
+    "target": "",
+    "match": "Motion blur",
+    "keywords": "motion blur размытие движения"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Tearing",
+    "context": "",
+    "target": "",
+    "match": "Tearing",
+    "keywords": "tearing разрыв кадров низкая задержка latency"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Auto-enable",
+    "context": "",
+    "target": "",
+    "match": "Auto-enable",
+    "keywords": "auto enable авто включение автоматически"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Fullscreen apps",
+    "context": "",
+    "target": "",
+    "match": "Fullscreen apps",
+    "keywords": "fullscreen фуллскрин полноэкранное приложение"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Notify on auto-enable",
+    "context": "",
+    "target": "",
+    "match": "Notify on auto-enable",
+    "keywords": "notify toast уведомления тосты авто включение автовключение"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Add rule",
+    "context": "",
+    "target": "",
+    "match": "Add rule",
+    "keywords": "add rule правило класс окна window class"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
       "About"
     ],
     "label": "About",
@@ -3230,7 +3410,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3242,7 +3422,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3254,7 +3434,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3266,7 +3446,7 @@ var catalogue = [
     "keywords": "Prepare the update again Download release background build"
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3278,7 +3458,7 @@ var catalogue = [
     "keywords": "Save your work. Installation ends the Hyprland session."
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3290,7 +3470,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3302,7 +3482,7 @@ var catalogue = [
     "keywords": "Check stable releases at startup and every six hours."
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3314,7 +3494,7 @@ var catalogue = [
     "keywords": "Show a small notification once for each new version."
   },
   {
-    "page": 11,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"

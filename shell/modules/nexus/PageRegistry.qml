@@ -81,6 +81,12 @@ QtObject {
             description: Tr.tr("Sleep, lock screen, battery"),
             category: "shell"
         },
+        {
+            label: Tr.tr("Game mode"),
+            icon: "gamepad",
+            description: Tr.tr("Effects, tearing, auto-enable"),
+            category: "shell"
+        },
 
         // About
         {

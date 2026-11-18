@@ -206,6 +206,15 @@ QtObject {
             }
         },
 
+        Component {
+            // Game mode
+            StackPage {
+                Component {
+                    GameModePage {}
+                }
+            }
+        },
+
         // About
         Component {
             StackPage {

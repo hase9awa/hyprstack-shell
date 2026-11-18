@@ -56,12 +56,40 @@ class UtilitiesCards : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, quickToggles, true)
 };
 
+class UtilitiesGameModeRule : public settings::ObjectNode {
+    CONFIG_NODE(UtilitiesGameModeRule, settings::ObjectNode)
+
+    CONFIG_PROPERTY(QString, pattern, {})
+};
+CONFIG_LIST_TYPE(UtilitiesGameModeRule, UtilitiesGameModeRuleList)
+
+class UtilitiesGameMode : public settings::ObjectNode {
+    CONFIG_NODE(UtilitiesGameMode, settings::ObjectNode)
+
+    // What to apply while game mode is on (defaults keep the historic behaviour)
+    CONFIG_PROPERTY(bool, animations, true)
+    CONFIG_PROPERTY(bool, blur, true)
+    CONFIG_PROPERTY(bool, shadows, true)
+    CONFIG_PROPERTY(bool, gaps, true)
+    CONFIG_PROPERTY(bool, rounding, true)
+    CONFIG_PROPERTY(bool, wobble, true)
+    CONFIG_PROPERTY(bool, glow, true)
+    CONFIG_PROPERTY(bool, motionBlur, true)
+    CONFIG_PROPERTY(bool, tearing, true)
+
+    // Auto-enable rules
+    CONFIG_PROPERTY(bool, autoFullscreen, false)
+    CONFIG_PROPERTY(bool, autoToast, false)
+    CONFIG_LIST(UtilitiesGameModeRuleList, rules, {})
+};
+
 class UtilitiesConfig : public settings::ObjectNode {
     CONFIG_NODE(UtilitiesConfig, settings::ObjectNode)
 
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(int, maxToasts, 4)
     CONFIG_SUBOBJECT(UtilitiesCards, cards)
+    CONFIG_SUBOBJECT(UtilitiesGameMode, gameMode)
     CONFIG_GLOBAL_SUBOBJECT(UtilitiesToasts, toasts)
     CONFIG_GLOBAL_SUBOBJECT(UtilitiesVpn, vpn)
     CONFIG_LIST(EntryList, quickToggles,

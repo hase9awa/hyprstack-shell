@@ -7147,3 +7147,107 @@ msgstr "Уровни, заголовки и иконки предупрежде�
 #: modules/nexus/pages/power
 msgid "Sleep, lock screen, battery"
 msgstr "Сон, экран блокировки, батарея"
+
+#: modules/nexus/PageRegistry.qml
+msgid "Effects, tearing, auto-enable"
+msgstr "Эффекты, разрыв кадров, автовключение"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Effects"
+msgstr "Эффекты"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Turn off window and shell animations"
+msgstr "Отключить анимации окон и оболочки"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable background blur"
+msgstr "Отключить размытие фона"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable window shadows"
+msgstr "Отключить тени окон"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Gaps and borders"
+msgstr "Отступы и рамки"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Collapse gaps and thin the borders"
+msgstr "Убрать отступы и утончить рамки"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Rounded corners"
+msgstr "Скруглённые углы"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Square off window corners"
+msgstr "Убрать скругление углов окон"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Wobble"
+msgstr "Дрожание"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Stop windows wobbling when dragged"
+msgstr "Отключить дрожание окон при перетаскивании"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Glow"
+msgstr "Свечение"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable the glow effect"
+msgstr "Отключить эффект свечения"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable motion blur"
+msgstr "Отключить размытие движения"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Tearing"
+msgstr "Разрыв кадров"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Allow tearing for lower latency"
+msgstr "Разрешить разрыв кадров для снижения задержки"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Auto-enable"
+msgstr "Автовключение"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Fullscreen apps"
+msgstr "Полноэкранные приложения"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Turn on game mode while an app is fullscreen"
+msgstr "Включать игровой режим, когда приложение на весь экран"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Window class"
+msgstr "Класс окна"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Matched against the class of the focused window"
+msgstr "Сопоставляется с классом активного окна"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "e.g. steam"
+msgstr "напр. steam"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Remove rule"
+msgstr "Удалить правило"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Add rule"
+msgstr "Добавить правило"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Notify on auto-enable"
+msgstr "Уведомления при автовключении"
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Show a toast when a rule switches game mode on or off"
+msgstr "Показывать тост, когда правило включает или выключает игровой режим"
