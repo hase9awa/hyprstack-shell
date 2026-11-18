@@ -19,11 +19,14 @@ ConnectedRect {
     property alias maximumLength: input.maximumLength
     property alias validate: input.validate
     property alias validator: input.validator
+    property alias leadingIcon: input.leadingIcon
     property bool smallField
     readonly property alias field: input
+    property alias menuItems: menu.items
 
     signal valueEdited(value: string)
     signal editingFinished(value: string)
+    signal menuSelected(item: MenuItem)
 
     function clear(): void {
         input.clear();
@@ -85,6 +88,30 @@ ConnectedRect {
 
             onTextEdited: root.valueEdited(text)
             onEditingFinished: root.editingFinished(text)
+        }
+
+        IconButton {
+            id: expandBtn
+
+            visible: root.menuItems.length > 0
+            Layout.alignment: Qt.AlignVCenter
+            icon: "expand_more"
+            type: IconButton.Tonal
+            onClicked: menu.expanded = !menu.expanded
+        }
+    }
+
+    Menu {
+        id: menu
+
+        attachTo: expandBtn
+        marginY: Tokens.spacing.small
+        active: null
+        onItemSelected: item => {
+            root.menuSelected(item);
+            // Manual typing breaks the text: root.value binding; re-establish it
+            // so the field follows the value (and language) after a preset pick.
+            input.text = Qt.binding(() => root.value);
         }
     }
 }

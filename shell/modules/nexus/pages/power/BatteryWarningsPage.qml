@@ -13,6 +13,30 @@ PageBase {
 
     readonly property var warnLevels: GlobalConfig.general.battery.warnLevels
 
+    readonly property list<MenuItem> titlePresets: [
+        MenuItem { text: Tr.tr("Low battery"); value: Tr.mark("Low battery") },
+        MenuItem { text: Tr.tr("Did you see the previous message?"); value: Tr.mark("Did you see the previous message?") },
+        MenuItem { text: Tr.tr("Critical battery level"); value: Tr.mark("Critical battery level") },
+        MenuItem { text: Tr.tr("Battery warning"); value: Tr.mark("Battery warning") }
+    ]
+
+    readonly property list<MenuItem> messagePresets: [
+        MenuItem { text: Tr.tr("You might want to plug in a charger"); value: Tr.mark("You might want to plug in a charger") },
+        MenuItem { text: Tr.tr("You should probably plug in a charger <b>now</b>"); value: Tr.mark("You should probably plug in a charger <b>now</b>") },
+        MenuItem { text: Tr.tr("PLUG THE CHARGER RIGHT NOW!!"); value: Tr.mark("PLUG THE CHARGER RIGHT NOW!!") },
+        MenuItem { text: Tr.tr("Battery level is low"); value: Tr.mark("Battery level is low") }
+    ]
+
+    readonly property list<MenuItem> iconPresets: [
+        MenuItem { text: "battery_android_frame_2"; icon: "battery_android_frame_2"; value: "battery_android_frame_2" },
+        MenuItem { text: "battery_android_frame_1"; icon: "battery_android_frame_1"; value: "battery_android_frame_1" },
+        MenuItem { text: "battery_android_alert"; icon: "battery_android_alert"; value: "battery_android_alert" },
+        MenuItem { text: "battery_full"; icon: "battery_full"; value: "battery_full" },
+        MenuItem { text: "battery_charging_full"; icon: "battery_charging_full"; value: "battery_charging_full" },
+        MenuItem { text: "battery_alert"; icon: "battery_alert"; value: "battery_alert" },
+        MenuItem { text: "battery_saver"; icon: "battery_saver"; value: "battery_saver" }
+    ]
+
     title: Tr.tr("Battery warnings")
     isSubPage: true
 
@@ -76,22 +100,42 @@ PageBase {
                 TextFieldRow {
                     label: Tr.tr("Title")
                     subtext: Tr.tr("First line of the notification")
-                    value: root.warnLevels.at(entry.index)?.title ?? entry.modelData.title ?? ""
-                    onEditingFinished: v => root.warnLevels.at(entry.index).title = v
+                    value: Tr.trMarked(root.warnLevels.at(entry.index)?.title ?? entry.modelData.title ?? "")
+                    placeholderText: Tr.tr("Battery warning")
+                    menuItems: root.titlePresets
+                    onEditingFinished: v => {
+                        const stored = root.warnLevels.at(entry.index)?.title ?? entry.modelData.title ?? "";
+                        // Blur or re-typing the visible text must not overwrite the marker
+                        if (v === Tr.trMarked(stored))
+                            return;
+                        root.warnLevels.at(entry.index).title = v;
+                    }
+                    onMenuSelected: item => root.warnLevels.at(entry.index).title = item.value
                 }
 
                 TextFieldRow {
                     label: Tr.tr("Message")
                     subtext: Tr.tr("Body of the notification")
-                    value: root.warnLevels.at(entry.index)?.message ?? entry.modelData.message ?? ""
-                    onEditingFinished: v => root.warnLevels.at(entry.index).message = v
+                    value: Tr.trMarked(root.warnLevels.at(entry.index)?.message ?? entry.modelData.message ?? "")
+                    placeholderText: Tr.tr("Battery level is low")
+                    menuItems: root.messagePresets
+                    onEditingFinished: v => {
+                        const stored = root.warnLevels.at(entry.index)?.message ?? entry.modelData.message ?? "";
+                        if (v === Tr.trMarked(stored))
+                            return;
+                        root.warnLevels.at(entry.index).message = v;
+                    }
+                    onMenuSelected: item => root.warnLevels.at(entry.index).message = item.value
                 }
 
                 TextFieldRow {
                     label: Tr.tr("Icon")
                     subtext: Tr.tr("Material icon name")
                     value: root.warnLevels.at(entry.index)?.icon ?? entry.modelData.icon ?? ""
+                    leadingIcon: value
+                    menuItems: root.iconPresets
                     onEditingFinished: v => root.warnLevels.at(entry.index).icon = v
+                    onMenuSelected: item => root.warnLevels.at(entry.index).icon = item.value
                 }
 
                 ToggleRow {
