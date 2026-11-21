@@ -62,15 +62,17 @@ Singleton {
     function applyScene(): void {
         if (!active || !snapshot.monitor)
             return;
-        const world = stacking ? frames : layout.worldFrames;
+        const byAddress = list => new Map(list.map(frame => [frame.address, frame]));
+        const screenFrames = byAddress(frames);
+        const worldFrames = stacking ? screenFrames : byAddress(layout.worldFrames);
         const colour = Colours.palette.m3primary;
         const scene = {monitor: monitorName, mode: snapshot.mode, selected: selectedAddress,
             workspace: selectedWorkspace, originalWorkspace: originalWorkspace,
             camera: layout.camera ?? {zoom: 1, x: 0, y: 0}, originCamera: layout.originCamera ?? {zoom: 1, x: 0, y: 0},
             worldRows: layout.worldRows ?? [], colour: [colour.r, colour.g, colour.b], wallpaper: Wallpapers.current,
             windows: snapshot.windows.map(w => Object.assign({}, w, {
-                frame: frames.find(f => f.address === w.address),
-                world: world.find(f => f.address === w.address)
+                frame: screenFrames.get(w.address),
+                world: worldFrames.get(w.address)
             }))};
         Hypr.extras.message(`eval hyprstack_layouts.overview_scene("show", ${JSON.stringify(JSON.stringify(scene))})`);
         nativeStarted = true;

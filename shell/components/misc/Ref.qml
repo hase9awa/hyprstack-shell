@@ -1,8 +1,20 @@
 import QtQuick
 
 QtObject {
-    required property var service
+    required property QtObject service
+    property QtObject heldService
 
-    Component.onCompleted: service.refCount++
-    Component.onDestruction: service.refCount--
+    function sync(): void {
+        if (heldService === service)
+            return;
+        if (heldService)
+            heldService.refCount--;
+        heldService = service;
+        if (heldService)
+            heldService.refCount++;
+    }
+
+    onServiceChanged: sync()
+    Component.onCompleted: sync()
+    Component.onDestruction: if (heldService) heldService.refCount--
 }

@@ -142,7 +142,7 @@ PageBase {
             onToggled: VPN.toggle()
 
             Timer {
-                running: root.visible
+                running: root.visible && root.hasOtherVpnProviders
                 repeat: true
                 triggeredOnStart: true
                 interval: 5000

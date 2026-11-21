@@ -18,7 +18,7 @@ Scope {
         Players;
         WindowSwitcher;
         Brightness;
-        Weather.reload();
+        Weather;
         ThemeSync.requestSync();
 
         if (GlobalConfig.utilities.vpn.enabled)

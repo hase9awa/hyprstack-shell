@@ -14,6 +14,8 @@ import "NotificationStore.js" as Store
 QtObject {
     id: notif
 
+    property Process actionProcess
+    property Process cacheProcess
     property bool popup
     property bool closed
     property bool retiring: false
@@ -79,7 +81,7 @@ QtObject {
     }
 
     function imageAction(action: string): void {
-        if (actionProcess.running)
+        if (actionProcess)
             return;
         read = true;
         if (action === "open") {
@@ -88,9 +90,20 @@ QtObject {
         }
         // Resolve the original or cached image before asking the shell to
         // open its preview, rather than launching an external image viewer.
-        actionProcess.command = ["python3", Notifs.imageHelper, "action",
-            action === "open" ? "preview" : action, screenshotPath, image];
-        actionProcess.running = true;
+        actionProcess = Notifs.runImageCommand(notif, ["action",
+            action === "open" ? "preview" : action, screenshotPath, image], text => {
+            try {
+                const result = JSON.parse(text);
+                if (result.error)
+                    Notifs.lastError = result.error;
+                else if (result.action === "preview")
+                    Notifs.screenshotRequested(result.path);
+                else if (result.action === "save")
+                    notif.screenshotPath = result.path;
+            } catch (err) {
+                Notifs.lastError = "Unable to use screenshot: " + err;
+            }
+        });
     }
 
     function restoreHistory(properties: var): void {
@@ -133,56 +146,14 @@ QtObject {
         Notifs.touch(notif);
     }
 
-    readonly property Process actionProcess: Process {
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const result = JSON.parse(text);
-                    if (result.error)
-                        Notifs.lastError = result.error;
-                    else if (result.action === "preview")
-                        Notifs.screenshotRequested(result.path);
-                    else if (result.action === "save")
-                        notif.screenshotPath = result.path;
-                } catch (err) {
-                    Notifs.lastError = "Unable to use screenshot: " + err;
-                }
-            }
-        }
-    }
-
-    readonly property Process cacheProcess: Process {
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const result = JSON.parse(text);
-                    if (result.path)
-                        notif.image = result.path;
-                } catch (_) {
-                    // The source may have been removed by its application.
-                }
-            }
-        }
-    }
-
-    readonly property bool hasFullscreen: {
-        const monitor = Hypr.focusedMonitor;
-        const specialName = monitor?.lastIpcObject.specialWorkspace?.name;
-        if (specialName) {
-            const specialWs = Hypr.workspaces.values.find(ws => ws.name === specialName);
-            return Hypr.hasFullscreen(specialWs);
-        }
-        return Hypr.hasFullscreen(monitor?.activeWorkspace);
-    }
-
     readonly property Timer timer: Timer {
         running: notif.popup && notif.expireTimeout !== 0
-        interval: notif.expireTimeout > 0 ? notif.expireTimeout : notif.hasFullscreen ? GlobalConfig.notifs.fullscreenExpireTimeout : GlobalConfig.notifs.defaultExpireTimeout
+        interval: notif.expireTimeout > 0 ? notif.expireTimeout : Notifs.focusedFullscreen ? GlobalConfig.notifs.fullscreenExpireTimeout : GlobalConfig.notifs.defaultExpireTimeout
         onTriggered: {
             if (notif.expireTimeout === 0)
                 return;
             // Always expire if the active workspace has a fullscreen window
-            if (GlobalConfig.notifs.expire || notif.hasFullscreen || notif.isTransient)
+            if (GlobalConfig.notifs.expire || Notifs.focusedFullscreen || notif.isTransient)
                 notif.popup = false;
         }
     }
@@ -328,9 +299,21 @@ QtObject {
         if (path && !path.startsWith(Paths.notifimagecache + "/")) {
             // Local screenshots are copied byte-for-byte, retaining resolution.
             image = path;
-            if (!cacheProcess.running) {
-                cacheProcess.command = ["python3", Notifs.imageHelper, "cache", path];
-                cacheProcess.running = true;
+            if (!cacheProcess) {
+                cacheProcess = Notifs.runImageCommand(notif, ["cache", path], text => {
+                    notif.cacheProcess = null;
+                    if (notif.image !== path) {
+                        notif.maybeTriggerDummyImageLoader();
+                        return;
+                    }
+                    try {
+                        const result = JSON.parse(text);
+                        if (result.path)
+                            notif.image = result.path;
+                    } catch (_) {
+                        // The source may have been removed by its application.
+                    }
+                });
             }
         } else if (image && !image.startsWith("image://icon/") && !image.startsWith(Paths.notifimagecache)) {
             dummyImageLoader.active = true;

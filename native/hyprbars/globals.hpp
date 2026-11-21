@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+#include <tuple>
 #include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
 #include <hyprland/src/desktop/view/window/WindowFullscreenPolicy.hpp>
@@ -22,7 +24,9 @@ struct SHyprButton {
     CHyprColor           bgcol   = CHyprColor(0, 0, 0, 0);
     float                size    = 10;
     std::string          icon    = "";
-    SP<Render::ITexture> iconTex;
+    // The icon and its colours are fixed for the lifetime of a configured button.
+    std::map<std::tuple<int, bool, bool, bool>, SP<Render::ITexture>> controlIcons;
+    std::map<std::pair<int, int>, SP<Render::ITexture>> textIcons;
 };
 
 class CHyprBar;

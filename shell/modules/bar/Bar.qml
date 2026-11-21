@@ -286,7 +286,7 @@ Item {
         screen: root.screen
         popouts: root.popouts
         maxWidth: Math.max(0, root.width - 2 * Math.max(root.sideWidth, root.hPadding + 40 * Tokens.scale) - 24 * Tokens.scale)
-        visible: Hypr.stacking && Config.bar.showTasks && maxWidth > 0
+        visible: showTasks && maxWidth > 0
     }
 
     component EntryWrapper: Item {

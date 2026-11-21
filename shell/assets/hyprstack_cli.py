@@ -22,11 +22,27 @@ import time
 import theme_manager as themes
 from i18n import _, configure_argparse
 
-VERSION = "1.4.14"
 ASSETS = Path(__file__).resolve().parent
 CONFIG = themes.CONFIG
 STATE = themes.STATE
 VARIANTS = ("tonalspot", "vibrant", "expressive", "fidelity", "content", "fruitsalad", "rainbow", "neutral", "monochrome")
+
+
+def release_version():
+    root = ASSETS.parents[1]
+    try:
+        version = json.loads((root / "version.json").read_bytes())["version"]
+        if isinstance(version, str) and version:
+            return version
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    # A source checkout has the CMake declaration instead of the installed metadata.
+    try:
+        project = (root / "CMakeLists.txt").read_text()
+    except OSError:
+        return "unknown"
+    match = re.search(r"\bproject\s*\(\s*hyprstack\s+VERSION\s+(\d+\.\d+\.\d+)", project)
+    return match[1] if match else "unknown"
 
 
 def run(command, **kwargs):
@@ -498,7 +514,7 @@ def record_command(args):
 def parser():
     configure_argparse()
     p = argparse.ArgumentParser(description=_("Control the Hyprstack desktop"), prog="hyprstack")
-    p.add_argument("-v", "--version", action="version", version="hyprstack " + VERSION)
+    p.add_argument("-v", "--version", action="version", version="hyprstack " + release_version())
     sub = p.add_subparsers(dest="command", required=True, title=_("Commands"))
     scheme = sub.add_parser("scheme", help=_("View and change colour schemes")).add_subparsers(dest="operation", required=True)
     listing = scheme.add_parser("list")

@@ -22,6 +22,8 @@ Item {
     readonly property FileEntry currentItem: view.currentItem as FileEntry
     property list<string> selectedPaths
     readonly property bool listMode: FileDialogSettings.viewMode === "list"
+    readonly property var sort: FileDialogSettings.sortFor(dialog.currentPath)
+    readonly property bool loading: view.model?.loading ?? false
     readonly property int modifiedWidth: 160 * Tokens.scale
     readonly property int sizeWidth: 80 * Tokens.scale
     readonly property int typeWidth: 85 * Tokens.scale
@@ -29,8 +31,7 @@ Item {
     property string focusedPath
 
     function restoreCurrent(): void {
-        const entries = [...view.model.entries];
-        view.currentIndex = focusedPath ? entries.findIndex(entry => entry.path === focusedPath) : -1;
+        view.currentIndex = focusedPath ? [...view.model.entries].findIndex(entry => entry.path === focusedPath) : -1;
         reordering = false;
     }
 
@@ -115,13 +116,13 @@ Item {
         sourceComponent: ColumnLayout {
             MaterialIcon {
                 Layout.alignment: Qt.AlignHCenter
-                text: "scan_delete"
+                text: root.loading ? "hourglass_empty" : "scan_delete"
                 color: Colours.palette.m3outline
                 fontStyle: Tokens.font.icon.builders.extraLarge.scale(2).weight(Font.Medium).build()
             }
 
             StyledText {
-                text: Tr.tr("This folder is empty")
+                text: root.loading ? Tr.tr("Loading...") : Tr.tr("This folder is empty")
                 color: Colours.palette.m3outline
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
             }
@@ -154,19 +155,19 @@ Item {
         id: header
         required property string field
         required property string label
-        readonly property bool active: FileDialogSettings.sortBy === field
+        readonly property bool active: root.sort.sortBy === field
         objectName: "fileDialogSort_" + field
         implicitHeight: heading.implicitHeight + Tokens.padding.small * 2
         Accessible.role: Accessible.Button
         Accessible.name: label
-        Accessible.onPressAction: FileDialogSettings.chooseSort(field)
+        Accessible.onPressAction: FileDialogSettings.chooseSort(field, root.dialog.currentPath)
 
         StateLayer {
             anchors.fill: parent
             radius: Tokens.rounding.small
             color: header.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
             disabled: !FileDialogSettings.loaded
-            onClicked: FileDialogSettings.chooseSort(header.field)
+            onClicked: FileDialogSettings.chooseSort(header.field, root.dialog.currentPath)
         }
 
         StyledText {
@@ -184,7 +185,7 @@ Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             visible: header.active
-            text: FileDialogSettings.reverse ? "arrow_downward" : "arrow_upward"
+            text: root.sort.reverse ? "arrow_downward" : "arrow_upward"
             color: Colours.palette.m3primary
             fontStyle: Tokens.font.icon.small
         }
@@ -224,8 +225,9 @@ Item {
             path: root.dialog.currentPath
             showHidden: root.dialog.showHidden
             sortBy: ({name: FileSystemModel.Name, modified: FileSystemModel.Modified,
-                size: FileSystemModel.Size, type: FileSystemModel.Type})[FileDialogSettings.sortBy]
-            sortReverse: FileDialogSettings.reverse
+                size: FileSystemModel.Size, type: FileSystemModel.Type})[root.sort.sortBy]
+            sortReverse: root.sort.reverse
+            foldersFirst: root.sort.foldersFirst
             // Offering files while the caller asked for a folder only invites
             // picking the wrong thing.
             filter: root.dialog.mode === FileDialog.SelectFolder ? FileSystemModel.Dirs : FileSystemModel.NoFilter

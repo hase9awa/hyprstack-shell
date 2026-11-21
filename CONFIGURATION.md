@@ -9,6 +9,7 @@
 | `hyprstack/shell.json` | Панели, темы, уведомления, погода и анимации |
 | `hyprstack/layouts.json` | Scrolling / stacking |
 | `hyprstack/workspaces.json` | Рабочие столы и распределение по мониторам |
+| `hyprstack/file-dialog.json` | Представление и сортировка файлового диалога |
 | `hyprstack/effects.json` | Размытие и тени |
 | `hyprstack/tiling.json` | Рамки, отступы, фокус по наведению и автопрокрутка |
 | `hyprstack/hypr-vars.lua` | Приложения, горячие клавиши, оформление Hyprland |
@@ -182,6 +183,22 @@ Kitty и Firefox — значения поставляемых шаблонов.
 как оболочка входа; выбор терминала в Hyprstack командную оболочку не меняет.
 Новый файловый менеджер установите самостоятельно и назначьте для каталогов
 через `xdg-mime`, либо укажите его команду в `fileExplorer` и `general.apps.explorer`.
+
+## Сортировка в файловом диалоге
+
+Для отдельной папки можно задать сортировку в `folderSort` файла
+`hyprstack/file-dialog.json`. Следующая запись помещает новые файлы и каталоги
+выше старых в одном списке.
+
+```json
+{
+  "folderSort": {
+    "/home/user/Downloads": { "sortBy": "modified", "reverse": true, "foldersFirst": false }
+  }
+}
+```
+
+Укажите абсолютный путь к нужной папке и сохраните остальные настройки файла.
 
 ## Горячие клавиши
 

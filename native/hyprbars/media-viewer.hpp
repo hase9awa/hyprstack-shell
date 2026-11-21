@@ -93,17 +93,17 @@ static void install() {
     }, nullptr);
     g_pEventLoopManager->addTimer(deadlineTimer);
     render = Event::bus()->m_events.render.stage.listen([](Event::SRenderStageEvent event) {
-        if (event.stage != RENDER_PRE_WINDOWS || !event.context) return;
+        if (entries.empty() || event.stage != RENDER_PRE_WINDOWS || !event.context) return;
         const auto& ctx = event.context->get();
         if (ctx.m_renderingSnapshot || (ctx.sceneResources() && ctx.sceneResources()->isolated())) return;
         // Closing snapshots are made synchronously after window.close; keep
         // an unready image held until that capture has finished.
         std::erase_if(entries, [](const auto& item) { return item.second.closing || !item.second.viewer; });
         for (auto& [_, entry] : entries) {
+            if (entry.ready) continue;
             const auto viewer = entry.viewer.lock();
             if (!viewer || !viewer->mapped() || viewer->m_monitor != event.monitor) continue;
             const bool fullscreen = Fullscreen::controller()->isFullscreen(viewer);
-            if (entry.ready) continue;
             if (!fullscreen || bufferReady(viewer) || Clock::now() >= entry.deadline) {
                 reveal(entry);
             }

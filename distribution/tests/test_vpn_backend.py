@@ -2,6 +2,7 @@
 """VPN startup regression tests; no tunnel, installed profile or service is changed."""
 import errno
 import json
+import os
 from pathlib import Path
 import socket
 import subprocess
@@ -30,6 +31,19 @@ class VpnStartupTests(unittest.TestCase):
     def tearDown(self):
         self.environment.stop()
         self.temporary.cleanup()
+
+    def test_connection_status_tracks_process_identity_without_loading_profiles(self):
+        with patch.object(vpn, 'model', side_effect=AssertionError('unexpected profile read')), \
+             patch.object(vpn, 'binary', side_effect=AssertionError('unexpected core lookup')):
+            self.assertFalse(vpn.dispatch('connection-status', {})['coreRunning'])
+            session = {'mode': 'proxy', 'pid': os.getpid(), 'start': vpn.proc_start(os.getpid()),
+                       'name': 'Local fixture', 'socksPort': 42080}
+            vpn.atomic_json(self.root / 'process.json', session)
+            state = vpn.dispatch('connection-status', {})
+            self.assertTrue(state['connected'] and state['coreRunning'])
+            self.assertEqual((state['server'], state['socksPort']), ('Local fixture', 42080))
+            vpn.atomic_json(self.root / 'process.json', dict(session, start='stale'))
+            self.assertFalse(vpn.dispatch('connection-status', {})['connected'])
 
     def test_country_cache_uses_each_profile_without_changing_connection_or_installing(self):
         before = json.loads(json.dumps(self.model))
@@ -100,7 +114,7 @@ class VpnStartupTests(unittest.TestCase):
                         stream.sendall(b'\x05\x00')
             worker = threading.Thread(target=handshake, daemon=True)
             worker.start()
-            with patch.object(vpn, 'status', return_value={'connected': True, 'socksPort': listener.getsockname()[1]}):
+            with patch.object(vpn, 'connection_status', return_value={'connected': True, 'socksPort': listener.getsockname()[1]}):
                 self.assertTrue(vpn.ready())
             worker.join(timeout=2)
             self.assertFalse(worker.is_alive())

@@ -6,6 +6,7 @@ import Quickshell
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
+import qs.components.misc
 import qs.services
 
 StyledRect {
@@ -19,6 +20,8 @@ StyledRect {
     implicitHeight: Tokens.sizes.bar.innerWidth
     color: "transparent"
     radius: Tokens.rounding.full
+
+    Ref { service: root.visible && root.Config.bar.clock.showSeconds ? Time : null }
 
     GroupBackground {
         color: Qt.alpha(Colours.tPalette.m3surfaceContainer, Config.bar.clock.background ? Colours.tPalette.m3surfaceContainer.a : 0)

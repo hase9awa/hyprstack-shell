@@ -2,6 +2,7 @@
 
 #include <qhash.h>
 #include <qobject.h>
+#include <qpointer.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
 #include <qregularexpression.h>
@@ -100,16 +101,16 @@ private:
 
     const QString m_uuid;
     QString m_path;
-    QObjectList m_entries;
+    QList<QPointer<QObject>> m_entries;
     QStringList m_favouriteApps;                    // unedited string list from qml
     QList<QRegularExpression> m_favouriteAppsRegex; // pre-regexified m_favouriteApps list
     QHash<QString, AppEntry*> m_apps;
-    mutable QList<AppEntry*> m_sortedApps;
+    QList<AppEntry*> m_sortedApps;
 
     static QString regexifyString(const QString& original);
-    QList<AppEntry*>& getSortedApps() const;
+    void sortApps();
     bool isFavourite(const AppEntry* app) const;
-    quint32 getFrequency(const QString& id) const;
+    QHash<QString, quint32> readFrequencies() const;
     void updateAppFrequencies();
     void updateApps();
 };

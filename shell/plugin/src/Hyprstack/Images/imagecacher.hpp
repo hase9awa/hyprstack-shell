@@ -1,17 +1,12 @@
 #pragma once
 
-#include <qmutex.h>
 #include <qimage.h>
-#include <qobject.h>
-#include <qset.h>
 #include <qsize.h>
 #include <qstring.h>
 
 namespace hyprstack::images {
 
-class ImageCacher : public QObject {
-    Q_OBJECT
-
+class ImageCacher {
 public:
     enum class FillMode : quint8 {
         Crop,
@@ -19,22 +14,11 @@ public:
         Stretch,
     };
 
-    static ImageCacher* instance();
-
-    static const QString& cacheDir();
-    static QString cachePathFor(const QString& sourcePath, const QSize& size, FillMode fillMode);
     static QImage load(const QString& sourcePath, const QSize& size, FillMode fillMode);
 
-    void schedule(const QString& sourcePath, const QSize& size, FillMode fillMode);
-    void schedule(const QString& sourcePath, const QString& cachePath, const QSize& size, FillMode fillMode);
-
 private:
-    explicit ImageCacher(QObject* parent = nullptr);
-
-    static void runJob(const QString& sourcePath, const QString& cachePath, const QSize& size, FillMode fillMode);
-
-    QMutex m_mutex;
-    QSet<QString> m_inflight;
+    static const QString& cacheDir();
+    static QString cachePathFor(const QString& sourcePath, const QSize& size, FillMode fillMode);
 };
 
 } // namespace hyprstack::images

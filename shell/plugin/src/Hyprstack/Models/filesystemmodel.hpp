@@ -3,7 +3,7 @@
 #include <qabstractitemmodel.h>
 #include <qdatetime.h>
 #include <qdir.h>
-#include <qdiriterator.h>
+#include <qfileinfo.h>
 #include <qfilesystemwatcher.h>
 #include <qfuture.h>
 #include <qimagereader.h>
@@ -11,6 +11,8 @@
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qqmllist.h>
+
+#include <optional>
 
 namespace hyprstack::models {
 
@@ -27,12 +29,19 @@ class FileSystemEntry : public QObject {
     Q_PROPERTY(QString suffix READ suffix CONSTANT)
     Q_PROPERTY(qint64 size READ size NOTIFY metadataChanged)
     Q_PROPERTY(QDateTime modified READ modified NOTIFY metadataChanged)
-    Q_PROPERTY(bool isDir READ isDir CONSTANT)
-    Q_PROPERTY(bool isImage READ isImage CONSTANT)
-    Q_PROPERTY(QString mimeType READ mimeType CONSTANT)
+    Q_PROPERTY(bool isDir READ isDir NOTIFY metadataChanged)
+    Q_PROPERTY(bool isImage READ isImage NOTIFY metadataChanged)
+    Q_PROPERTY(QString mimeType READ mimeType NOTIFY metadataChanged)
 
 public:
-    explicit FileSystemEntry(const QString& path, QString relativePath, QObject* parent = nullptr);
+    struct Metadata {
+        qint64 size;
+        QDateTime modified;
+        bool operator==(const Metadata&) const = default;
+    };
+
+    explicit FileSystemEntry(QFileInfo info, bool isDirectory, std::optional<Metadata> metadata,
+        QString relativePath, QObject* parent = nullptr);
 
     [[nodiscard]] QString path() const;
     [[nodiscard]] QString relativePath() const;
@@ -47,7 +56,7 @@ public:
     [[nodiscard]] QString mimeType() const;
 
     void updateRelativePath(const QDir& dir);
-    void refresh();
+    bool updateInfo(QFileInfo info, bool isDirectory, std::optional<Metadata> metadata);
 
 signals:
     void relativePathChanged();
@@ -58,6 +67,8 @@ private:
 
     const QString m_path;
     QString m_relativePath;
+    bool m_isDirectory;
+    std::optional<Metadata> m_metadata;
 
     mutable bool m_isImage;
     mutable bool m_isImageInitialised;
@@ -76,6 +87,8 @@ class FileSystemModel : public QAbstractListModel {
     Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden NOTIFY showHiddenChanged)
     Q_PROPERTY(bool sortReverse READ sortReverse WRITE setSortReverse NOTIFY sortReverseChanged)
     Q_PROPERTY(SortBy sortBy READ sortBy WRITE setSortBy NOTIFY sortByChanged)
+    Q_PROPERTY(bool foldersFirst READ foldersFirst WRITE setFoldersFirst NOTIFY foldersFirstChanged)
+    Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
     Q_PROPERTY(Filter filter READ filter WRITE setFilter NOTIFY filterChanged)
     Q_PROPERTY(QStringList nameFilters READ nameFilters WRITE setNameFilters NOTIFY nameFiltersChanged)
 
@@ -94,6 +107,7 @@ public:
     Q_ENUM(SortBy)
 
     explicit FileSystemModel(QObject* parent = nullptr);
+    ~FileSystemModel() override;
 
     [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     [[nodiscard]] QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -115,6 +129,9 @@ public:
     void setSortReverse(bool sortReverse);
     [[nodiscard]] SortBy sortBy() const;
     void setSortBy(SortBy sortBy);
+    [[nodiscard]] bool foldersFirst() const;
+    void setFoldersFirst(bool foldersFirst);
+    [[nodiscard]] bool loading() const;
     Q_INVOKABLE void refresh();
 
     [[nodiscard]] Filter filter() const;
@@ -132,46 +149,56 @@ signals:
     void showHiddenChanged();
     void sortReverseChanged();
     void sortByChanged();
+    void foldersFirstChanged();
+    void loadingChanged();
     void filterChanged();
     void nameFiltersChanged();
     void entriesChanged();
 
 private:
-    struct PathDiff {
-        QSet<QString> removed;
-        QSet<QString> added;
+    struct ScannedEntry {
+        QFileInfo info;
+        bool isDirectory;
+        std::optional<FileSystemEntry::Metadata> metadata;
+    };
+    using ScannedEntries = QHash<QString, ScannedEntry>;
+
+    struct ScanResult {
+        ScannedEntries entries;
+        QSet<QString> directories;
     };
 
     struct ScanFilters {
         QStringList nameFilters;
-        QDir::Filters filters;
         std::function<bool(const QString&)> filterFn = nullptr;
     };
 
     QDir m_dir;
     QFileSystemWatcher m_watcher;
     QList<FileSystemEntry*> m_entries;
-    QHash<QString, QFuture<PathDiff>> m_futures;
+    QFuture<ScanResult> m_scan;
+    quint64 m_generation = 0;
+    bool m_scanning = false;
+    bool m_sortPending = false;
+    QSet<QString> m_pendingDirs;
 
     QString m_path;
     bool m_recursive;
     bool m_watchChanges;
     bool m_showHidden;
     bool m_sortReverse = false;
+    bool m_foldersFirst = true;
     SortBy m_sortBy = SortBy::Name;
     Filter m_filter;
     QStringList m_nameFilters;
 
-    void watchDirIfRecursive(const QString& path);
     void update();
-    void updateWatcher();
-    void updateEntries();
-    void updateEntriesForDir(const QString& dir);
-    [[nodiscard]] static ScanFilters filtersFor(Filter filter, const QStringList& nameFilters, bool showHidden);
-    [[nodiscard]] static std::optional<QSet<QString>> scanDir(const QString& dir, const ScanFilters& filters,
-        QDirIterator::IteratorFlags flags, const QPromise<PathDiff>& promise);
-    void applyChanges(const QSet<QString>& removedPaths, const QSet<QString>& addedPaths);
+    void updateEntries(bool refreshMetadata = false);
+    void updateEntriesForDir(const QString& dir, bool refreshMetadata = false);
+    [[nodiscard]] static ScanFilters filtersFor(Filter filter, const QStringList& nameFilters);
+    void applyChanges(const QSet<QString>& removedPaths, ScannedEntries addedEntries, bool resort);
     void sortEntries();
+    void updateOrder();
     [[nodiscard]] bool compareEntries(const FileSystemEntry* a, const FileSystemEntry* b) const;
 };
 

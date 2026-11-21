@@ -23,7 +23,7 @@ StyledRect {
     color: Colours.tPalette.m3surfaceContainer
 
     Ref {
-        service: Recorder
+        service: root.visible ? Recorder : null
     }
 
     ColumnLayout {

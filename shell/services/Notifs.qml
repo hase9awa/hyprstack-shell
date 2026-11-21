@@ -84,6 +84,16 @@ Singleton {
             notif.close();
     }
 
+    readonly property bool focusedFullscreen: {
+        const monitor = Hypr.focusedMonitor;
+        const specialName = monitor?.lastIpcObject.specialWorkspace?.name;
+        if (specialName) {
+            const specialWs = Hypr.workspaces.values.find(ws => ws.name === specialName);
+            return Hypr.hasFullscreen(specialWs);
+        }
+        return Hypr.hasFullscreen(monitor?.activeWorkspace);
+    }
+
     function hasFullscreen(): bool {
         for (const monitor of Hypr.monitors.values) {
             if (Hypr.hasFullscreen(monitor?.activeWorkspace))
@@ -277,6 +287,27 @@ Singleton {
         id: notifComp
 
         NotifData {}
+    }
+
+    function runImageCommand(owner: NotifData, args: list<string>, complete: var): Process {
+        const proc = imageCommand.createObject(owner, {
+            command: ["python3", imageHelper, ...args], complete: complete
+        });
+        proc.running = true;
+        return proc;
+    }
+
+    Component {
+        id: imageCommand
+
+        Process {
+            required property var complete
+            stdout: StdioCollector { id: response }
+            onRunningChanged: if (!running) {
+                destroy();
+                complete(response.text);
+            }
+        }
     }
 
     Timer {

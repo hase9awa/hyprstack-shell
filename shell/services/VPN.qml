@@ -6,6 +6,7 @@ import Quickshell.Io
 import Hyprstack
 import Hyprstack.Config
 import Hyprstack.I18n
+import qs.utils
 
 Singleton {
     id: root
@@ -241,9 +242,14 @@ Singleton {
     }
 
     function checkStatus(): void {
-        if (root.selectedProvider.length > 0) {
-            statusProc.running = true;
+        if (!selectedProvider)
+            return;
+        if (statusProc.running) {
+            statusProc.pending = true;
+            return;
         }
+        statusProc.endpoint = active;
+        statusProc.exec(active.statusCmd);
     }
 
     // Refresh live In/Out byte counters, tunnel latency and - for providers
@@ -253,12 +259,12 @@ Singleton {
             return;
         const iface = active.interface;
         if (iface.length > 0) {
-            statsProc.command = ["sh", "-c", `cat /sys/class/net/${iface}/statistics/rx_bytes /sys/class/net/${iface}/statistics/tx_bytes 2>/dev/null`];
+            statsProc.command = ["cat", `/sys/class/net/${iface}/statistics/rx_bytes`, `/sys/class/net/${iface}/statistics/tx_bytes`];
             statsProc.running = true;
             // Measure latency over the tunnel by binding the ping to the VPN
             // interface (-I), so the result reflects the VPN path, not the LAN.
             if (!pingProc.running) {
-                pingProc.command = ["sh", "-c", `ping -c1 -W2 -I ${iface} 1.1.1.1 2>/dev/null || ping -c1 -W2 1.1.1.1 2>/dev/null`];
+                pingProc.command = ["sh", "-c", 'ping -c1 -W2 -I "$1" 1.1.1.1 2>/dev/null || exec ping -c1 -W2 1.1.1.1 2>/dev/null', "sh", iface];
                 pingProc.running = true;
             }
         }
@@ -597,7 +603,7 @@ Singleton {
         iface: "hyprstack-vpn"
         connectCmd: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "connect"]
         disconnectCmd: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "disconnect"]
-        statusCmd: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "status"]
+        statusCmd: ["python3", `${Quickshell.shellDir}/assets/vpn.py`, "connection-status"]
         parse: out => {
             try {
                 return JSON.parse(out);
@@ -666,8 +672,18 @@ Singleton {
 
     // ── Generic engine ──────────────────────────────────────────────────────
 
+    // The core records its PID before exec, including for externally started proxies.
+    // Wait for overview to create the state directory before installing the watch.
+    FileView {
+        path: root.active.name === "native" && ManagedVPN.loaded
+            ? (Quickshell.env("HYPRSTACK_VPN_STATE") || Paths.data + "/vpn") + "/process.json" : ""
+        watchChanges: true
+        printErrors: false
+        onFileChanged: statusCheckTimer.restart()
+    }
+
     Timer {
-        interval: 3000
+        interval: root.connected || root.status.coreRunning || root.connecting || root.disconnecting ? 3000 : 60000
         running: root.active.name === "native"
         repeat: true
         onTriggered: root.checkStatus()
@@ -676,7 +692,7 @@ Singleton {
     Process {
         id: nmMonitor
 
-        running: root.selectedProvider.length > 0
+        running: root.selectedProvider.length > 0 && root.active.name !== "native"
         command: ["nmcli", "monitor"]
         stdout: SplitParser {
             onRead: statusCheckTimer.restart()
@@ -686,7 +702,12 @@ Singleton {
     Process {
         id: statusProc
 
-        command: root.active.statusCmd
+        property var endpoint
+        property bool pending: false
+        onRunningChanged: if (!running && pending) {
+            pending = false;
+            Qt.callLater(root.checkStatus);
+        }
         // qmllint disable incompatible-type
         environment: ({
                 // qmllint enable incompatible-type
@@ -695,13 +716,13 @@ Singleton {
             })
         stdout: StdioCollector {
             onStreamFinished: {
-                const newStatus = root.active.parse(text);
-                root.updateStatus(newStatus);
+                if (statusProc.endpoint === root.active)
+                    root.updateStatus(statusProc.endpoint.parse(text));
             }
         }
         stderr: StdioCollector {
             onStreamFinished: {
-                if (text.trim().length === 0)
+                if (statusProc.endpoint !== root.active || text.trim().length === 0)
                     return;
 
                 const daemonDown = text.includes("doesn't appear to be running") || text.includes("failed to connect") || text.includes("daemon is not running") || (text.includes("not running") && root.active.service);

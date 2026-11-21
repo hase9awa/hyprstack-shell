@@ -2,6 +2,8 @@
 #include "filechooserportal.hpp"
 #include "filevolumes.hpp"
 #include "filesystemmodel.hpp"
+#include "appdb.hpp"
+#include "cutils.hpp"
 #include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -16,6 +18,7 @@
 #include <QPersistentModelIndex>
 #include <QTemporaryDir>
 #include <QThread>
+#include <QThreadPool>
 #include <QUrl>
 #include <filesystem>
 #include <iostream>
@@ -35,7 +38,7 @@ template <typename Predicate> static void until(Predicate done) {
         QCoreApplication::processEvents();
         QThread::msleep(1);
     }
-    require(done(), "Timed out waiting for a D-Bus reply");
+    require(done(), "Timed out waiting for the test condition");
 }
 
 class Probe : public QObject {
@@ -193,6 +196,80 @@ static void checkVolumes() {
     std::cout << "PASS: disk discovery, system/EFI filtering, explicit asynchronous mount, failures and hotplug\n";
 }
 
+class DesktopFixture : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(QString id MEMBER id CONSTANT)
+    Q_PROPERTY(QString name MEMBER name NOTIFY nameChanged)
+    Q_PROPERTY(QString comment MEMBER text NOTIFY textChanged)
+    Q_PROPERTY(QString execString MEMBER text NOTIFY textChanged)
+    Q_PROPERTY(QString startupClass MEMBER text NOTIFY textChanged)
+    Q_PROPERTY(QString genericName MEMBER text NOTIFY textChanged)
+    Q_PROPERTY(QStringList categories MEMBER list NOTIFY textChanged)
+    Q_PROPERTY(QStringList keywords MEMBER list NOTIFY textChanged)
+public:
+    DesktopFixture(QString id, QString name) : id(std::move(id)), name(std::move(name)) {}
+    QString id, name, text;
+    QStringList list;
+signals:
+    void nameChanged();
+    void textChanged();
+};
+
+static void checkAppOrder() {
+    using namespace hyprstack::models;
+    DesktopFixture alpha("a", "Alpha"), beta("b", "Beta");
+    AppDb apps;
+    auto ids = [&] {
+        auto list = apps.apps();
+        QStringList result;
+        for (qsizetype i = 0; i < list.count(&list); ++i) result.append(list.at(&list, i)->id());
+        return result;
+    };
+    auto* temporary = new DesktopFixture("tmp", "Temporary");
+    apps.setEntries({&beta, temporary, &alpha});
+    delete temporary; // The catalog updates after a debounce.
+    until([&] { return ids() == QStringList{"a", "b"}; });
+    beta.setProperty("name", "AAA");
+    require(ids() == QStringList{"b", "a"}, "Renaming an application left its cached position stale");
+    apps.incrementFrequency("a");
+    require(ids() == QStringList{"a", "b"}, "Frequency changes did not update the launcher order");
+    apps.setFavouriteApps({"^b$"});
+    require(ids() == QStringList{"b", "a"}, "Favourite did not move to the top");
+    DesktopFixture replacement("b", "Replacement");
+    apps.setEntries({&replacement, &alpha});
+    until([&] {
+        auto list = apps.apps();
+        return list.at(&list, 0)->entry() == &replacement;
+    });
+    apps.setEntries({&alpha});
+    until([&] { return ids() == QStringList{"a"}; });
+    std::cout << "PASS: launcher order follows renames, launches, favourites and desktop entry replacement\n";
+}
+
+static void checkFileCopy() {
+    using hyprstack::CUtils;
+    QTemporaryDir dir;
+    const auto source = QUrl::fromLocalFile(dir.filePath("pic #%"));
+    const auto destination = QUrl::fromLocalFile(dir.filePath(".face"));
+    QFile file(source.toLocalFile());
+    require(file.open(QIODevice::WriteOnly) && file.write("picture") == 7, "Cannot create picture fixture");
+    file.close();
+    require(CUtils::copyFile(source, destination) && CUtils::copyFile(destination, destination),
+        "Saving a picture to itself failed");
+    require(!CUtils::copyFile(QUrl::fromLocalFile(dir.filePath("missing")), destination)
+        && !CUtils::copyFile(source, destination, false), "Failed copy unexpectedly succeeded");
+    QFile target(destination.toLocalFile());
+    require(target.open(QIODevice::ReadOnly) && target.readAll() == "picture", "Failed copy destroyed the destination");
+    target.close();
+    const auto link = QUrl::fromLocalFile(dir.filePath("link"));
+    require(target.link(link.toLocalFile()), "Cannot create destination symlink");
+    require(file.open(QIODevice::WriteOnly) && file.write("replacement") == 11, "Cannot update fixture");
+    file.close();
+    require(CUtils::copyFile(source, link) && !QFileInfo(link.toLocalFile()).isSymLink()
+        && target.open(QIODevice::ReadOnly) && target.readAll() == "picture", "Saving through a symlink changed its target");
+    std::cout << "PASS: atomic overwrite, copying to the same file and preservation on failures\n";
+}
+
 static void checkFileSorting() {
     using namespace hyprstack::models;
     QTemporaryDir directory;
@@ -225,10 +302,12 @@ static void checkFileSorting() {
     QPersistentModelIndex selected(model.index(3, 0));
     auto* selectedFile = entry(3);
     model.setSortBy(FileSystemModel::SortBy::Size);
+    until([&] { return !model.loading(); });
     require(files() == QStringList{"b.txt", "c.bin", "a.bin"}, "Size sort failed");
     require(selected.row() == 2 && selected.data(Qt::UserRole).value<FileSystemEntry*>() == selectedFile,
         "Sorting changed the selected file identity");
     model.setSortBy(FileSystemModel::SortBy::Modified);
+    until([&] { return !model.loading(); });
     require(files() == QStringList{"b.txt", "c.bin", "a.bin"}, "Modified-date sort failed");
     model.setSortReverse(true);
     require(files() == QStringList{"a.bin", "c.bin", "b.txt"}, "Reverse modified-date sort failed");
@@ -243,10 +322,34 @@ static void checkFileSorting() {
     require(files() == QStringList{"a.bin", "c.bin", "d.txt", "b.txt"}, "New file inserted at the wrong sorted position");
     write("b.txt", 120, 400);
     model.refresh();
+    until([&] { return !model.loading(); });
     require(files() == QStringList{"b.txt", "a.bin", "c.bin", "d.txt"}, "Refresh left stale file sizes");
     require(selected.row() == 2 && selectedFile->modified() == QDateTime::fromSecsSinceEpoch(1600000400),
         "Refresh lost the persistent selection or modification time");
     std::cout << "PASS: file sorting by name/date/size/type, reverse order, folders first, persistent selection and refreshed metadata\n";
+
+    model.setRecursive(true);
+    model.setFilter(FileSystemModel::Filter::Files);
+    model.setNameFilters({"*.txt"});
+    model.setWatchChanges(true);
+    require(dir.mkdir("folderA/nested"), "Cannot create nested directory");
+    write("folderA/nested/new.txt", 1, 500);
+    write("folderA/nested/ignore.bin", 1, 500);
+    auto paths = [&] {
+        QSet<QString> result;
+        for (int i = 0; i < model.rowCount(); ++i) result.insert(entry(i)->relativePath());
+        return result;
+    };
+    until([&] { return paths() == QSet<QString>{"b.txt", "d.txt", "folderA/nested/new.txt"}; });
+    require(dir.remove("folderA/nested/new.txt"), "Cannot remove nested fixture");
+    write("folderA/nested/replaced.txt", 2, 501);
+    until([&] { return paths() == QSet<QString>{"b.txt", "d.txt", "folderA/nested/replaced.txt"}; });
+    model.refresh();
+    model.setPath({});
+    QThreadPool::globalInstance()->waitForDone();
+    QCoreApplication::processEvents();
+    require(model.rowCount() == 0, "An old scan repopulated the cleared model");
+    std::cout << "PASS: recursive watches, nested changes with name filters and cancelling directory scans\n";
 }
 
 int main(int argc, char** argv) {
@@ -313,6 +416,8 @@ int main(int argc, char** argv) {
         std::cout << "PASS: portal Request.Close completes the pending call\n";
         checkVolumes();
         checkFileSorting();
+        checkFileCopy();
+        checkAppOrder();
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 1;

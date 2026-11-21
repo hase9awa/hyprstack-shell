@@ -46,7 +46,8 @@ Item {
         id: pfp
 
         anchors.fill: shape
-        path: `${Paths.home}/.face`
+        path: Images.profilePicture
+        cache: false
 
         layer.enabled: true
         layer.effect: Mask {

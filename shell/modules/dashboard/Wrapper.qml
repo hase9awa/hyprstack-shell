@@ -23,7 +23,7 @@ Item {
         filters: Images.validImageExtensions
         onAccepted: paths => {
             const path = paths[0];
-            if (CUtils.copyFile(Qt.resolvedUrl(path), Qt.resolvedUrl(`${Paths.home}/.face`)))
+            if (CUtils.copyFile(Paths.fileUrl(path), Paths.fileUrl(Paths.home + "/.face")))
                 // TRANSLATORS: %1 = a file path
                 Quickshell.execDetached(["notify-send", "-a", "hyprstack-shell", "-u", "low", "-h", `STRING:image-path:${path}`, Tr.tr("Profile picture changed"), Tr.tr("Profile picture changed to %1").arg(Paths.shortenHome(path))]);
             else

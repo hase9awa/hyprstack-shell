@@ -7,10 +7,10 @@
 #include <qdbuspendingreply.h>
 #include <qdbusservicewatcher.h>
 #include <qdir.h>
+#include <qfile.h>
 #include <qfileinfo.h>
 #include <qlocale.h>
 #include <qset.h>
-#include <qstorageinfo.h>
 #include <qtconcurrentrun.h>
 
 #include <algorithm>
@@ -42,6 +42,11 @@ QString devicePath(const QByteArray& bytes) {
 bool systemMount(const QString& path) {
     return path == u"/" || path == u"/boot" || path.startsWith(u"/boot/")
         || path == u"/efi" || path.startsWith(u"/efi/");
+}
+
+QByteArray mountField(QByteArray field) {
+    // The kernel escapes whitespace and backslashes in /proc/self/mounts.
+    return field.replace("\\040", " ").replace("\\011", "\t").replace("\\012", "\n").replace("\\134", "\\");
 }
 } // namespace
 
@@ -82,7 +87,7 @@ void FileVolumes::load() {
         const QDBusPendingReply<VolumeObjects> reply = *call;
         const auto objects = reply.isError() ? VolumeObjects{} : reply.value();
         call->deleteLater();
-        // statfs on an unavailable network mount must not stop shell input.
+        // Collect the mount table and device metadata outside the UI thread.
         QtConcurrent::run([objects] { return collectVolumes(objects); }).then(this, [this](QVariantList volumes) {
             if (m_volumes != volumes) {
                 m_volumes = std::move(volumes);
@@ -143,22 +148,38 @@ QVariantList FileVolumes::collectVolumes(const VolumeObjects& objects) {
     }
     // Also offer mounted filesystems without a UDisks block object (network
     // shares, FUSE, and systems where UDisks is not installed).
-    devices.insert(devicePath(QStorageInfo::root().device()));
-    for (const auto& storage : QStorageInfo::mountedVolumes()) {
-        const auto path = storage.rootPath();
-        const auto device = devicePath(storage.device());
-        if (systemMount(path)) {
-            devices.insert(device);
-            continue;
+    // QStorageInfo::mountedVolumes() calls statfs on every mount, which can
+    // wake disks, trigger automounts or hang on an unavailable remote filesystem.
+    QFile table(u"/proc/self/mounts"_s);
+    QList<std::pair<QString, QString>> candidates;
+    if (table.open(QIODevice::ReadOnly)) {
+        for (QByteArray line; !(line = table.readLine()).isEmpty();) {
+            const auto fields = line.split(' ');
+            if (fields.size() < 3 || fields[2] == "autofs")
+                continue;
+            const auto path = QFile::decodeName(mountField(fields[1]));
+            const auto device = devicePath(mountField(fields[0]));
+            if (systemMount(path))
+                devices.insert(device);
+            else if (device.startsWith(u"/dev/") || path.startsWith(u"/mnt/") ||
+                     path.startsWith(u"/media/") || path.startsWith(u"/run/media/"))
+                candidates.emplaceBack(path, device);
         }
-        if (!storage.isValid() || !storage.isReady()
-            || mounts.contains(path) || devices.contains(device))
+    }
+
+    QHash<QString, QString> labels;
+    for (const auto& link : QDir(u"/dev/disk/by-label"_s).entryInfoList(QDir::Files | QDir::System)) {
+        // udev uses \xNN escapes for spaces and other unsafe bytes.
+        auto label = QFile::encodeName(link.fileName());
+        label.replace("%", "%25").replace("\\x", "%");
+        labels.insert(link.canonicalFilePath(), QFile::decodeName(label.percentDecoded()));
+    }
+    for (const auto& [path, device] : std::as_const(candidates)) {
+        if (mounts.contains(path) || devices.contains(device))
             continue;
-        if (!device.startsWith(u"/dev/") && !path.startsWith(u"/mnt/")
-            && !path.startsWith(u"/media/") && !path.startsWith(u"/run/media/"))
-            continue;
-        volumes.append(QVariantMap{{u"id"_s, path}, {u"name"_s, storage.displayName()},
+        volumes.append(QVariantMap{{u"id"_s, path}, {u"name"_s, labels.value(device, path)},
             {u"device"_s, device}, {u"path"_s, path}, {u"mounted"_s, true}, {u"removable"_s, false}});
+        mounts.insert(path);
         devices.insert(device);
     }
     std::ranges::sort(volumes, [](const QVariant& a, const QVariant& b) {

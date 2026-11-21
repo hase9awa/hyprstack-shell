@@ -17,7 +17,6 @@
 #include <hyprland/src/helpers/time/Time.hpp>
 #include <hyprland/src/helpers/signal/Signal.hpp>
 #include "globals.hpp"
-#include <map>
 
 #define private public
 #include <hyprland/src/managers/input/InputManager.hpp>
@@ -48,7 +47,6 @@ class CHyprBar : public IHyprWindowDecoration {
 
     virtual uint64_t                   getDecorationFlags();
 
-    bool                               m_bButtonsDirty = true;
     bool                               m_ownsMaximizePolicy = false;
 
     virtual std::string                getDisplayName();
@@ -69,12 +67,10 @@ class CHyprBar : public IHyprWindowDecoration {
     CBox                       m_bAssignedBox;
 
     SP<Render::ITexture>       m_pTextTex;
-    std::map<std::string, SP<Render::ITexture>> m_controlIcons;
 
     bool                       m_bWindowSizeChanged = false;
     bool                       m_hidden             = false;
     bool                       m_bTitleColorChanged = false;
-    bool                       m_bButtonHovered     = false;
     bool                       m_bLastEnabledState  = false;
     bool                       m_bWindowHasFocus    = false;
     std::optional<CHyprColor>  m_bForcedBarColor;
@@ -84,7 +80,6 @@ class CHyprBar : public IHyprWindowDecoration {
 
     PHLANIMVAR<CHyprColor>     m_cRealBarColor;
 
-    Vector2D                   cursorRelativeToBar();
 
     void                       renderPass(PHLMONITOR, float const& a);
     void                       renderBarTitle(const Vector2D& bufferSize, const float scale);
@@ -102,7 +97,6 @@ class CHyprBar : public IHyprWindowDecoration {
     void handleDownEvent(Event::SCallbackInfo& info, std::optional<ITouch::SDownEvent> touchEvent);
     void handleUpEvent(Event::SCallbackInfo& info);
     void handleMovement();
-    bool doButtonPress(Config::INTEGER barPadding, Config::INTEGER barButtonPadding, Config::INTEGER barHeight, Vector2D COORDS, bool BUTTONSRIGHT);
 
     CBox assignedBoxGlobal();
 
@@ -122,8 +116,7 @@ class CHyprBar : public IHyprWindowDecoration {
     bool                m_bCancelledDown = false;
     int                 m_touchId        = 0;
 
-    // store hover state for buttons as a bitfield
-    unsigned int m_iButtonHoverState = 0;
+    std::optional<size_t> m_hoveredButton;
 
     // for dynamic updates
     int    m_iLastHeight = 0;

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(hyprstack VERSION 1.5.1 LANGUAGES CXX)
+project(hyprstack VERSION 1.5.2 LANGUAGES CXX)
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_DATADIR}/hyprstack/lib" CACHE PATH "Private runtime libraries" FORCE)
 
@@ -51,7 +51,8 @@ if(HYPRSTACK_BUILD_NATIVE)
     add_library(hyprstack-bars MODULE native/hyprbars/main.cpp native/hyprbars/barDeco.cpp native/hyprbars/BarPassElement.cpp)
     # Distribution headers may have upstream mtimes older than our objects.
     # Changing the compositor ABI must still force a matching plugin rebuild.
-    target_compile_definitions(hyprstack-bars PRIVATE HYPRSTACK_BUILD_ABI_HASH="${hypr_abi}")
+    target_compile_definitions(hyprstack-bars PRIVATE
+        HYPRSTACK_BUILD_ABI_HASH="${hypr_abi}" HYPRSTACK_VERSION="${PROJECT_VERSION}")
     set_target_properties(hyprstack-bars PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED ON PREFIX "" )
     target_link_libraries(hyprstack-bars PRIVATE PkgConfig::Native)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

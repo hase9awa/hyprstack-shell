@@ -7,6 +7,8 @@
 #include <qrunnable.h>
 #include <qthreadpool.h>
 
+#include <atomic>
+#include <limits>
 #include <utility>
 
 #include "imagecacher.hpp"
@@ -32,6 +34,7 @@ public:
     [[nodiscard]] QString errorString() const override;
 
     void run() override;
+    void cancel() override { m_cancelled.store(true, std::memory_order_relaxed); }
 
 private:
     void process();
@@ -39,6 +42,7 @@ private:
     QString m_id;
     QSize m_requestedSize;
     ImageCacher::FillMode m_fillMode;
+    std::atomic_bool m_cancelled = false;
     QImage m_image;
     QString m_error;
 };
@@ -59,7 +63,8 @@ QString CachingImageResponse::errorString() const {
 }
 
 void CachingImageResponse::run() {
-    process();
+    if (!m_cancelled.load(std::memory_order_relaxed))
+        process();
     emit finished();
 }
 
@@ -81,7 +86,9 @@ void CachingImageResponse::process() {
     // If both dimensions are missing, return the original directly
     if (needsW && needsH) {
         qCDebug(lcCProv).noquote() << "Given source size is invalid, returning original:" << path;
-        m_image = QImage(path);
+        QImageReader reader(path);
+        reader.setAutoTransform(true);
+        m_image = reader.read();
         if (m_image.isNull()) {
             m_error = u"Failed to decode source: "_s + path;
             qCWarning(lcCProv).noquote() << m_error;
@@ -92,17 +99,27 @@ void CachingImageResponse::process() {
     // If one dimension is missing, derive it from the source aspect ratio
     if (needsW || needsH) {
         const QImageReader sourceReader(path);
-        const QSize sourceSize = sourceReader.size();
+        auto sourceSize = sourceReader.size();
+        if (sourceReader.transformation().testFlag(QImageIOHandler::TransformationRotate90))
+            sourceSize.transpose();
         if (!sourceSize.isValid() || sourceSize.isEmpty()) {
             m_error = u"Could not determine source size for: "_s + path;
             qCWarning(lcCProv).noquote() << m_error;
             return;
         }
 
+        const qint64 missing = needsW
+            ? qRound64(static_cast<qreal>(size.height()) * sourceSize.width() / sourceSize.height())
+            : qRound64(static_cast<qreal>(size.width()) * sourceSize.height() / sourceSize.width());
+        if (missing > std::numeric_limits<int>::max()) {
+            m_error = u"Requested image size is too large"_s;
+            return;
+        }
+        const int dimension = std::max(1, static_cast<int>(missing));
         if (needsW)
-            size.setWidth(qRound(size.height() * sourceSize.width() / static_cast<qreal>(sourceSize.height())));
+            size.setWidth(dimension);
         else
-            size.setHeight(qRound(size.width() * sourceSize.height() / static_cast<qreal>(sourceSize.width())));
+            size.setHeight(dimension);
     }
 
     // Decode once in this worker and always return the requested dimensions,

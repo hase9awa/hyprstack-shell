@@ -7,6 +7,7 @@ import Hyprstack
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
+import qs.components.misc
 import qs.components.effects
 import qs.services
 import qs.utils
@@ -20,6 +21,8 @@ StyledRect {
     implicitHeight: layout.implicitHeight + layout.anchors.topMargin + layout.anchors.margins
     radius: Tokens.rounding.medium
     color: Colours.tPalette.m3surfaceContainer
+
+    Ref { service: root.visible ? SysInfo : null }
 
     ColumnLayout {
         id: layout

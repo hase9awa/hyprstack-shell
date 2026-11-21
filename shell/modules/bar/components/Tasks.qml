@@ -20,7 +20,18 @@ StyledClippingRect {
     required property real maxWidth
     required property BarPopouts.Wrapper popouts
     readonly property alias buttons: taskRepeater
-    readonly property var appEntries: DesktopEntries.applications.values
+    readonly property bool showTasks: Hypr.stacking && Config.bar.showTasks
+    readonly property var entriesByClass: {
+        const entries = new Map();
+        if (showTasks) {
+            for (const entry of DesktopEntries.applications.values) {
+                const key = entry.startupClass?.toLowerCase();
+                if (key && !entries.has(key))
+                    entries.set(key, entry);
+            }
+        }
+        return entries;
+    }
     property Item popupTask: null
     property string draggedKey: ""
     property string dropKey: ""
@@ -42,7 +53,7 @@ StyledClippingRect {
     }
 
     function lookup(app: string): var {
-        return appEntries.find(e => !!e.startupClass && e.startupClass.toLowerCase() === app.toLowerCase())
+        return entriesByClass.get(app.toLowerCase())
             ?? DesktopEntries.heuristicLookup(app)
             ?? DesktopEntries.heuristicLookup(app.replace(/-browser$/, ""))
             ?? DesktopEntries.heuristicLookup(app.replace(/\.desktop$/, "").split(".").pop());
@@ -67,22 +78,39 @@ StyledClippingRect {
         Qt.callLater(() => Taskbar.move(key, target, after, groups.map(g => g.key)));
     }
 
+    // The bar and its ancestors slide using x/y. Track their positions so a
+    // stationary taskbar needs no timer, even on a second or repositioned screen.
+    readonly property point targetOrigin: {
+        const window = QsWindow.window;
+        if (!visible || !window || !screen)
+            return Qt.point(0, 0);
+        const monitor = Hypr.monitorFor(screen)?.lastIpcObject;
+        let x = monitor?.x ?? screen.x, y = monitor?.y ?? screen.y;
+        for (let item = root; item && item !== window.contentItem; item = item.parent) {
+            x += item.x;
+            y += item.y;
+        }
+        return Qt.point(x, y);
+    }
+
+    function scheduleReport(): void {
+        if (visible && showTasks) reportTimer.start();
+    }
+
     function reportTargets(): void {
         if (!Hypr.stacking || !visible || !QsWindow.window) return;
         const targets = [];
-        const monitor = Hypr.monitorFor(screen)?.lastIpcObject;
-        const originX = monitor?.x ?? screen.x, originY = monitor?.y ?? screen.y;
-        const barTop = originY + mapToItem(QsWindow.window.contentItem, 0, 0).y;
+        const origin = targetOrigin;
         for (let i = 0; i < taskRepeater.count; i++) {
             const button = taskRepeater.itemAt(i);
             if (!button) continue;
-            const p = button.mapToItem(QsWindow.window.contentItem, 0, buttonInset);
+            const p = button.mapToItem(root, 0, buttonInset);
             for (const window of button.windows) {
                 const client = Hypr.clientData(window);
                 if (!client) continue;
                 targets.push({ address: client.address, id: client.stableId,
-                    x: Math.round(originX + p.x), y: Math.round(originY + p.y),
-                    w: Math.round(button.width), h: buttonHeight, barTop: Math.round(barTop) });
+                    x: Math.round(origin.x + p.x), y: Math.round(origin.y + p.y),
+                    w: Math.round(button.width), h: buttonHeight, barTop: Math.round(origin.y) });
             }
         }
         const data = JSON.stringify(targets);
@@ -101,20 +129,27 @@ StyledClippingRect {
     }
 
     onVisibleChanged: {
-        if (!visible) {
+        lastTargets = "";
+        if (visible)
+            scheduleReport();
+        else {
             closePopup(); draggedKey = dropKey = "";
             Hypr.setTaskTargets(screen.name, []);
         }
-        lastTargets = "";
     }
-    onGroupsChanged: Qt.callLater(reportTargets)
-    onWidthChanged: Qt.callLater(reportTargets)
+    onGroupsChanged: scheduleReport()
+    onTargetOriginChanged: scheduleReport()
+    onButtonHeightChanged: scheduleReport()
+    onButtonInsetChanged: scheduleReport()
+    readonly property var groupsByApp: new Map(groups.map(group => [group.app, group]))
     readonly property var groups: {
+        if (!showTasks)
+            return [];
         const groups = new Map();
-        const windows = Hypr.taskWindows(screen).slice().sort((a, b) =>
-            Hypr.clientData(a).stableId.localeCompare(Hypr.clientData(b).stableId));
-        for (const window of windows) {
-            const app = Hypr.clientData(window).class;
+        const windows = Hypr.taskWindows(screen).map(window => ({ window, client: Hypr.clientData(window) }));
+        windows.sort((a, b) => (a.client.stableId ?? a.client.address).localeCompare(b.client.stableId ?? b.client.address));
+        for (const { window, client } of windows) {
+            const app = client.class;
             const entry = lookup(app);
             const key = entry?.id ?? app.toLowerCase();
             if (!groups.has(key))
@@ -140,15 +175,22 @@ StyledClippingRect {
     GroupBackground {}
 
     Timer {
-        interval: 250
-        repeat: true
-        triggeredOnStart: true
-        running: root.visible && Hypr.stacking
+        id: reportTimer
+        interval: 50
         onTriggered: root.reportTargets()
+    }
+
+    Connections {
+        target: Hypr
+        function onConfigReloaded(): void {
+            root.lastTargets = "";
+            root.scheduleReport();
+        }
     }
 
     Flickable {
         id: taskFlickable
+        onContentXChanged: root.scheduleReport()
         anchors.fill: parent
         anchors.leftMargin: Tokens.padding.extraSmall
         anchors.rightMargin: Tokens.padding.extraSmall
@@ -205,19 +247,23 @@ StyledClippingRect {
 
             Repeater {
                 id: taskRepeater
+                onItemAdded: root.scheduleReport()
+                onItemRemoved: root.scheduleReport()
                 model: ScriptModel { values: root.groups.map(g => g.app) }
 
                 delegate: Item {
                     id: task
 
                     required property string modelData
-                    readonly property var group: root.groups.find(g => g.app === modelData)
+                    onXChanged: root.scheduleReport()
+                    onWidthChanged: root.scheduleReport()
+                    readonly property var group: root.groupsByApp.get(modelData)
                     readonly property var windows: group?.windows ?? []
                     readonly property bool active: windows.some(w => w === Hypr.activeToplevel && !Hypr.isMinimized(w))
                     readonly property bool minimizing: windows.some(w => Hypr.windowState(w).minimized?.animating)
                     readonly property bool emphasized: root.selectionButton === task
                     readonly property bool allMinimized: windows.length > 0 && windows.every(w => Hypr.isMinimized(w))
-                    readonly property bool pinned: Taskbar.pinned.includes(group.key)
+                    readonly property bool pinned: !!group && Taskbar.pinned.includes(group.key)
                     readonly property var entry: group?.entry
                     readonly property string iconSource: entry?.icon ? Quickshell.iconPath(entry.icon, true) : ""
                     property bool popupOpen
@@ -230,7 +276,7 @@ StyledClippingRect {
                     width: Math.min(210 * Tokens.scale, Math.max(100 * Tokens.scale, (root.maxWidth - Tokens.padding.extraSmall * 2
                         - (root.groups.length - 1) * taskRow.spacing) / Math.max(1, root.groups.length)))
                     height: root.implicitHeight
-                    opacity: root.draggedKey === group.key ? 0.35 : 1
+                    opacity: root.draggedKey === group?.key ? 0.35 : 1
 
                     StyledRect {
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -274,12 +320,12 @@ StyledClippingRect {
                         const ordered = windows.slice().sort((a, b) =>
                             (a.lastIpcObject.focusHistoryID < 0 ? 100000 : a.lastIpcObject.focusHistoryID)
                             - (b.lastIpcObject.focusHistoryID < 0 ? 100000 : b.lastIpcObject.focusHistoryID));
-                        const current = ordered.find(w => w === Hypr.activeToplevel && !Hypr.isMinimized(w));
+                        const current = ordered.findIndex(w => w === Hypr.activeToplevel && !Hypr.isMinimized(w));
                         if (ordered.length === 1)
                             return { operation: "task-click", window: ordered[0] };
                         // Click activates the most recently used window. Clicking
                         // an active group cycles; hover still offers every preview.
-                        return { operation: "activate", window: current ? ordered[1] : ordered[0] };
+                        return { operation: "activate", window: ordered[(current + 1) % ordered.length] };
                     }
 
                     function launch(): void {
@@ -424,7 +470,9 @@ StyledClippingRect {
                         onWheel: event => {
                             if (task.windows.length === 0) return;
                             const current = task.windows.findIndex(w => w === Hypr.activeToplevel);
-                            const next = (current + (event.angleDelta.y > 0 ? 1 : -1) + task.windows.length) % task.windows.length;
+                            const step = event.angleDelta.y > 0 ? 1 : -1;
+                            const next = current < 0 ? (step > 0 ? 0 : task.windows.length - 1)
+                                : (current + step + task.windows.length) % task.windows.length;
                             task.act("activate", task.windows[next]);
                             event.accepted = true;
                         }

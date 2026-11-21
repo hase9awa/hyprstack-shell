@@ -40,6 +40,7 @@
 /distribution/tests/*
 !/distribution/tests/test_upgrade.py
 !/distribution/tests/test_updates.py
+!/distribution/tests/test_network_service.py
 !/distribution/tests/vpn-flow.test.cjs
 !/distribution/tests/test_vpn_ui.py
 !/distribution/tests/test_vpn_backend.py

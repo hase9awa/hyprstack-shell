@@ -10,7 +10,10 @@
 #include <qquickwindow.h>
 #include <qregularexpression.h>
 #include <qstandardpaths.h>
+#include <qtemporarydir.h>
 #include <qtconcurrentrun.h>
+
+#include <cstdio>
 
 #include "util/metaenum.hpp"
 
@@ -112,12 +115,22 @@ bool CUtils::copyFile(const QUrl& source, const QUrl& target, bool overwrite) {
         return false;
     }
 
-    if (overwrite && QFile::exists(target.toLocalFile()) && !QFile::remove(target.toLocalFile())) {
-        qCWarning(lcCUtils) << "copyFile: overwrite was specified but failed to remove" << target.toLocalFile();
+    const auto from = source.toLocalFile();
+    const auto to = target.toLocalFile();
+    if (!overwrite)
+        return QFile::copy(from, to);
+    const QFileInfo sourceInfo(from), targetInfo(to);
+    if (!sourceInfo.isFile())
         return false;
-    }
+    if (sourceInfo == targetInfo)
+        return true;
 
-    return QFile::copy(source.toLocalFile(), target.toLocalFile());
+    // Keep the old destination until the complete copy can replace its directory
+    // entry. This also replaces a destination symlink without writing through it.
+    QTemporaryDir temporary(targetInfo.absolutePath() + QStringLiteral("/.hyprstack-copy-XXXXXX"));
+    const auto copy = temporary.filePath(QStringLiteral("copy"));
+    return temporary.isValid() && QFile::copy(from, copy)
+        && std::rename(QFile::encodeName(copy).constData(), QFile::encodeName(to).constData()) == 0;
 }
 
 bool CUtils::deleteFile(const QUrl& path) {

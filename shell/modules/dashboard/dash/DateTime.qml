@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
+import qs.components.misc
 import qs.services
 
 Item {
@@ -14,6 +15,8 @@ Item {
     anchors.bottom: parent.bottom
     implicitWidth: Tokens.sizes.dashboard.dateTimeWidth
     implicitHeight: clockLayout.implicitHeight
+
+    Ref { service: root.visible && root.Config.dashboard.showClockSeconds ? Time : null }
 
     ColumnLayout {
         id: clockLayout

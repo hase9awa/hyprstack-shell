@@ -18,6 +18,7 @@ Singleton {
     property string osLogo: Qt.resolvedUrl(`${Quickshell.shellDir}/assets/logo.svg`)
     property bool isDefaultLogo: true
 
+    property int refCount: 0
     property string uptime
     // Uptime trimmed to its two largest components
     property string uptimeShort
@@ -113,7 +114,7 @@ Singleton {
     }
 
     Timer {
-        running: true
+        running: root.refCount > 0
         repeat: true
         interval: 15000
         onTriggered: fileUptime.reload()
@@ -122,7 +123,7 @@ Singleton {
     FileView {
         id: fileUptime
 
-        path: "/proc/uptime"
+        path: root.refCount > 0 ? "/proc/uptime" : ""
         onLoaded: {
             const up = parseInt(text().split(" ")[0] ?? 0);
 

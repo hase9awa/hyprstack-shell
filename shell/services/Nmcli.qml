@@ -4,6 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Hyprstack
 import Hyprstack.I18n
 
 Singleton {
@@ -25,8 +26,9 @@ Singleton {
     // Map of saved Wi-Fi SSID (lowercased) -> security type
     property var savedConnectionSecurity: ({})
 
-    property var wifiConnectionQueue: []
-    property int currentSsidQueryIndex: 0
+    property bool savedRefreshActive: false
+    property bool savedRefreshPending: false
+    property var savedRefreshCallbacks: []
     property var pendingConnection: null
     property var wirelessDeviceDetails: null
     property var ethernetDeviceDetails: null
@@ -40,9 +42,6 @@ Singleton {
     // anything other than that as a usable connection.
     readonly property bool hasAvailableEthernet: ethernetDevices.some(d => d.state !== "unavailable")
     property list<var> activeProcesses: []
-
-    readonly property alias connectionCheckTimer: connectionCheckTimer
-    readonly property alias immediateCheckTimer: immediateCheckTimer
 
     // Constants
     readonly property string deviceTypeWifi: "wifi"
@@ -65,17 +64,31 @@ Singleton {
     readonly property string connectionParamIfname: "ifname"
     readonly property string connectionParamSsid: "ssid"
     readonly property string connectionParamPassword: "password"
-    readonly property string connectionParamBssid: "802-11-wireless.bssid"
     readonly property string connectionParamHidden: "802-11-wireless.hidden"
 
     signal connectionFailed(string ssid)
 
     function detectPasswordRequired(error: string): bool {
-        if (!error || error.length === 0) {
-            return false;
-        }
+        return !!error && !/connection activated|successfully/i.test(error)
+            && /\b(secrets?|password|passphrase)\b|802-11-wireless-security\.psk/i.test(error);
+    }
 
-        return (error.includes("Secrets were required") || error.includes("Secrets were required, but not provided") || error.includes("No secrets provided") || error.includes("802-11-wireless-security.psk") || error.includes("password for") || (error.includes("password") && !error.includes("Connection activated") && !error.includes("successfully")) || (error.includes("Secrets") && !error.includes("Connection activated") && !error.includes("successfully")) || (error.includes("802.11") && !error.includes("Connection activated") && !error.includes("successfully"))) && !error.includes("Connection activated") && !error.includes("successfully");
+    // In terse output nmcli escapes both colons and backslashes, including in SSIDs.
+    function terseFields(line: string): var {
+        const fields = [];
+        let field = "";
+        for (let i = 0; i < line.length; ++i) {
+            const ch = line[i];
+            if (ch === "\\" && i + 1 < line.length)
+                field += line[++i];
+            else if (ch === ":") {
+                fields.push(field);
+                field = "";
+            } else
+                field += ch;
+        }
+        fields.push(field);
+        return fields;
     }
 
     function parseNetworkOutput(output: string): list<var> {
@@ -83,18 +96,14 @@ Singleton {
             return [];
         }
 
-        const PLACEHOLDER = "STRINGWHICHHOPEFULLYWONTBEUSED";
-        const rep = new RegExp("\\\\:", "g");
-        const rep2 = new RegExp(PLACEHOLDER, "g");
-
-        const allNetworks = output.trim().split("\n").filter(line => line && line.length > 0).map(n => {
-            const net = n.replace(rep, PLACEHOLDER).split(":");
+        const allNetworks = output.split("\n").filter(line => line.length > 0).map(line => {
+            const net = terseFields(line);
             return {
                 active: net[0] === "yes",
                 strength: parseInt(net[1] || "0", 10) || 0,
                 frequency: parseInt(net[2] || "0", 10) || 0,
-                ssid: (net[3]?.replace(rep2, ":") ?? "").trim(),
-                bssid: (net[4]?.replace(rep2, ":") ?? "").trim(),
+                ssid: net[3] ?? "",
+                bssid: net[4] ?? "",
                 security: (net[5] ?? "").trim()
             };
         }).filter(n => n.ssid && n.ssid.length > 0);
@@ -127,11 +136,8 @@ Singleton {
     }
 
     function isConnectionCommand(command: list<string>): bool {
-        if (!command || command.length === 0) {
-            return false;
-        }
-
-        return command.includes(root.nmcliCommandWifi) || command.includes(root.nmcliCommandConnection);
+        return command[0] === "nmcli" && ((command[1] === "device" && command[2] === "wifi" && command[3] === "connect")
+            || (command[1] === "connection" && command[2] === "up"));
     }
 
     function parseDeviceStatusOutput(output: string, filterType: string): list<var> {
@@ -143,7 +149,7 @@ Singleton {
         const lines = output.trim().split("\n");
 
         for (const line of lines) {
-            const parts = line.split(":");
+            const parts = terseFields(line);
             if (parts.length >= 2) {
                 const deviceType = parts[1];
                 let shouldInclude = false;
@@ -194,13 +200,6 @@ Singleton {
 
         activeProcesses.push(proc);
 
-        proc.processFinished.connect(() => {
-            const index = activeProcesses.indexOf(proc);
-            if (index >= 0) {
-                activeProcesses.splice(index, 1);
-            }
-        });
-
         Qt.callLater(() => {
             proc.exec(proc.cmdArgs);
         });
@@ -223,55 +222,23 @@ Singleton {
     }
 
     function getEthernetInterfaces(callback: var): void {
-        executeCommand(["-t", "-f", root.deviceStatusFields, root.nmcliCommandDevice, "status"], result => {
-            const interfaces = parseDeviceStatusOutput(result.output, root.deviceTypeEthernet);
-            const applyInterfaces = filtered => {
-                const devices = filtered.map(iface => ({
-                            interface: iface.device,
-                            type: iface.type,
-                            state: iface.state,
-                            connection: iface.connection,
-                            connected: isConnectedState(iface.state),
-                            ipAddress: "",
-                            gateway: "",
-                            dns: [],
-                            subnet: "",
-                            macAddress: "",
-                            speed: ""
-                        }));
-
-                root.ethernetInterfaces = filtered;
-                syncEthernetDevices(devices);
-                if (callback)
-                    callback(filtered);
-            };
-
-            if (interfaces.length === 0) {
-                applyInterfaces([]);
-                return;
-            }
-
-            // NetworkManager reports container/VM veth pairs (Docker, Podman,
-            // etc.) as type "ethernet" too, so they'd show up here like real
-            // connections. A physical NIC always has
-            // /sys/class/net/<iface>/device; veth/bridge/tun interfaces
-            // never do, so that's how we tell them apart.
-            const proc = physicalCheckProc.createObject(root);
-            proc.callback = result => {
-                if (!result.success) {
-                    console.warn(lc, `Failed to classify ethernet interfaces (exited: ${result.exitCode}); keeping the unfiltered list.`);
-                    applyInterfaces(interfaces);
-                    return;
-                }
-
-                const physicalSet = result.output.trim().split("\n").filter(l => l.length > 0);
-                const filtered = interfaces.filter(iface => physicalSet.includes(iface.device));
-
-                applyInterfaces(filtered);
-            };
-
-            proc.exec(["sh", "-c", 'test -d /sys/class/net || exit 1; for i do [ -e "/sys/class/net/$i/device" ] && printf "%s\\n" "$i"; done; exit 0', "sh", ...interfaces.map(iface => iface.device)]);
+        getDeviceStatus(output => {
+            updateEthernetInterfaces(output);
+            if (callback)
+                callback(root.ethernetInterfaces);
         });
+    }
+
+    function updateEthernetInterfaces(output: string): void {
+        const devices = parseDeviceStatusOutput(output, root.deviceTypeEthernet);
+        // A physical NIC has a sysfs device link. Keep the full list if sysfs is unavailable.
+        const physical = devices.length && CUtils.isDirectory("/sys/class/net")
+            ? devices.filter(d => CUtils.isDirectory(`/sys/class/net/${d.device}/device`)) : devices;
+        root.ethernetInterfaces = physical;
+        syncEthernetDevices(physical.map(d => ({
+            interface: d.device, type: d.type, state: d.state, connection: d.connection,
+            connected: isConnectedState(d.state)
+        })));
     }
 
     // Sync a list of ethernet devices to the existing device list. Same logic as getNetworks
@@ -395,7 +362,6 @@ Singleton {
 
     function connectToNetworkWithPasswordCheck(ssid: string, isSecure: bool, callback: var, bssid: string): void {
         if (isSecure) {
-            const hasBssid = bssid !== undefined && bssid !== null && bssid.length > 0;
             connectWireless(ssid, "", bssid, result => {
                 if (result.success) {
                     if (callback)
@@ -429,75 +395,72 @@ Singleton {
         connectWireless(ssid, password, bssid, callback);
     }
 
-    function connectWireless(ssid: string, password: string, bssid: string, callback: var, retryCount: int): void {
-        const hasBssid = bssid !== undefined && bssid !== null && bssid.length > 0;
-        const retries = retryCount !== undefined ? retryCount : 0;
-        const maxRetries = 2;
-
-        if (callback) {
-            root.pendingConnection = {
-                ssid: ssid,
-                bssid: hasBssid ? bssid : "",
-                callback: callback,
-                retryCount: retries
-            };
-            connectionCheckTimer.start();
-            immediateCheckTimer.checkCount = 0;
-            immediateCheckTimer.start();
+    function connectWireless(ssid: string, password: string, bssid: string, callback: var): void {
+        connectionRetry.stop();
+        connectionRetry.attempt = null;
+        const request = {ssid: ssid, bssid: bssid || "", callback: callback};
+        pendingConnection = request;
+        const finish = result => root.finishConnection(request, result);
+        const command = [root.nmcliCommandDevice, root.nmcliCommandWifi, "connect", ssid];
+        if (password)
+            command.push(root.connectionParamPassword, password);
+        if (bssid)
+            command.push("bssid", bssid.toUpperCase());
+        let retries = 0;
+        function attempt() {
+            root.executeCommand(command, result => {
+                if (root.pendingConnection !== request)
+                    return;
+                if (result.needsPassword && password) {
+                    root.retrySavedPassword(request, password, result);
+                } else if (!result.success && !result.needsPassword && !password && callback && retries < 2) {
+                    ++retries;
+                    connectionRetry.attempt = attempt;
+                    connectionRetry.restart();
+                } else {
+                    finish(result);
+                }
+            });
         }
-
-        if (password && password.length > 0 && hasBssid) {
-            const bssidUpper = bssid.toUpperCase();
-            createConnectionWithPassword(ssid, bssidUpper, password, callback);
-            return;
-        }
-
-        let cmd = [root.nmcliCommandDevice, root.nmcliCommandWifi, "connect", ssid];
-        if (password && password.length > 0) {
-            cmd.push(root.connectionParamPassword, password);
-        }
-        executeCommand(cmd, result => {
-            if (result.needsPassword && callback) {
-                if (callback)
-                    callback(result);
-                return;
-            }
-
-            if (!result.success && root.pendingConnection && retries < maxRetries) {
-                console.warn(lc, "Connection failed, retrying... (attempt " + (retries + 1) + "/" + maxRetries + ")");
-                Qt.callLater(() => {
-                    connectWireless(ssid, password, bssid, callback, retries + 1);
-                }, 1000);
-            } else if (!result.success && root.pendingConnection) {} else if (result.success && callback) {} else if (!result.success && !root.pendingConnection) {
-                if (callback)
-                    callback(result);
-            }
-        });
+        attempt();
     }
 
-    function createConnectionWithPassword(ssid: string, bssidUpper: string, password: string, callback: var): void {
-        checkAndDeleteConnection(ssid, () => {
-            const cmd = [root.nmcliCommandConnection, "add", root.connectionParamType, root.deviceTypeWifi, root.connectionParamConName, ssid, root.connectionParamIfname, "*", root.connectionParamSsid, ssid, root.connectionParamBssid, bssidUpper, root.securityKeyMgmt, root.keyMgmtWpaPsk, root.securityPsk, password];
+    function finishConnection(request: var, result: var): void {
+        if (!request || request !== pendingConnection)
+            return;
+        pendingConnection = null;
+        connectionRetry.stop();
+        connectionRetry.attempt = null;
+        if (result.success && !hasSavedProfile(request.ssid))
+            loadSavedConnections();
+        else if (!result.success && !result.needsPassword)
+            connectionFailed(request.ssid);
+        if (request.callback)
+            request.callback(result);
+    }
 
-            executeCommand(cmd, result => {
-                if (result.success) {
-                    loadSavedConnections(() => {});
-                    activateConnection(ssid, callback);
-                } else {
-                    const hasDuplicateWarning = result.error && (result.error.includes("another connection with the name") || result.error.includes("Reference the connection by its uuid"));
-
-                    if (hasDuplicateWarning || (result.exitCode > 0 && result.exitCode < 10)) {
-                        loadSavedConnections(() => {});
-                        activateConnection(ssid, callback);
-                    } else {
-                        console.warn(lc, "Connection profile creation failed, trying fallback...");
-                        let fallbackCmd = [root.nmcliCommandDevice, root.nmcliCommandWifi, "connect", ssid, root.connectionParamPassword, password];
-                        executeCommand(fallbackCmd, fallbackResult => {
-                            if (callback)
-                                callback(fallbackResult);
-                        });
-                    }
+    function retrySavedPassword(request: var, password: string, failure: var): void {
+        // nmcli can reuse a saved profile whose PSK is stale. Update only the
+        // matching wireless profile and keep its routes, DNS and other settings.
+        executeCommand(["-t", "-f", `connection.uuid,${wirelessSsidField},${securityKeyMgmt}`,
+                        "connection", "show", "id", request.ssid], result => {
+            if (pendingConnection !== request) return;
+            const fields = new Map(result.output.split("\n").map(line => terseFields(line)));
+            const uuid = fields.get("connection.uuid");
+            if (!result.success || !uuid || fields.get(wirelessSsidField) !== request.ssid
+                || !["wpa-psk", "sae"].includes(fields.get(securityKeyMgmt))) {
+                finishConnection(request, failure);
+                return;
+            }
+            executeCommand(["connection", "modify", "uuid", uuid, securityPsk, password], changed => {
+                if (pendingConnection !== request) return;
+                if (!changed.success) {
+                    finishConnection(request, changed);
+                    return;
                 }
+                const up = ["connection", "up", "uuid", uuid];
+                if (request.bssid) up.push("ap", request.bssid);
+                executeCommand(up, activated => finishConnection(request, activated));
             });
         });
     }
@@ -505,11 +468,9 @@ Singleton {
     function checkAndDeleteConnection(ssid: string, callback: var): void {
         executeCommand([root.nmcliCommandConnection, "show", ssid], result => {
             if (result.success) {
-                executeCommand([root.nmcliCommandConnection, "delete", ssid], deleteResult => {
-                    Qt.callLater(() => {
-                        if (callback)
-                            callback();
-                    }, 300);
+                executeCommand([root.nmcliCommandConnection, "delete", ssid], () => {
+                    if (callback)
+                        callback();
                 });
             } else {
                 if (callback)
@@ -526,102 +487,81 @@ Singleton {
     }
 
     function loadSavedConnections(callback: var): void {
-        executeCommand(["-t", "-f", root.connectionListFields, root.nmcliCommandConnection, "show"], result => {
-            if (!result.success) {
-                root.savedConnections = [];
-                root.savedConnectionSsids = [];
-                root.savedConnectionSecurity = {};
-                if (callback)
-                    callback([]);
+        if (callback)
+            savedRefreshCallbacks.push(callback);
+        if (savedRefreshActive) {
+            savedRefreshPending = true;
+            return;
+        }
+        savedRefreshActive = true;
+        readSavedConnections();
+    }
+
+    function readSavedConnections(): void {
+        const names = [];
+        const wireless = [];
+        const ssids = [];
+        const security = Object.create(null);
+        let index = 0;
+
+        function finish() {
+            if (!root.savedRefreshPending) {
+                root.savedConnections = names;
+                root.savedConnectionSecurity = security;
+                root.savedConnectionSsids = ssids;
+            }
+            if (root.savedRefreshPending) {
+                root.savedRefreshPending = false;
+                root.readSavedConnections();
                 return;
             }
+            const callbacks = root.savedRefreshCallbacks;
+            root.savedRefreshCallbacks = [];
+            root.savedRefreshActive = false;
+            for (const callback of callbacks)
+                callback(ssids);
+        }
 
-            parseConnectionList(result.output, callback);
-        });
-    }
+        function readNext() {
+            if (index === wireless.length) {
+                finish();
+                return;
+            }
+            root.executeCommand(["-t", "-f", `${root.wirelessSsidField},${root.securityKeyMgmt}`,
+                                 root.nmcliCommandConnection, "show", wireless[index++]], result => {
+                if (result.success) {
+                    let ssid = "", keyMgmt = "";
+                    for (const line of result.output.split("\n")) {
+                        const [key, value] = root.terseFields(line);
+                        if (key === root.wirelessSsidField)
+                            ssid = value;
+                        else if (key === root.securityKeyMgmt)
+                            keyMgmt = value;
+                    }
+                    if (ssid) {
+                        const key = ssid.toLowerCase();
+                        if (!(key in security))
+                            ssids.push(ssid);
+                        security[key] = keyMgmt;
+                    }
+                }
+                readNext();
+            });
+        }
 
-    function parseConnectionList(output: string, callback: var): void {
-        const lines = output.trim().split("\n").filter(line => line.length > 0);
-        const wifiConnections = [];
-        const connections = [];
-
-        for (const line of lines) {
-            const parts = line.split(":");
-            if (parts.length >= 2) {
-                const name = parts[0];
-                const type = parts[1];
-                connections.push(name);
-
-                if (type === root.connectionTypeWireless) {
-                    wifiConnections.push(name);
+        executeCommand(["-t", "-f", root.connectionListFields, root.nmcliCommandConnection, "show"], result => {
+            if (result.success) {
+                for (const line of result.output.split("\n")) {
+                    const [name, type] = root.terseFields(line);
+                    if (!name || !type)
+                        continue;
+                    names.push(name);
+                    if (type === root.connectionTypeWireless)
+                        wireless.push(name);
                 }
             }
-        }
-
-        root.savedConnections = connections;
-
-        root.savedConnectionSecurity = {};
-
-        if (wifiConnections.length > 0) {
-            root.wifiConnectionQueue = wifiConnections;
-            root.currentSsidQueryIndex = 0;
-            root.savedConnectionSsids = [];
-            queryNextSsid(callback);
-        } else {
-            root.savedConnectionSsids = [];
-            root.wifiConnectionQueue = [];
-            if (callback)
-                callback(root.savedConnectionSsids);
-        }
-    }
-
-    function queryNextSsid(callback: var): void {
-        if (root.currentSsidQueryIndex < root.wifiConnectionQueue.length) {
-            const connectionName = root.wifiConnectionQueue[root.currentSsidQueryIndex];
-            root.currentSsidQueryIndex++;
-
-            executeCommand(["-t", "-f", `${root.wirelessSsidField},${root.securityKeyMgmt}`, root.nmcliCommandConnection, "show", connectionName], result => {
-                if (result.success) {
-                    processSsidOutput(result.output);
-                }
-                queryNextSsid(callback);
-            });
-        } else {
-            root.wifiConnectionQueue = [];
-            root.currentSsidQueryIndex = 0;
-            if (callback)
-                callback(root.savedConnectionSsids);
-        }
-    }
-
-    function processSsidOutput(output: string): void {
-        const ssidPrefix = "802-11-wireless.ssid:";
-        const keyMgmtPrefix = `${root.securityKeyMgmt}:`;
-
-        let ssid = "";
-        let keyMgmt = "";
-        for (const line of output.trim().split("\n")) {
-            if (line.startsWith(ssidPrefix))
-                ssid = line.substring(ssidPrefix.length).trim();
-            else if (line.startsWith(keyMgmtPrefix))
-                keyMgmt = line.substring(keyMgmtPrefix.length).trim();
-        }
-
-        if (!ssid || ssid.length === 0)
-            return;
-
-        const ssidLower = ssid.toLowerCase();
-
-        const exists = root.savedConnectionSsids.some(s => s && s.toLowerCase() === ssidLower);
-        if (!exists) {
-            const newList = root.savedConnectionSsids.slice();
-            newList.push(ssid);
-            root.savedConnectionSsids = newList;
-        }
-
-        const security = Object.assign({}, root.savedConnectionSecurity);
-        security[ssidLower] = keyMgmt;
-        root.savedConnectionSecurity = security;
+            readNext();
+        });
     }
 
     function securityLabel(keyMgmt: string): string {
@@ -649,7 +589,7 @@ Singleton {
     function savedSecurityFor(ssid: string): string {
         if (!ssid || ssid.length === 0)
             return "";
-        return root.savedConnectionSecurity[ssid.toLowerCase().trim()] || "";
+        return root.savedConnectionSecurity[ssid.toLowerCase()] || "";
     }
 
     function hasSavedProfile(ssid: string): bool {
@@ -703,13 +643,13 @@ Singleton {
 
             executeCommand(cmd, result => {
                 if (result.success) {
-                    loadSavedConnections(() => {});
+                    loadSavedConnections();
                     activateConnection(ssid, callback);
                 } else {
                     const hasDuplicateWarning = result.error && (result.error.includes("another connection with the name") || result.error.includes("Reference the connection by its uuid"));
 
                     if (hasDuplicateWarning) {
-                        loadSavedConnections(() => {});
+                        loadSavedConnections();
                         activateConnection(ssid, callback);
                     } else if (callback) {
                         callback(result);
@@ -796,7 +736,7 @@ Singleton {
         executeCommand([root.nmcliCommandConnection, "delete", connectionName], result => {
             if (result.success) {
                 Qt.callLater(() => {
-                    loadSavedConnections(() => {});
+                    loadSavedConnections();
                 }, 500);
             }
             if (callback)
@@ -849,7 +789,7 @@ Singleton {
             let activeConn = "";
 
             for (const line of lines) {
-                const parts = line.split(":");
+                const parts = terseFields(line);
                 if (parts.length >= 4) {
                     const state = parts[2] || "";
                     if (isConnectedState(state)) {
@@ -1007,7 +947,6 @@ Singleton {
 
             if (callback)
                 callback(root.networks);
-            checkPendingConnection();
         });
     }
 
@@ -1031,7 +970,7 @@ Singleton {
                 if (!line || line.length === 0)
                     continue;
 
-                const parts = line.split(":");
+                const parts = terseFields(line);
                 if (parts.length >= 1) {
                     const ssid = parts[0].trim();
                     if (ssid && ssid.length > 0 && !seenSSIDs.has(ssid)) {
@@ -1058,76 +997,13 @@ Singleton {
         });
     }
 
-    function handlePasswordRequired(proc: var, error: string, output: string, exitCode: int): bool {
-        if (!proc || !error || error.length === 0) {
-            return false;
-        }
-
-        if (!isConnectionCommand(proc.cmdArgs) || !root.pendingConnection || !root.pendingConnection.callback) {
-            return false;
-        }
-
-        const needsPassword = detectPasswordRequired(error);
-
-        if (needsPassword && !proc.callbackCalled && root.pendingConnection) {
-            connectionCheckTimer.stop();
-            immediateCheckTimer.stop();
-            immediateCheckTimer.checkCount = 0;
-            const pending = root.pendingConnection;
-            root.pendingConnection = null;
-            proc.callbackCalled = true;
-            const result = {
-                success: false,
-                output: output || "",
-                error: error,
-                exitCode: exitCode,
-                needsPassword: true
-            };
-            if (pending.callback) {
-                pending.callback(result);
-            }
-            if (proc.callback && proc.callback !== pending.callback) {
-                proc.callback(result);
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-    function checkPendingConnection(): void {
-        if (root.pendingConnection) {
-            Qt.callLater(() => {
-                const connected = root.active && root.active.ssid === root.pendingConnection.ssid;
-                if (connected) {
-                    connectionCheckTimer.stop();
-                    immediateCheckTimer.stop();
-                    immediateCheckTimer.checkCount = 0;
-                    if (root.pendingConnection.callback) {
-                        root.pendingConnection.callback({
-                            success: true,
-                            output: "Connected",
-                            error: "",
-                            exitCode: 0
-                        });
-                    }
-                    root.pendingConnection = null;
-                } else {
-                    if (!immediateCheckTimer.running) {
-                        immediateCheckTimer.start();
-                    }
-                }
-            });
-        }
-    }
-
     function cidrToSubnetMask(cidr: string): string {
         const cidrNum = parseInt(cidr, 10);
         if (isNaN(cidrNum) || cidrNum < 0 || cidrNum > 32) {
             return "";
         }
 
-        const mask = (0xffffffff << (32 - cidrNum)) >>> 0;
+        const mask = cidrNum === 0 ? 0 : (0xffffffff << (32 - cidrNum)) >>> 0;
         const octet1 = (mask >>> 24) & 0xff;
         const octet2 = (mask >>> 16) & 0xff;
         const octet3 = (mask >>> 8) & 0xff;
@@ -1291,7 +1167,7 @@ Singleton {
             root.ethernetSpeed = "";
             return;
         }
-        speedProc.command = ["sh", "-c", `cat /sys/class/net/${interfaceName}/speed 2>/dev/null`];
+        speedProc.command = ["cat", `/sys/class/net/${interfaceName}/speed`];
         speedProc.running = true;
     }
 
@@ -1303,7 +1179,7 @@ Singleton {
         }
         dataUsageProc.iface = interfaceName;
         dataUsageProc.cb = callback;
-        dataUsageProc.command = ["sh", "-c", `cat /sys/class/net/${interfaceName}/statistics/rx_bytes /sys/class/net/${interfaceName}/statistics/tx_bytes 2>/dev/null`];
+        dataUsageProc.command = ["cat", `/sys/class/net/${interfaceName}/statistics/rx_bytes`, `/sys/class/net/${interfaceName}/statistics/tx_bytes`];
         dataUsageProc.running = true;
     }
 
@@ -1387,70 +1263,26 @@ Singleton {
     }
 
     function refreshOnConnectionChange(): void {
-        getNetworks(networks => {
-            const newActive = root.active;
-
-            if (newActive && newActive.active) {
-                Qt.callLater(() => {
-                    if (root.wirelessInterfaces.length > 0) {
-                        const activeWireless = root.wirelessInterfaces.find(iface => {
-                            return isConnectedState(iface.state);
-                        });
-                        if (activeWireless && activeWireless.device) {
-                            getWirelessDeviceDetails(activeWireless.device, () => {});
-                        }
-                    }
-
-                    if (root.ethernetInterfaces.length > 0) {
-                        const activeEthernet = root.ethernetInterfaces.find(iface => {
-                            return isConnectedState(iface.state);
-                        });
-                        if (activeEthernet && activeEthernet.device) {
-                            getEthernetDeviceDetails(activeEthernet.device, () => {});
-                        }
-                    }
-                }, 500);
-            } else {
+        getWifiStatus();
+        getNetworks();
+        getDeviceStatus(output => {
+            root.wirelessInterfaces = parseDeviceStatusOutput(output, root.deviceTypeWifi);
+            updateEthernetInterfaces(output);
+            const wireless = root.wirelessInterfaces.find(iface => isConnectedState(iface.state));
+            if (wireless)
+                getWirelessDeviceDetails(wireless.device);
+            else
                 root.wirelessDeviceDetails = null;
+            if (root.activeEthernet)
+                getEthernetDeviceDetails(root.activeEthernet.iface);
+            else
                 root.ethernetDeviceDetails = null;
-            }
-
-            getWirelessInterfaces(() => {});
-            getEthernetInterfaces(() => {
-                if (root.activeEthernet && root.activeEthernet.connected) {
-                    Qt.callLater(() => {
-                        getEthernetDeviceDetails(root.activeEthernet.iface, () => {});
-                    }, 500);
-                }
-            });
         });
     }
 
     Component.onCompleted: {
-        getWifiStatus(() => {});
-        getNetworks(() => {});
-        loadSavedConnections(() => {});
-        getEthernetInterfaces(() => {});
-
-        Qt.callLater(() => {
-            if (root.wirelessInterfaces.length > 0) {
-                const activeWireless = root.wirelessInterfaces.find(iface => {
-                    return isConnectedState(iface.state);
-                });
-                if (activeWireless && activeWireless.device) {
-                    getWirelessDeviceDetails(activeWireless.device, () => {});
-                }
-            }
-
-            if (root.ethernetInterfaces.length > 0) {
-                const activeEthernet = root.ethernetInterfaces.find(iface => {
-                    return isConnectedState(iface.state);
-                });
-                if (activeEthernet && activeEthernet.device) {
-                    getEthernetDeviceDetails(activeEthernet.device, () => {});
-                }
-            }
-        }, 2000);
+        refreshOnConnectionChange();
+        loadSavedConnections();
     }
 
     Component {
@@ -1471,180 +1303,14 @@ Singleton {
         EthernetDevice {}
     }
 
-    Component {
-        id: physicalCheckProc
-
-        Process {
-            id: proc
-
-            property var callback: null
-
-            stdout: StdioCollector {
-                id: stdoutCollector
-            }
-
-            stderr: StdioCollector {
-                id: stderrCollector
-            }
-
-            onExited: code => { // qmllint disable signal-handler-parameters
-                Qt.callLater(() => {
-                    const callback = proc.callback;
-                    const result = {
-                        success: code === 0,
-                        output: stdoutCollector.text ?? "",
-                        error: stderrCollector.text ?? "",
-                        exitCode: code
-                    };
-
-                    proc.destroy();
-                    callback?.(result);
-                });
-            }
-        }
-    }
-
     Timer {
-        id: connectionCheckTimer
-
-        interval: 4000
+        id: connectionRetry
+        property var attempt: null
+        interval: 1000
         onTriggered: {
-            if (root.pendingConnection) {
-                const connected = root.active && root.active.ssid === root.pendingConnection.ssid;
-
-                if (!connected && root.pendingConnection.callback) {
-                    let foundPasswordError = false;
-                    for (let i = 0; i < root.activeProcesses.length; i++) {
-                        const proc = root.activeProcesses[i];
-                        if (proc && proc.stderr && proc.stderr.text) {
-                            const error = proc.stderr.text.trim();
-                            if (error && error.length > 0) {
-                                if (root.isConnectionCommand(proc.cmdArgs)) {
-                                    const needsPassword = root.detectPasswordRequired(error);
-
-                                    if (needsPassword && !proc.callbackCalled && root.pendingConnection) {
-                                        const pending = root.pendingConnection;
-                                        root.pendingConnection = null;
-                                        immediateCheckTimer.stop();
-                                        immediateCheckTimer.checkCount = 0;
-                                        proc.callbackCalled = true;
-                                        const result = {
-                                            success: false,
-                                            output: (proc.stdout && proc.stdout.text) ? proc.stdout.text : "",
-                                            error: error,
-                                            exitCode: -1,
-                                            needsPassword: true
-                                        };
-                                        if (pending.callback) {
-                                            pending.callback(result);
-                                        }
-                                        if (proc.callback && proc.callback !== pending.callback) {
-                                            proc.callback(result);
-                                        }
-                                        foundPasswordError = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (!foundPasswordError) {
-                        const pending = root.pendingConnection;
-                        const failedSsid = pending.ssid;
-                        root.pendingConnection = null;
-                        immediateCheckTimer.stop();
-                        immediateCheckTimer.checkCount = 0;
-                        root.connectionFailed(failedSsid);
-                        pending.callback({
-                            success: false,
-                            output: "",
-                            error: "Connection timeout",
-                            exitCode: -1,
-                            needsPassword: false
-                        });
-                    }
-                } else if (connected) {
-                    root.pendingConnection = null;
-                    immediateCheckTimer.stop();
-                    immediateCheckTimer.checkCount = 0;
-                }
-            }
-        }
-    }
-
-    Timer {
-        id: immediateCheckTimer
-
-        property int checkCount: 0
-
-        interval: 500
-        repeat: true
-        triggeredOnStart: false
-
-        onTriggered: {
-            if (root.pendingConnection) {
-                checkCount++;
-                const connected = root.active && root.active.ssid === root.pendingConnection.ssid;
-
-                if (connected) {
-                    connectionCheckTimer.stop();
-                    immediateCheckTimer.stop();
-                    immediateCheckTimer.checkCount = 0;
-                    if (root.pendingConnection.callback) {
-                        root.pendingConnection.callback({
-                            success: true,
-                            output: "Connected",
-                            error: "",
-                            exitCode: 0
-                        });
-                    }
-                    root.pendingConnection = null;
-                } else {
-                    for (let i = 0; i < root.activeProcesses.length; i++) {
-                        const proc = root.activeProcesses[i];
-                        if (proc && proc.stderr && proc.stderr.text) {
-                            const error = proc.stderr.text.trim();
-                            if (error && error.length > 0) {
-                                if (root.isConnectionCommand(proc.cmdArgs)) {
-                                    const needsPassword = root.detectPasswordRequired(error);
-
-                                    if (needsPassword && !proc.callbackCalled && root.pendingConnection && root.pendingConnection.callback) {
-                                        connectionCheckTimer.stop();
-                                        immediateCheckTimer.stop();
-                                        immediateCheckTimer.checkCount = 0;
-                                        const pending = root.pendingConnection;
-                                        root.pendingConnection = null;
-                                        proc.callbackCalled = true;
-                                        const result = {
-                                            success: false,
-                                            output: (proc.stdout && proc.stdout.text) ? proc.stdout.text : "",
-                                            error: error,
-                                            exitCode: -1,
-                                            needsPassword: true
-                                        };
-                                        if (pending.callback) {
-                                            pending.callback(result);
-                                        }
-                                        if (proc.callback && proc.callback !== pending.callback) {
-                                            proc.callback(result);
-                                        }
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (checkCount >= 6) {
-                        immediateCheckTimer.stop();
-                        immediateCheckTimer.checkCount = 0;
-                    }
-                }
-            } else {
-                immediateCheckTimer.stop();
-                immediateCheckTimer.checkCount = 0;
-            }
+            const next = attempt;
+            attempt = null;
+            if (next) next();
         }
     }
 
@@ -1708,9 +1374,15 @@ Singleton {
                 LC_ALL: "C.UTF-8"
             })
         stdout: SplitParser {
-            onRead: root.refreshOnConnectionChange()
+            onRead: monitorRefresh.start()
         }
         onExited: monitorRestartTimer.start() // qmllint disable signal-handler-parameters
+    }
+
+    Timer {
+        id: monitorRefresh
+        interval: 150
+        onTriggered: root.refreshOnConnectionChange()
     }
 
     Timer {
@@ -1735,9 +1407,7 @@ Singleton {
         property var callback: null
         property list<string> cmdArgs: []
         property bool callbackCalled: false
-        property int exitCode: 0
-
-        signal processFinished
+        property int exitCode: 127
 
         environment: ({
                 LANG: "C.UTF-8",
@@ -1752,54 +1422,33 @@ Singleton {
             id: stderrCollector
 
             onStreamFinished: {
-                const error = text.trim();
-                if (error && error.length > 0) {
-                    const output = (stdoutCollector && stdoutCollector.text) ? stdoutCollector.text : "";
-                    root.handlePasswordRequired(proc, error, output, -1);
+                if (proc.callback && !proc.callbackCalled && root.isConnectionCommand(proc.cmdArgs)
+                    && root.detectPasswordRequired(text)) {
+                    proc.callbackCalled = true;
+                    proc.callback({success: false, output: stdoutCollector.text, error: text, exitCode: -1, needsPassword: true});
                 }
             }
         }
 
-        onExited: code => { // qmllint disable signal-handler-parameters
-            exitCode = code;
+        onExited: code => exitCode = code
+        // A missing executable emits runningChanged without exited.
+        onRunningChanged: if (!running) Qt.callLater(finish)
 
-            Qt.callLater(() => {
-                if (callbackCalled) {
-                    processFinished();
-                    return;
-                }
+        function finish(): void {
+            const index = root.activeProcesses.indexOf(proc);
+            if (index < 0)
+                return;
+            root.activeProcesses.splice(index, 1);
+            proc.destroy();
+            if (callbackCalled || !callback)
+                return;
 
-                if (proc.callback) {
-                    const output = (stdoutCollector && stdoutCollector.text) ? stdoutCollector.text : "";
-                    const error = (stderrCollector && stderrCollector.text) ? stderrCollector.text : "";
-                    const success = exitCode === 0;
-                    const cmdIsConnection = isConnectionCommand(proc.cmdArgs);
-
-                    if (root.handlePasswordRequired(proc, error, output, exitCode)) {
-                        processFinished();
-                        return;
-                    }
-
-                    const needsPassword = cmdIsConnection && root.detectPasswordRequired(error);
-
-                    if (!success && cmdIsConnection && root.pendingConnection) {
-                        const failedSsid = root.pendingConnection.ssid;
-                        root.connectionFailed(failedSsid);
-                    }
-
-                    callbackCalled = true;
-                    callback({
-                        success: success,
-                        output: output,
-                        error: error,
-                        exitCode: proc.exitCode,
-                        needsPassword: needsPassword || false
-                    });
-                    processFinished();
-                } else {
-                    processFinished();
-                }
-            });
+            const output = stdoutCollector.text ?? "";
+            const error = stderrCollector.text ?? "";
+            const connection = root.isConnectionCommand(cmdArgs);
+            callbackCalled = true;
+            callback({success: exitCode === 0, output: output, error: error, exitCode: exitCode,
+                needsPassword: connection && root.detectPasswordRequired(error)});
         }
     }
 

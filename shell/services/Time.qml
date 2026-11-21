@@ -2,10 +2,11 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Hyprstack.Config
 import Hyprstack.I18n
 
 Singleton {
+    // Visible clocks that display seconds.
+    property int refCount: 0
     property bool recordingActive: false
     property alias enabled: clock.enabled
     readonly property date date: clock.date
@@ -26,10 +27,6 @@ Singleton {
     SystemClock {
         id: clock
 
-        precision: recordingActive || Quickshell.screens.some(s => {
-            const config = GlobalConfig.forScreen(s.name);
-            const clockShown = config.enabled && config.bar.entries.values.some(e => e.id === "clock" && e.enabled);
-            return (clockShown && config.bar.clock.showSeconds) || config.dashboard.showClockSeconds;
-        }) ? SystemClock.Seconds : SystemClock.Minutes
+        precision: recordingActive || refCount > 0 ? SystemClock.Seconds : SystemClock.Minutes
     }
 }

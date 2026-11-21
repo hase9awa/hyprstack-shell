@@ -14,56 +14,55 @@ StyledRect {
     property string source: Wallpapers.current
     property CachingImage current
 
-    onSourceChanged: {
+    readonly property CachingImage spare: current === first ? second : first
+
+    onSourceChanged: Qt.callLater(syncSource)
+    Component.onCompleted: Qt.callLater(syncSource)
+
+    function syncSource(): void {
+        fade.stop();
         if (!source) {
-            if (current)
-                current.destroy();
             current = null;
-        } else {
-            current = imgComp.createObject(this, {
-                path: source
-            });
+            first.path = second.path = "";
+            return;
+        }
+        if (current)
+            current.opacity = 1;
+        spare.opacity = 0;
+        spare.path = current?.path === source ? "" : source;
+    }
+
+    function showLayer(layer: CachingImage): void {
+        if (layer === current || layer.path !== source)
+            return;
+        current = layer;
+        fade.start();
+    }
+
+    component Layer: CachingImage {
+        id: layer
+        anchors.fill: parent
+        opacity: 0
+        z: root.current === layer ? 1 : 0
+        cache: false
+        onStatusChanged: {
+            if (status === Image.Ready)
+                root.showLayer(layer);
+            else if (status === Image.Error && root.current !== layer)
+                path = "";
         }
     }
 
-    Component.onCompleted: {
-        if (source)
-            Qt.callLater(() => {
-                current = imgComp.createObject(this, {
-                    path: source
-                });
-            });
-    }
+    Layer { id: first }
+    Layer { id: second }
 
-    Component {
-        id: imgComp
-
-        CachingImage {
-            id: img
-
-            anchors.fill: parent
-
-            opacity: 0
-
-            onStatusChanged: {
-                if (status === Image.Ready)
-                    anim.start();
-            }
-
-            Anim on opacity {
-                id: anim
-
-                type: Anim.SlowEffects
-                running: false
-                from: 0
-                to: 1
-            }
-
-            Timer {
-                running: root.current !== img && root.current?.status === Image.Ready
-                interval: anim.duration
-                onTriggered: img.destroy()
-            }
-        }
+    Anim {
+        id: fade
+        target: root.current
+        property: "opacity"
+        type: Anim.SlowEffects
+        from: 0
+        to: 1
+        onFinished: root.spare.path = ""
     }
 }

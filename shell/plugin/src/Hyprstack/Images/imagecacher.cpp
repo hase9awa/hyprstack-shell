@@ -8,10 +8,10 @@
 #include <qimagereader.h>
 #include <qdatetime.h>
 #include <qloggingcategory.h>
-#include <qmutex.h>
 #include <qpainter.h>
 #include <qsavefile.h>
-#include <qthreadpool.h>
+
+#include <utility>
 
 namespace {
 
@@ -71,42 +71,6 @@ QString ImageCacher::cachePathFor(const QString& sourcePath, const QSize& size, 
     return cacheDir() + u'/' + filename;
 }
 
-ImageCacher* ImageCacher::instance() {
-    static ImageCacher s_instance;
-    return &s_instance;
-}
-
-ImageCacher::ImageCacher(QObject* parent)
-    : QObject(parent) {}
-
-void ImageCacher::schedule(const QString& sourcePath, const QSize& size, FillMode fillMode) {
-    schedule(sourcePath, cachePathFor(sourcePath, size, fillMode), size, fillMode);
-}
-
-void ImageCacher::schedule(const QString& sourcePath, const QString& cachePath, const QSize& size, FillMode fillMode) {
-    if (cachePath.isEmpty())
-        return;
-
-    {
-        const QMutexLocker locker(&m_mutex);
-        if (m_inflight.contains(cachePath))
-            return;
-        m_inflight.insert(cachePath);
-    }
-
-    QThreadPool::globalInstance()->start([this, sourcePath, cachePath, size, fillMode] {
-        runJob(sourcePath, cachePath, size, fillMode);
-        const QMutexLocker locker(&m_mutex);
-        // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage) m_inflight is a value member, not a pointer
-        m_inflight.remove(cachePath);
-    });
-}
-
-void ImageCacher::runJob(const QString& sourcePath, const QString& cachePath, const QSize& size, FillMode fillMode) {
-    Q_UNUSED(cachePath);
-    load(sourcePath, size, fillMode);
-}
-
 QImage ImageCacher::load(const QString& sourcePath, const QSize& size, FillMode fillMode) {
     if (!size.isValid() || size.isEmpty() || size.width() > 16384 || size.height() > 16384 ||
         static_cast<qint64>(size.width()) * size.height() > 64 * 1024 * 1024)
@@ -135,10 +99,13 @@ QImage ImageCacher::load(const QString& sourcePath, const QSize& size, FillMode 
     reader.setAutoTransform(true);
     const auto sourceSize = reader.size();
     if (sourceSize.isValid()) {
-        auto decodedSize = sourceSize.scaled(size, scaleMode);
+        // QImageReader scales in file coordinates before applying EXIF orientation.
+        const auto target = reader.transformation().testFlag(QImageIOHandler::TransformationRotate90)
+            ? size.transposed() : size;
+        auto decodedSize = sourceSize.scaled(target, scaleMode);
         if (decodedSize.width() > 16384 || decodedSize.height() > 16384 ||
             static_cast<qint64>(decodedSize.width()) * decodedSize.height() > 64 * 1024 * 1024)
-            decodedSize = sourceSize.scaled(size, Qt::KeepAspectRatio);
+            decodedSize = sourceSize.scaled(target, Qt::KeepAspectRatio);
         reader.setScaledSize(decodedSize.expandedTo(QSize(1, 1)));
     }
     QImage image = reader.read();
@@ -148,42 +115,49 @@ QImage ImageCacher::load(const QString& sourcePath, const QSize& size, FillMode 
         return {};
     }
 
-    QImage canvas(size, QImage::Format_ARGB32);
-    canvas.fill(Qt::transparent);
-    QPainter painter(&canvas);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform);
-    if (fillMode == FillMode::Crop) {
-        const auto factor = std::min(static_cast<qreal>(image.width()) / size.width(),
-                                     static_cast<qreal>(image.height()) / size.height());
-        const auto width = size.width() * factor;
-        const auto height = size.height() * factor;
-        painter.drawImage(QRectF(QPointF(0, 0), QSizeF(size)), image,
-                          QRectF((image.width() - width) / 2, (image.height() - height) / 2, width, height));
-    } else {
-        const auto dimensions = image.size().scaled(size, scaleMode);
-        painter.drawImage(QRect(QPoint((size.width() - dimensions.width()) / 2,
-                                      (size.height() - dimensions.height()) / 2), dimensions), image);
+    // JPEG and other scaled decoders can already return exactly the requested
+    // bitmap. Only allocate a second frame for cropping or padding.
+    if (image.size() != size) {
+        QImage canvas(size, QImage::Format_ARGB32);
+        if (canvas.isNull())
+            return {};
+        canvas.fill(Qt::transparent);
+        QPainter painter(&canvas);
+        painter.setRenderHint(QPainter::SmoothPixmapTransform);
+        if (fillMode == FillMode::Crop) {
+            const auto factor = std::min(static_cast<qreal>(image.width()) / size.width(),
+                                         static_cast<qreal>(image.height()) / size.height());
+            const auto width = size.width() * factor;
+            const auto height = size.height() * factor;
+            painter.drawImage(QRectF(QPointF(0, 0), QSizeF(size)), image,
+                              QRectF((image.width() - width) / 2, (image.height() - height) / 2, width, height));
+        } else {
+            const auto dimensions = image.size().scaled(size, scaleMode);
+            painter.drawImage(QRect(QPoint((size.width() - dimensions.width()) / 2,
+                                          (size.height() - dimensions.height()) / 2), dimensions), image);
+        }
+        painter.end();
+        image = std::move(canvas);
     }
-    painter.end();
 
     if (cachePath.isEmpty())
-        return canvas;
+        return image;
 
     const QString parent = QFileInfo(cachePath).absolutePath();
     if (!QDir().mkpath(parent)) {
         qCWarning(lcCacher).noquote() << "Failed to create cache dir" << parent;
-        return canvas;
+        return image;
     }
 
     QSaveFile saveFile(cachePath);
-    if (!saveFile.open(QIODevice::WriteOnly) || !canvas.save(&saveFile, "PNG") || !saveFile.commit()) {
+    if (!saveFile.open(QIODevice::WriteOnly) || !image.save(&saveFile, "PNG") || !saveFile.commit()) {
         qCWarning(
             lcCacher, "Failed to save to %s: %s", qUtf8Printable(cachePath), qUtf8Printable(saveFile.errorString()));
-        return canvas;
+        return image;
     }
 
     qCDebug(lcCacher).noquote() << "Saved to" << cachePath;
-    return canvas;
+    return image;
 }
 
 } // namespace hyprstack::images

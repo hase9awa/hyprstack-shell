@@ -238,6 +238,21 @@ def main():
         assert status()["viewMode"] == "list" and status()["sortBy"] == "modified" and status()["reverse"]
         cancel()
         print("PASS: list/icons views, all sort controls, selection preservation and preferences after reopening and shell restart", flush=True)
+        for name, modified in [("Files with spaces", 1600000150), ("Каталог", 1600000250)]:
+            os.utime(home / name, (modified, modified))
+        prefs_data = json.loads(settings_file.read_text())
+        prefs_data["folderSort"] = {str(home): {"sortBy": "modified", "reverse": True, "foldersFirst": False}}
+        settings_file.write_text(json.dumps(prefs_data))
+        start(0)
+        mixed = ["image # %.png", "Каталог", "second.txt", "Files with spaces", "hash # %.txt", "first.txt"]
+        wait(lambda: status()["entries"] == mixed, "files and folders ordered together by date")
+        click("fileDialogSort_modified")
+        wait(lambda: status()["entries"] == mixed[::-1], "reverse mixed order")
+        wait(lambda: json.loads(settings_file.read_text()).get("folderSort", {}).get(str(home)) ==
+             {"sortBy": "modified", "reverse": False, "foldersFirst": False}, "persisted mixed order")
+        assert status()["reverse"]
+        cancel()
+        print("PASS: shared date order for folders and files with a per-folder override", flush=True)
         assert not ctl("configerrors").strip()
         print("PASS: thumbnails with reserved characters, cancellation and clean compositor config", flush=True)
     finally:

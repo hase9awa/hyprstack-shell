@@ -425,8 +425,7 @@ def proc_start(pid):
     return Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[19]
 
 
-def status():
-    value = model()
+def connection_status():
     session = read_json(ROOT / 'process.json', {})
     alive = False
     try:
@@ -435,22 +434,27 @@ def status():
     except (OSError, KeyError):
         alive = False
     connected = alive and (session.get('mode') == 'proxy' or Path('/sys/class/net/hyprstack-vpn').exists())
-    engines = required(value)
     return {'connected': bool(connected), 'state': 'connected' if connected else 'disconnected',
             'reason': '', 'authUrl': '', 'server': session.get('name', '') if connected else '',
+            'coreRunning': alive, 'engine': session.get('engine', '') if connected else '',
+            'socksPort': session.get('socksPort', 2080), 'httpPort': session.get('httpPort', 2081)}
+
+
+def status(value=None):
+    value = model() if value is None else value
+    engines = {engine: binary(engine) for engine in required(value)}
+    return {**connection_status(),
             'selectedProfile': value['selectedProfile'], 'mode': value['mode'],
-            'installed': all(binary(e).is_file() for e in engines) and (
-                not has_naive(value) or naive_runtime_ready(binary('sing-box'))),
-            'canTun': all(can_tun(binary(e)) for e in engines) and dns_authorized(),
-            'tunError': tun_error(),
-            'socksPort': session.get('socksPort', 2080), 'httpPort': session.get('httpPort', 2081),
-            'engine': session.get('engine', '') if connected else '', 'engines': sorted(engines)}
+            'installed': all(path.is_file() for path in engines.values()) and (
+                not has_naive(value) or naive_runtime_ready(engines['sing-box'])),
+            'canTun': all(can_tun(path) for path in engines.values()) and dns_authorized(),
+            'tunError': tun_error(), 'engines': sorted(engines)}
 
 
 def overview():
     value = model()
     countries = cached_locations(value['profiles'])
-    return {**status(), 'profiles': [{**{k: p[k] for k in ('id', 'name', 'type', 'group', 'latency_ms', 'engine')},
+    return {**status(value), 'profiles': [{**{k: p[k] for k in ('id', 'name', 'type', 'group', 'latency_ms', 'engine')},
                                     'country': countries.get(p['id'], '')} for p in value['profiles']],
             'groups': [{k: g[k] for k in ('id', 'name', 'subscription')} for g in value['groups']],
             'sendHwid': value['sendHwid'], 'userAgent': value['userAgent'],
@@ -475,7 +479,7 @@ def service(action):
 
 
 def ready():
-    current = status()
+    current = connection_status()
     if not current['connected']:
         return False
     try:
@@ -710,6 +714,8 @@ def add_profiles(value, group, entries):
 
 
 def dispatch(action, payload):
+    if action == 'connection-status':
+        return connection_status()
     ROOT.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(ROOT, 0o700)
     if action == 'status':
@@ -742,7 +748,7 @@ def dispatch(action, payload):
         elif action == 'disconnect':
             service('stop')
         else:
-            connected = status()['connected']
+            connected = connection_status()['connected']
             if action == 'import':
                 text = str(payload.get('text', '')).strip()
                 if not text or len(text.encode()) > MAX_IMPORT:
@@ -810,7 +816,7 @@ def dispatch(action, payload):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('serve', 'status', 'overview', 'locations', 'install', 'authorize', 'connect', 'disconnect', 'import', 'update', 'select', 'mode', 'route', 'settings', 'delete', 'test'))
+    parser.add_argument('action', choices=('serve', 'status', 'connection-status', 'overview', 'locations', 'install', 'authorize', 'connect', 'disconnect', 'import', 'update', 'select', 'mode', 'route', 'settings', 'delete', 'test'))
     args = parser.parse_args()
     try:
         payload = json.load(sys.stdin) if args.action in ('import', 'select', 'mode', 'route', 'settings', 'delete', 'test') else {}

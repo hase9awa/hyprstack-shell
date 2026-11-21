@@ -1,7 +1,8 @@
 // Pixel-aligned traffic-light controls, independent of installed fonts.
 #pragma once
+#include <string_view>
 
-static SP<Render::ITexture> renderDecorationControl(const std::string& symbol, const CHyprColor& color,
+static SP<Render::ITexture> renderDecorationControl(std::string_view symbol, const CHyprColor& color,
     const CHyprColor& background, int size, bool hovered) {
     auto surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
     auto cr = cairo_create(surface);

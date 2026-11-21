@@ -195,7 +195,7 @@ int animateLuaWindow(lua_State* L) {
 int clearLuaButtons(lua_State*) {
     g_pGlobalState->buttons.clear();
     for (auto& bar : g_pGlobalState->bars) {
-        if (bar) bar->m_bButtonsDirty = true;
+        if (bar) bar->damageEntire();
     }
     return 0;
 }
@@ -268,8 +268,8 @@ int newLuaButton(lua_State* L) {
 
     g_pGlobalState->buttons.push_back(std::move(button));
 
-    for (auto& b : g_pGlobalState->bars) {
-        b->m_bButtonsDirty = true;
+    for (auto& bar : g_pGlobalState->bars) {
+        if (bar) bar->damageEntire();
     }
 
     return 0;
@@ -387,7 +387,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::reloadConfig();
 
-    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", "1.4.10"};
+    return {"hyprstack-hyprbars", "Hyprstack window decorations and navigation.", "hyprwm / Hyprstack", HYPRSTACK_VERSION};
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {

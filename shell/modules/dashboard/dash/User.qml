@@ -5,6 +5,7 @@ import M3Shapes
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
+import qs.components.misc
 import qs.components.effects
 import qs.components.filedialog
 import qs.components.images
@@ -21,6 +22,8 @@ Item {
 
     anchors.fill: parent
     anchors.margins: Tokens.padding.large
+
+    Ref { service: root.visible ? SysInfo : null }
 
     Behavior on pfpFallbackColour {
         CAnim {}
@@ -89,7 +92,8 @@ Item {
                 id: pfp
 
                 anchors.fill: parent
-                path: `${Paths.home}/.face`
+                path: Images.profilePicture
+                cache: false
             }
 
             StyledRect {
