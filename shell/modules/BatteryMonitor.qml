@@ -11,9 +11,21 @@ Scope {
 
     readonly property list<var> warnLevels: [...GlobalConfig.general.battery.warnLevels.values].sort((a, b) => a.level - b.level)
     property real lastPercentage: 100
+    readonly property real percentage: UPower.displayDevice.percentage * 100
+    readonly property bool criticalBattery: UPower.displayDevice.ready && UPower.onBattery
+        && percentage <= GlobalConfig.general.battery.criticalLevel
+
+    onCriticalBatteryChanged: {
+        if (!criticalBattery) {
+            hibernateTimer.stop();
+            return;
+        }
+        Toaster.toast(Tr.tr("Hibernating in 5 seconds"), Tr.tr("Hibernating to prevent data loss"), "battery_android_alert", Toast.Error);
+        hibernateTimer.restart();
+    }
 
     function handleBatteryWarnings(): void {
-        const p = UPower.displayDevice.percentage * 100;
+        const p = percentage;
 
         if (!UPower.onBattery) {
             root.lastPercentage = p;
@@ -23,15 +35,10 @@ Scope {
         if (root.lastPercentage >= 0) {
             for (const level of root.warnLevels) {
                 if (p <= level.level && root.lastPercentage > level.level) {
-                    Toaster.toast(Tr.trMarked(level.title ?? Tr.tr("Battery warning")), Tr.trMarked(level.message ?? Tr.tr("Battery level is low")), level.icon ?? "battery_android_alert", level.critical ? Toast.Error : Toast.Warning);
+                    Toaster.toast(Tr.trMarked(level.title || Tr.tr("Battery warning")), Tr.trMarked(level.message || Tr.tr("Battery level is low")), level.icon || "battery_android_alert", level.critical ? Toast.Error : Toast.Warning);
                     break;
                 }
             }
-        }
-
-        if (!hibernateTimer.running && p <= GlobalConfig.general.battery.criticalLevel) {
-            Toaster.toast(Tr.tr("Hibernating in 5 seconds"), Tr.tr("Hibernating to prevent data loss"), "battery_android_alert", Toast.Error);
-            hibernateTimer.start();
         }
 
         root.lastPercentage = p;
@@ -80,6 +87,9 @@ Scope {
         id: hibernateTimer
 
         interval: 5000
-        onTriggered: SessionManager.hibernate()
+        onTriggered: {
+            if (root.criticalBattery)
+                SessionManager.hibernate();
+        }
     }
 }

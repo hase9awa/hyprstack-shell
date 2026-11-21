@@ -135,7 +135,7 @@ StyledRect {
                         icon: "gamepad"
                         caption: Tr.tr("Game mode")
                         checked: GameMode.enabled
-                        onClicked: GameMode.enabled = !GameMode.enabled
+                        onClicked: GameMode.toggle()
                     }
                 }
                 DelegateChoice {

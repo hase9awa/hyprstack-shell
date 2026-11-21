@@ -332,6 +332,31 @@ ShellRoot {
         for (const child of parent.children ?? []) { const found=findWhere(child,predicate); if(found)return found; }
         return null;
     }
+    property var powerWindow
+    property int compositorReloads: 0
+
+    Component {
+        id: powerWindowComponent
+
+        FloatingWindow {
+            title: "Power settings fixture"
+            implicitWidth: 1040
+            implicitHeight: 760
+            readonly property alias settingsView: powerView
+
+            Nexus {
+                id: powerView
+                anchors.fill: parent
+                nState.screen: Quickshell.screens[0]
+            }
+        }
+    }
+
+    Connections {
+        target: Hypr
+        function onConfigReloaded(): void { root.compositorReloads++; }
+    }
+
     IpcHandler {
         target: "motionTest"
         function status(): string {
@@ -361,7 +386,37 @@ ShellRoot {
         function speed(scale: real): void { GlobalConfig.appearance.anim.durations.scale=scale; }
         function sample(): void { root.samples=[];root.effects=[];spatialAnim.restart();effectAnim.restart(); }
         function token(value: int): void { TokenConfig.appearance.animDurations.expressiveDefaultSpatial=value; }
-        function game(value: bool): void { GameMode.enabled=value; }
+        function game(value: bool): void { GameMode.setEnabled(value); }
+        function gameProbe(action: string, value: string): string {
+            const settings = GlobalConfig.utilities.gameMode;
+            if (action === "settings") {
+                for (const [key, enabled] of Object.entries(JSON.parse(value)))
+                    settings[key] = enabled;
+            } else if (action === "rule") {
+                if (!settings.rules.count)
+                    settings.rules.insert({pattern: value});
+                else
+                    settings.rules.at(0).pattern = value;
+            } else if (action === "window") {
+                inputUnderlay.visible = true;
+            } else if (action === "page") {
+                if (!root.powerWindow)
+                    root.powerWindow = powerWindowComponent.createObject(root);
+                const [pageIndex, subPage] = value.split(",").map(Number);
+                const state = root.powerWindow.settingsView.nState;
+                state.currentPageIdx = pageIndex;
+                if (subPage)
+                    state.openSubPage(subPage);
+            } else if (action === "pageReady") {
+                const page = root.findWhere(root.powerWindow?.settingsView, i => i.visible && i.title === value);
+                return JSON.stringify(!!page);
+            } else if (action === "idleChoices") {
+                const page = root.findWhere(root.powerWindow?.settingsView, i => i.returnActionItems);
+                return JSON.stringify(page?.returnActionItems.map(item=>item.value) ?? []);
+            }
+            return JSON.stringify({enabled:GameMode.enabled, rule:GameMode.ruleMatches,
+                effectsReady:Effects.loaded && Tiling.loaded, reloads:root.compositorReloads});
+        }
         function language(value: string): void { GlobalConfig.general.language=value; }
         function click(name: string): void {
             const item=root.find(name,page);
@@ -681,7 +736,8 @@ def main(args):
                     *(["--geometry-probe"] if args.geometry_probe else []),
                     *(["--workspace-drip-probe"] if args.workspace_drip_probe else []),
                     *(["--ui-probe"] if args.ui_probe else []),
-                    *(["--quick-actions-probe"] if args.quick_actions_probe else [])], check=True)
+                    *(["--quick-actions-probe"] if args.quick_actions_probe else []),
+                    *(["--power-probe"] if args.power_probe else [])], check=True)
         return
     # Hyprland's long instance signature leaves little room in a Unix socket
     # path. Keep the event socket comfortably below Qt's platform limit.
@@ -710,6 +766,11 @@ def main(args):
     (prefs / "shell.json").write_text(json.dumps({"general":{"language":"en"},
         "appearance":{"themeSync":{"enabled":False}},"services":{"weatherEnabled":False}}))
     (prefs / "layouts.json").write_text('{"mode":"scrolling"}')
+    if args.power_probe:
+        (prefs / "tiling.json").write_text(json.dumps({"gaps": True, "gapsIn": 7, "gapsOut": 14,
+            "focusBorderWidth": 3, "windowRounding": 14, "focusOnHover": False}))
+        (prefs / "effects.json").write_text(json.dumps({"blur": True, "windowShadows": True,
+            "windowWobble": True, "motionBlur": True}))
     (prefs / "hypr-user.lua").write_text(
         'dofile(' + json.dumps(str(ROOT / "shell/assets/hyprland/layouts.lua")) + ')\n'
         'hl.monitor({output="",mode="1280x1050@60",position="auto",scale=1})\n'
@@ -733,6 +794,8 @@ def main(args):
         QML_IMPORT_PATH=str(data / "qml"), QML2_IMPORT_PATH=str(data / "qml"), HYPRSTACK_LIB_DIR=str(data / "lib"),
         HYPRSTACK_TITLEBAR_PLUGIN=str(data / "native/hyprstack-bars.so"), HYPRSTACK_DATA_DIR=str(data))
     for key in ("DISPLAY", "HYPRLAND_INSTANCE_SIGNATURE"): env.pop(key, None)
+    if args.power_probe:
+        env["DBUS_SYSTEM_BUS_ADDRESS"] = os.environ["DBUS_SESSION_BUS_ADDRESS"]
     processes = []
 
     def spawn(name, command):
@@ -903,6 +966,84 @@ def main(args):
         assert status()["durations"] == [200,400,600,1000,350,500,650,150,200,300], status()
         assert evaluate('assert(hl.plugin.hyprbars.motion_preset)') == "ok"
         print("PASS original shell tokens, native plugin and settings page", flush=True)
+        if args.power_probe:
+            def game(action="status", value=""):
+                return json.loads(ipc("gameProbe", action, value))
+
+            def option(key, kind="bool"):
+                return json.loads(run(["hyprctl", "-j", "getoption", key]))[kind]
+
+            wait(lambda: game()["effectsReady"], "loaded effect and tiling preferences")
+            wait(lambda: option("decoration:wobble:enabled") and option("decoration:motion_blur:enabled"),
+                 "configured effects")
+            reloads = game()["reloads"]
+            game("settings", json.dumps({"animations": False, "blur": False, "wobble": False,
+                "motionBlur": False, "shadows": False, "rounding": False, "tearing": False}))
+            ipc("game", "true")
+            wait(lambda: option("general:border_size", "int") == 1, "game borders")
+            assert option("decoration:rounding", "int") == 14
+            assert option("general:gaps_in", "css") == "0 0 0 0"
+            for effect in ("animations:enabled", "decoration:blur:enabled", "decoration:shadow:enabled",
+                           "decoration:wobble:enabled", "decoration:motion_blur:enabled"):
+                assert option(effect), effect
+
+            game("settings", json.dumps({"animations": True, "blur": True, "wobble": True, "motionBlur": True,
+                "shadows": True, "rounding": True, "gaps": False, "tearing": True}))
+            wait(lambda: not option("animations:enabled") and not option("decoration:blur:enabled")
+                 and not option("decoration:shadow:enabled") and not option("decoration:wobble:enabled")
+                 and not option("decoration:motion_blur:enabled") and option("general:allow_tearing")
+                 and option("decoration:rounding", "int") == 0 and option("general:border_size", "int") == 3,
+                 "live game mode preferences")
+            ipc("game", "false")
+            wait(lambda: option("animations:enabled") and option("decoration:blur:enabled")
+                 and option("decoration:shadow:enabled") and option("decoration:wobble:enabled")
+                 and option("decoration:motion_blur:enabled") and not option("general:allow_tearing")
+                 and option("decoration:rounding", "int") == 14, "restored preferences")
+            assert option("general:gaps_in", "css") == "7 7 7 7"
+            assert game()["reloads"] == reloads
+            print("PASS independent game mode switches and restoring effects without a Hyprland reload", flush=True)
+
+            game("window")
+
+            def focused_game():
+                client = json.loads(run(["hyprctl", "-j", "activewindow"]))
+                return client if client.get("title") == "Motion input underlay" else None
+
+            client = wait(focused_game, "focused game fixture")
+            game("rule", client["class"].upper())
+            wait(lambda: game()["enabled"], "case-insensitive class rule")
+            ipc("game", "false")
+            assert not game()["enabled"] and game()["rule"]
+            game("rule", "unmatched-test-fixture")
+            wait(lambda: not game()["rule"], "left the automatic rule")
+            game("rule", client["class"])
+            wait(lambda: game()["enabled"], "automatic rule rearmed")
+            ipc("game", "true")
+            game("rule", "unmatched-test-fixture")
+            wait(lambda: not game()["rule"], "cleared class rule")
+            assert game()["enabled"]
+            ipc("game", "false")
+            game("settings", '{"autoFullscreen":true}')
+            evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window='
+                     + json.dumps("address:" + client["address"]) + ',internal=2,client=2,action="set"}))')
+            wait(lambda: game()["rule"] and game()["enabled"], "focused fullscreen rule")
+            evaluate('hl.dispatch(hl.dsp.window.fullscreen_state({window='
+                     + json.dumps("address:" + client["address"]) + ',internal=0,client=0,action="set"}))')
+            wait(lambda: not game()["enabled"], "left fullscreen")
+            print("PASS class and fullscreen rules, manual override and temporary automatic state", flush=True)
+
+            for route, title in (("9,0","Power & security"), ("9,1","Sleep timeouts"),
+                                 ("9,2","Lock screen"), ("9,3","Battery warnings"), ("10,0","Game mode")):
+                game("page", "0,0")
+                game("page", route)
+                wait(lambda: game("pageReady", title), title)
+                if title == "Sleep timeouts":
+                    assert game("idleChoices") == ["dpms on", ""]
+            shell_log = (base / "shell.log").read_text()
+            assert not any(word in shell_log for word in ("TypeError:", "ReferenceError:", "Binding loop",
+                "Failed to load configuration", "Cannot assign")), shell_log[-12000:]
+            print("PASS power, sleep, lock, battery and game mode pages with safe return choices", flush=True)
+            return
         if args.quick_actions_probe:
             ipc("panels","start")
             wait(lambda:json.loads(ipc("panels","status"))["ready"],"quick action drawers")
@@ -1510,4 +1651,5 @@ if __name__ == "__main__":
     parser.add_argument("--geometry-probe", action="store_true")
     parser.add_argument("--workspace-drip-probe", action="store_true")
     parser.add_argument("--quick-actions-probe", action="store_true")
+    parser.add_argument("--power-probe", action="store_true")
     main(parser.parse_args())

@@ -19,11 +19,14 @@ ConnectedRect {
     property alias maximumLength: input.maximumLength
     property alias validate: input.validate
     property alias validator: input.validator
+    property alias leadingIcon: input.leadingIcon
     property bool smallField
     readonly property alias field: input
+    property list<MenuItem> menuItems
 
     signal valueEdited(value: string)
     signal editingFinished(value: string)
+    signal menuSelected(item: MenuItem)
 
     function clear(): void {
         input.clear();
@@ -85,6 +88,32 @@ ConnectedRect {
 
             onTextEdited: root.valueEdited(text)
             onEditingFinished: root.editingFinished(text)
+        }
+
+        IconButton {
+            id: expandBtn
+
+            visible: root.menuItems.length > 0
+            Layout.alignment: Qt.AlignVCenter
+            icon: "expand_more"
+            type: IconButton.Tonal
+            onClicked: presetMenu.item.expanded = !presetMenu.item.expanded
+        }
+    }
+
+    Loader {
+        id: presetMenu
+
+        active: expandBtn.visible
+        sourceComponent: Menu {
+            attachTo: expandBtn
+            items: root.menuItems
+            marginY: Tokens.spacing.small
+            active: null
+            onItemSelected: item => {
+                root.menuSelected(item);
+                input.text = Qt.binding(() => root.value);
+            }
         }
     }
 }

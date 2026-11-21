@@ -16,6 +16,7 @@ import qs.modules.nexus.pages.panels
 import qs.modules.nexus.pages.services
 import qs.modules.nexus.pages.wallandstyle
 import qs.modules.nexus.pages.panels.taskbar
+import qs.modules.nexus.pages.power
 
 QtObject {
     id: root
@@ -183,6 +184,33 @@ QtObject {
             StackPage {
                 Component {
                     KeybindsPage {}
+                }
+            }
+        },
+
+        Component {
+            // Power & security
+            StackPage {
+                Component {
+                    PowerPage {}
+                }
+                Component {
+                    IdleTimeoutsPage {}
+                }
+                Component {
+                    LockScreenPage {}
+                }
+                Component {
+                    BatteryWarningsPage {}
+                }
+            }
+        },
+
+        Component {
+            // Game mode
+            StackPage {
+                Component {
+                    GameModePage {}
                 }
             }
         },

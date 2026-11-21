@@ -15,7 +15,7 @@ StackView {
     required property PopoutState popouts
     required property QsMenuHandle trayItem
     readonly property bool flowing: GlobalConfig.appearance.anim.shellPreset==="goop"
-        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.enabled
+        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.animationsSuppressed
     readonly property bool populated: (currentItem as SubMenu)?.hasChildren ?? false
     onTrayItemChanged: if(depth>1) pop(null,StackView.Immediate)
 

@@ -75,6 +75,18 @@ QtObject {
             description: Tr.tr("Current key bindings and mouse gestures"),
             category: "shell"
         },
+        {
+            label: Tr.tr("Power & security"),
+            icon: "power",
+            description: Tr.tr("Sleep, lock screen, battery"),
+            category: "shell"
+        },
+        {
+            label: Tr.tr("Game mode"),
+            icon: "gamepad",
+            description: Tr.tr("Effects, tearing, auto-enable"),
+            category: "shell"
+        },
 
         // About
         {

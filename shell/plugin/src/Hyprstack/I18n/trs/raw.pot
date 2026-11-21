@@ -5674,3 +5674,407 @@ msgstr ""
 #: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Mark all as read"
 msgstr ""
+
+
+#: modules/nexus/pages/power
+msgid "Battery warnings"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Critical level"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Hibernates the system five seconds after the battery falls to this level"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Warning levels"
+msgstr ""
+
+#: modules/nexus/pages/power
+#, qt-format
+msgid "At %1% charge"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Level"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Battery percentage that triggers the warning"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Title"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "First line of the notification"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Message"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Body of the notification"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Icon"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Material icon name"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Critical"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Show the warning as an error"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Remove level"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Add level"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Lock screen"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Turn off the display"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Suspend"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Hibernate"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Log out"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Power off"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Reboot"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Do nothing"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Turn on the display"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Sleep timeouts"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Each timeout runs its action after the screen has been idle for the given time."
+msgstr ""
+
+#: modules/nexus/pages/power
+#, qt-format
+msgid "After %1 seconds"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Timeout"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Seconds of inactivity before the action"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "When idle"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Action after the timeout"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "When returning"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Action when the session becomes active"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Respect inhibitors"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Honour requests from apps to stay awake"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Inhibit while audio plays"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Inhibit while charging"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Remove timeout"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Add timeout"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgctxt "settings page"
+msgid "Lock screen"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Show the lock screen on demand and before sleep"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Use wallpaper"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Use the wallpaper instead of a screenshot as the background"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Recolour logo"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Tint the logo with the current theme colour"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Hide notifications"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Keep notification content off the lock screen"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Session controls"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Show logout and power buttons on hover"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Fingerprint"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Fingerprint unlock"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Unlock with a fingerprint reader"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Fingerprint tries"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Attempts before the reader gives up"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Face unlock"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Unlock with Howdy"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Face tries"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Attempts before face recognition gives up"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Face unlock on wake"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Start face recognition when the session wakes"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Power & security"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Power profile"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Balance between performance and battery life"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Sleep and lock"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Lock before sleep"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Lock the screen as the system goes to sleep"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Pause idle timers while media is playing"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Stay awake while the charger is connected"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Actions after periods of inactivity"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Wallpaper, fingerprint and face unlock"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Warning levels, titles and icons"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Icons"
+msgstr ""
+
+#: modules/nexus/pages/power
+msgid "Sleep, lock screen, battery"
+msgstr ""
+
+#: modules/nexus/PageRegistry.qml
+msgid "Effects, tearing, auto-enable"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Effects"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Turn off window animations and Goop effects"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable background blur"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable window shadows"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Gaps and borders"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Collapse gaps and thin the borders"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Rounded corners"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Square off window corners"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Wobble"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Stop windows wobbling when dragged"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Motion blur"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Disable motion blur"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Tearing"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Allow tearing for lower latency"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Auto-enable"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Fullscreen apps"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Turn on game mode while an app is fullscreen"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Window class"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Matched against the class of the focused window"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "e.g. steam"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Remove rule"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Add rule"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Notify on automatic changes"
+msgstr ""
+
+#: modules/nexus/pages/GameModePage.qml
+msgid "Show a toast when a rule switches game mode on or off"
+msgstr ""

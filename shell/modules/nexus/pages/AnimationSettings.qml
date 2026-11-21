@@ -127,7 +127,7 @@ PageBase {
 
         StyledText {
             Layout.fillWidth: true
-            visible: GameMode.enabled
+            visible: GameMode.animationsSuppressed
             text: Tr.tr("Game mode temporarily disables window animations. Your preset is kept.")
             color: Colours.palette.m3onSurfaceVariant
             font: Tokens.font.body.small

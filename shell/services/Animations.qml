@@ -16,7 +16,7 @@ Singleton {
 
     function apply(): void {
         if (Hypr.usingLua)
-            Hypr.extras.message(`eval require("hyprland.animations").apply(${JSON.stringify(windowPreset)}, ${JSON.stringify(shellPreset)}, ${GameMode.enabled})`);
+            Hypr.extras.message(`eval require("hyprland.animations").apply(${JSON.stringify(windowPreset)}, ${JSON.stringify(shellPreset)}, ${GameMode.animationsSuppressed})`);
     }
 
     onShellPresetChanged: applyTimer.restart()
@@ -37,6 +37,6 @@ Singleton {
 
     Connections {
         target: GameMode
-        function onEnabledChanged(): void { applyTimer.restart(); }
+        function onAnimationsSuppressedChanged(): void { applyTimer.restart(); }
     }
 }

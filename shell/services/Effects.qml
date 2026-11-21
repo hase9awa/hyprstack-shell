@@ -24,7 +24,9 @@ Singleton {
     property bool motionBlur: false
     property int motionBlurSamples: 7
     property var preferences: ({})
-    readonly property bool uiShadowsEnabled: uiShadows && shadowSize > 0 && shadowOpacity > 0 && !GameMode.enabled
+    readonly property bool effectiveBlurEnabled: blurEnabled && !GameMode.blurSuppressed
+    readonly property bool uiShadowsEnabled: uiShadows && shadowSize > 0 && shadowOpacity > 0
+        && !GameMode.decorationOverrides.shadows
     property bool loaded: false
 
     function setBlurEnabled(enabled: bool): void {
@@ -70,10 +72,13 @@ Singleton {
     }
 
     function apply(): void {
-        if (loaded && Hypr.usingLua) {
-            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.shadows({windowShadows=${windowShadows && !GameMode.enabled},shadowSize=${shadowSize},shadowOpacity=${shadowOpacity}}) end`);
-            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.window_effects(${JSON.stringify(JSON.stringify(values()))}, ${GameMode.enabled}) end`);
-        }
+        if (!loaded || !Hypr.usingLua)
+            return;
+        const disabled = GameMode.decorationOverrides;
+        Hypr.extras.message(`eval if hyprstack_layouts then
+            hyprstack_layouts.shadows({windowShadows=${windowShadows && !disabled.shadows},shadowSize=${shadowSize},shadowOpacity=${shadowOpacity}})
+            hyprstack_layouts.window_effects(${JSON.stringify(JSON.stringify(values()))}, {blur=${disabled.blur},wobble=${disabled.wobble},motionBlur=${disabled.motionBlur}})
+        end`);
     }
 
     FileView {
@@ -124,6 +129,6 @@ Singleton {
 
     Connections {
         target: GameMode
-        function onEnabledChanged(): void { root.apply(); }
+        function onDecorationOverridesChanged(): void { root.apply(); }
     }
 }

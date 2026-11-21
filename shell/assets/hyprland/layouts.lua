@@ -44,6 +44,8 @@ tiling_preferences.edgeScroll = tiling_preferences.edgeScroll ~= false
 local theme_palette = {}
 local window_effects = dofile(debug.getinfo(1, "S").source:sub(2):match("(.*/)") .. "effects.lua")
 local effects_game_mode = false
+local game_gaps, game_rounding = false, false
+local tearing_before_game
 local border_color_roles = { primary = true, secondary = true, tertiary = true,
     error = true, success = true, onSurface = true, outline = true }
 for index = 0, 15 do border_color_roles["term" .. index] = true end
@@ -748,8 +750,8 @@ local function settle_animation()
 end
 
 local function appearance()
-    local rounding = tiled_rounding
-    local border = layouts.mode() == "stacking" and 1 or tiled_border
+    local rounding = game_rounding and 0 or tiled_rounding
+    local border = (game_gaps or layouts.mode() == "stacking") and 1 or tiled_border
     if rounding ~= last_rounding or border ~= last_border then
         hl.config({ decoration = { rounding = rounding }, general = { border_size = border } })
         last_rounding, last_border = rounding, border
@@ -780,9 +782,14 @@ local function pointer_focus()
     end
 end
 
-function layouts.tiling(options)
+function layouts.tiling(options, game_mode)
     options = options or tiling_preferences
     local appearance_changed = false
+    if game_mode then
+        local gaps, rounding = game_mode.gaps == true, game_mode.rounding == true
+        appearance_changed = game_gaps ~= gaps or game_rounding ~= rounding
+        game_gaps, game_rounding = gaps, rounding
+    end
     local border_changed = false
     if options.focusBorderColor ~= nil then
         tiling_preferences.focusBorderColor = valid_border_role(options.focusBorderColor) and options.focusBorderColor or "primary"
@@ -834,7 +841,8 @@ function layouts.tiling(options)
     if hl.plugin.hyprbars and hl.plugin.hyprbars.autoscroll then
         hl.plugin.hyprbars.autoscroll("enable", tiling_preferences.autoscroll ~= false)
     end
-    local enabled = tiling_preferences.gaps ~= false
+    local configured_gaps = tiling_preferences.gaps ~= false
+    local enabled = configured_gaps and not game_gaps
     local changed = last_tiling_gaps ~= nil and (last_tiling_gaps ~= enabled
         or last_gaps_in ~= tiled_gaps_in or last_gaps_out ~= tiled_gaps_out)
     last_tiling_gaps = enabled
@@ -850,10 +858,10 @@ function layouts.tiling(options)
     -- shared edges without shadows; their outer frame clips the outer corners.
     -- Reuse a fixed rule rather than accumulating effects on each setting edit.
     if not touching_tiles_rule then
-        touching_tiles_rule = hl.window_rule({ name = "hyprstack-touching-tiles", enabled = not enabled,
+        touching_tiles_rule = hl.window_rule({ name = "hyprstack-touching-tiles", enabled = not configured_gaps,
             match = { float = false }, rounding = 0, no_shadow = true })
-    elseif touching_tiles_rule:is_enabled() == enabled then
-        touching_tiles_rule:set_enabled(not enabled)
+    elseif touching_tiles_rule:is_enabled() == configured_gaps then
+        touching_tiles_rule:set_enabled(not configured_gaps)
     end
     if changed and hl.plugin.hyprbars and hl.plugin.hyprbars.tile_frame then
         if hl.plugin.hyprbars.workspace_camera then hl.plugin.hyprbars.workspace_camera("settle") end
@@ -875,8 +883,25 @@ end
 
 function layouts.window_effects(options, game_mode)
     if type(options) == "string" then options = json.decode(options) end
-    if game_mode ~= nil then effects_game_mode = game_mode == true end
-    return window_effects.apply(options or read(config_dir .. "/effects.json"), effects_game_mode)
+    if game_mode ~= nil then effects_game_mode = game_mode end
+    options = options or read(config_dir .. "/effects.json")
+    if type(effects_game_mode) == "table" then
+        if effects_game_mode.blur then options.blur = false end
+        if effects_game_mode.wobble then options.windowWobble = false end
+        if effects_game_mode.motionBlur then options.motionBlur = false end
+        return window_effects.apply(options, false)
+    end
+    return window_effects.apply(options, effects_game_mode == true)
+end
+
+function layouts.game_tearing(enabled)
+    if enabled and tearing_before_game == nil then
+        tearing_before_game = hl.get_config("general.allow_tearing")
+        hl.config({ general = { allow_tearing = true } })
+    elseif not enabled and tearing_before_game ~= nil then
+        hl.config({ general = { allow_tearing = tearing_before_game } })
+        tearing_before_game = nil
+    end
 end
 
 function layouts.toggle_gaps()

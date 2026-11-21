@@ -16,7 +16,7 @@ Item {
     readonly property Item current: currentPopout?.item ?? null
 
     readonly property bool flowing: GlobalConfig.appearance.anim.shellPreset==="goop"
-        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.enabled
+        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.animationsSuppressed
     property size readySize: Qt.size(0,0)
     function captureSize(): void {
         const p=currentPopout;

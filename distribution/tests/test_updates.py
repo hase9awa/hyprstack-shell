@@ -443,10 +443,10 @@ const tr = text => translated[text] ?? text;
 for (const [query, target] of [['Check for updates','updatesCheck'], ['Проверить обновления','updatesCheck'],
     ['Download and prepare update','updatesPrepare'], ['Install update','updatesInstall']]) {
     const result = scope.find(query, tr)[0];
-    assert.equal(result?.page, 10, query);
+    assert.equal(result?.page, 12, query);
     assert.equal(result?.target, target, query);
 }
-assert.ok(scope.find('обновления', tr).some(result => result.page === 10));
+assert.ok(scope.find('обновления', tr).some(result => result.page === 12));
 """
         source = Path(__file__).resolve().parents[2] / "shell/utils/scripts/settings-search.js"
         subprocess.run(["node", "-e", script, str(source)], check=True, capture_output=True, text=True)

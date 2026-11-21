@@ -85,8 +85,16 @@ Singleton {
     }
 
     function apply(): void {
-        if (loaded && Hypr.usingLua)
-            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},focusBorderColor=${JSON.stringify(focusBorderColor)},focusBorderGradient=${focusBorderGradient},focusBorderGradientEndColor=${JSON.stringify(focusBorderGradientEndColor)},focusBorderGradientAngle=${focusBorderGradientAngle},windowRounding=${windowRounding},focusOnHover=${focusOnHover},focusHoverDelay=${focusHoverDelay},edgeScroll=${edgeScroll},autoscroll=${autoscroll}}) end`);
+        if (!loaded || !Hypr.usingLua)
+            return;
+        const disabled = GameMode.tilingOverrides;
+        Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.tiling({
+            gaps=${gaps},gapsIn=${gapsIn},gapsOut=${gapsOut},focusBorderWidth=${focusBorderWidth},
+            focusBorderColor=${JSON.stringify(focusBorderColor)},focusBorderGradient=${focusBorderGradient},
+            focusBorderGradientEndColor=${JSON.stringify(focusBorderGradientEndColor)},focusBorderGradientAngle=${focusBorderGradientAngle},
+            windowRounding=${windowRounding},focusOnHover=${focusOnHover},focusHoverDelay=${focusHoverDelay},
+            edgeScroll=${edgeScroll},autoscroll=${autoscroll}
+        }, {gaps=${disabled.gaps},rounding=${disabled.rounding}}) end`);
     }
 
     FileView {
@@ -124,5 +132,10 @@ Singleton {
     Connections {
         target: Hypr
         function onConfigReloaded(): void { root.apply(); }
+    }
+
+    Connections {
+        target: GameMode
+        function onTilingOverridesChanged(): void { root.apply(); }
     }
 }

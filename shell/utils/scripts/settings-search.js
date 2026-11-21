@@ -2960,6 +2960,435 @@ var catalogue = [
     "page": 9,
     "subpages": [],
     "path": [
+      "Power & security"
+    ],
+    "label": "Power & security",
+    "context": "",
+    "target": "",
+    "match": "",
+    "keywords": "power sleep lock battery hibernation сон блокировка питание батарея гибернация профиль безопасности"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Power profile",
+    "context": "",
+    "target": "",
+    "match": "Power profile",
+    "keywords": "профиль питания энергосбережение производительность balanced performance saver"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Lock before sleep",
+    "context": "",
+    "target": "",
+    "match": "Lock before sleep",
+    "keywords": "блокировать перед сном lock sleep"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Inhibit while audio plays",
+    "context": "",
+    "target": "",
+    "match": "Inhibit while audio plays",
+    "keywords": "звук музыка воспроизведение audio inhibit"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Inhibit while charging",
+    "context": "",
+    "target": "",
+    "match": "Inhibit while charging",
+    "keywords": "зарядка подзарядка charging inhibit"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Sleep timeouts",
+    "context": "",
+    "target": "",
+    "match": "Sleep timeouts",
+    "keywords": "таймауты сна idle бездействие таймеры timers гибернация suspend перезагрузка reboot выключение poweroff shutdown logout выход"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Lock screen",
+    "context": "settings page",
+    "target": "",
+    "match": "Lock screen",
+    "keywords": "экран блокировки отпечаток пальца howdy лицо fingerprint"
+  },
+  {
+    "page": 9,
+    "subpages": [],
+    "path": [
+      "Power & security"
+    ],
+    "label": "Battery warnings",
+    "context": "",
+    "target": "",
+    "match": "Battery warnings",
+    "keywords": "батарея предупреждения заряд battery warning"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "Timeout",
+    "context": "",
+    "target": "",
+    "match": "Timeout",
+    "keywords": "таймаут секунды seconds idle"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "When idle",
+    "context": "",
+    "target": "",
+    "match": "When idle",
+    "keywords": "действие бездействие idle lock suspend"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "When returning",
+    "context": "",
+    "target": "",
+    "match": "When returning",
+    "keywords": "возврат активность return unlock dpms"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      1
+    ],
+    "path": [
+      "Power & security",
+      "Sleep timeouts"
+    ],
+    "label": "Add timeout",
+    "context": "",
+    "target": "",
+    "match": "Add timeout",
+    "keywords": "добавить таймаут новый"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Use wallpaper",
+    "context": "",
+    "target": "",
+    "match": "Use wallpaper",
+    "keywords": "обои wallpaper фон background"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Hide notifications",
+    "context": "",
+    "target": "",
+    "match": "Hide notifications",
+    "keywords": "уведомления notifications скрыть"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Fingerprint unlock",
+    "context": "",
+    "target": "",
+    "match": "Fingerprint unlock",
+    "keywords": "отпечаток пальца fingerprint сканер"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      2
+    ],
+    "path": [
+      "Power & security",
+      "Lock screen"
+    ],
+    "label": "Face unlock",
+    "context": "",
+    "target": "",
+    "match": "Face unlock",
+    "keywords": "лицо howdy face распознавание"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      3
+    ],
+    "path": [
+      "Power & security",
+      "Battery warnings"
+    ],
+    "label": "Critical battery level",
+    "context": "",
+    "target": "",
+    "match": "Critical battery level",
+    "keywords": "критический заряд гибернация critical hibernate"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      3
+    ],
+    "path": [
+      "Power & security",
+      "Battery warnings"
+    ],
+    "label": "Warning levels",
+    "context": "",
+    "target": "",
+    "match": "Warning levels",
+    "keywords": "уровни предупреждения warning levels заряд"
+  },
+  {
+    "page": 9,
+    "subpages": [
+      3
+    ],
+    "path": [
+      "Power & security",
+      "Battery warnings"
+    ],
+    "label": "Add level",
+    "context": "",
+    "target": "",
+    "match": "Add level",
+    "keywords": "добавить уровень предупреждение"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Game mode",
+    "context": "",
+    "target": "",
+    "match": "",
+    "keywords": "game mode gaming games игра игровой режим производительность performance tearing рывки"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Effects",
+    "context": "",
+    "target": "",
+    "match": "Effects",
+    "keywords": "effects эффекты отключать disable"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Animations",
+    "context": "",
+    "target": "",
+    "match": "Animations",
+    "keywords": "animations анимации отключить"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Blur",
+    "context": "",
+    "target": "",
+    "match": "Blur",
+    "keywords": "blur размытие"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Shadows",
+    "context": "",
+    "target": "",
+    "match": "Shadows",
+    "keywords": "shadows тени"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Gaps and borders",
+    "context": "",
+    "target": "",
+    "match": "Gaps and borders",
+    "keywords": "gaps borders отступы рамки"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Rounded corners",
+    "context": "",
+    "target": "",
+    "match": "Rounded corners",
+    "keywords": "rounding скругление углы"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Wobble",
+    "context": "",
+    "target": "",
+    "match": "Wobble",
+    "keywords": "wobble дрожание окон"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Motion blur",
+    "context": "",
+    "target": "",
+    "match": "Motion blur",
+    "keywords": "motion blur размытие движения"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Tearing",
+    "context": "",
+    "target": "",
+    "match": "Tearing",
+    "keywords": "tearing разрыв кадров низкая задержка latency"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Auto-enable",
+    "context": "",
+    "target": "",
+    "match": "Auto-enable",
+    "keywords": "auto enable авто включение автоматически"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Fullscreen apps",
+    "context": "",
+    "target": "",
+    "match": "Fullscreen apps",
+    "keywords": "fullscreen фуллскрин полноэкранное приложение"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Notify on automatic changes",
+    "context": "",
+    "target": "",
+    "match": "Notify on automatic changes",
+    "keywords": "notify toast уведомления тосты авто включение автовключение"
+  },
+  {
+    "page": 10,
+    "subpages": [],
+    "path": [
+      "Game mode"
+    ],
+    "label": "Add rule",
+    "context": "",
+    "target": "",
+    "match": "Add rule",
+    "keywords": "add rule правило класс окна window class"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
       "About"
     ],
     "label": "About",
@@ -2969,7 +3398,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -2981,7 +3410,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -2993,7 +3422,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3005,7 +3434,7 @@ var catalogue = [
     "keywords": "Prepare the update again Download release background build"
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3017,7 +3446,7 @@ var catalogue = [
     "keywords": "Save your work. Installation ends the Hyprland session."
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3029,7 +3458,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3041,7 +3470,7 @@ var catalogue = [
     "keywords": "Check stable releases at startup and every six hours."
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3053,7 +3482,7 @@ var catalogue = [
     "keywords": "Show a small notification once for each new version."
   },
   {
-    "page": 10,
+    "page": 12,
     "subpages": [],
     "path": [
       "Updates"
@@ -3084,7 +3513,10 @@ var aliases = [
     ["толщ", "width"], ["цвет", "colour"], ["блют", "bluetooth"], ["интерф", "interface"],
     ["клав", "keyboard"], ["сочет", "shortcut"], ["хотке", "shortcut"], ["погод", "weather"], ["акцент", "colour"],
     ["город", "city"], ["провайдер", "provider"], ["местополож", "location"],
-    ["внутрен", "inner"], ["внешн", "outer"], ["прилож", "app"], ["ярк", "brightness"]
+    ["внутрен", "inner"], ["внешн", "outer"], ["прилож", "app"], ["ярк", "brightness"],
+    ["сон", "sleep"], ["блокир", "lock"], ["питани", "power"], ["батар", "battery"],
+    ["заряд", "battery"], ["профил", "profile"], ["гиберн", "hibernate"],
+    ["таймаут", "timeout"], ["сеанс", "session"]
 ];
 
 function normalise(value) {

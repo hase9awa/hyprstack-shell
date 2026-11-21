@@ -114,14 +114,14 @@ Singleton {
         let rule, trEnabled;
         if (Hypr.usingLua) {
             rule = `eval hl.layer_rule({ name = "hyprstack-drawer-effects", match = { namespace = "hyprstack-drawers" }, %1 = %2 })`;
-            trEnabled = transparency.enabled && (Effects.blurEnabled && !GameMode.enabled);
+            trEnabled = transparency.enabled && Effects.effectiveBlurEnabled;
         } else {
             rule = "keyword layerrule %1 %2, match:namespace hyprstack-drawers";
-            trEnabled = transparency.enabled && (Effects.blurEnabled && !GameMode.enabled) ? 1 : 0;
+            trEnabled = transparency.enabled && Effects.effectiveBlurEnabled ? 1 : 0;
         }
         Hypr.extras.batchMessage([rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, transparency.base - 0.03))]);
         if (Hypr.usingLua) {
-            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.effects({enabled=${transparency.enabled},opacity=${GlobalConfig.appearance.transparency.base},blur=${(Effects.blurEnabled && !GameMode.enabled)}}) end`);
+            Hypr.extras.message(`eval if hyprstack_layouts then hyprstack_layouts.effects({enabled=${transparency.enabled},opacity=${GlobalConfig.appearance.transparency.base},blur=${Effects.effectiveBlurEnabled}}) end`);
             const palette = {};
             for (const role of ["surface", "background", "surfaceDim", "surfaceContainerLowest", "surfaceContainerLow", "surfaceContainerHigh", "onSurfaceVariant", ...Tiling.baseBorderColorRoles, ...Object.keys(root.palette.sourceColours)])
                 palette[role] = colourForRole(role, root.palette).toString();
@@ -145,7 +145,7 @@ Singleton {
 
     Connections {
         target: Effects
-        function onBlurEnabledChanged(): void { root.requestReloadHyprRules(); }
+        function onEffectiveBlurEnabledChanged(): void { root.requestReloadHyprRules(); }
     }
 
     Connections {

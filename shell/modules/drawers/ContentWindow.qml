@@ -207,7 +207,7 @@ StyledWindow {
             anchors.fill: parent
             frameItem: frameDensity
             active: GlobalConfig.appearance.anim.shellPreset === "goop"
-                && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.enabled
+                && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.animationsSuppressed
             innerRect: Qt.rect(root.borderThickness-root.sdfBorderOffset,
                 bar.topInset-root.sdfBorderOffset,
                 root.width-2*(root.borderThickness-root.sdfBorderOffset),

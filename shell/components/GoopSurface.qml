@@ -46,7 +46,7 @@ Item {
     readonly property Component contentEffect: contentReveal
     readonly property Item overlay: escapeParent ?? (QsWindow.window as QsWindow)?.contentItem ?? root
     readonly property bool goopy: GlobalConfig.appearance.anim.shellPreset === "goop"
-        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.enabled
+        && GlobalConfig.appearance.anim.durations.scale>0 && !GameMode.animationsSuppressed
     // ShaderEffectSource retains a window reference even when invisible.
     // Release those references before Quickshell deletes a dialog's backer.
     readonly property bool shaderLive: goopy && !tearingDown && (!floating || panelOpen)
