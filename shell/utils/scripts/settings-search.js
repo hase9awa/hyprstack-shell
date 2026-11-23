@@ -3389,6 +3389,174 @@ var catalogue = [
     "page": 11,
     "subpages": [],
     "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Mouse & pointer",
+    "context": "",
+    "target": "mousePointerPage",
+    "match": "",
+    "keywords": "mouse pointer мышь указатель курсор cursor тачпад touchpad"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Sensitivity",
+    "context": "",
+    "target": "pointerSensitivity",
+    "match": "Sensitivity",
+    "keywords": "sensitivity чувствительность скорость мыши pointer speed ускорение"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Acceleration",
+    "context": "",
+    "target": "pointerAcceleration",
+    "match": "Acceleration",
+    "keywords": "acceleration ускорение адаптивное adaptive плоское flat accel profile"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Invert scrolling",
+    "context": "",
+    "target": "pointerInvertScrolling",
+    "match": "Invert scrolling",
+    "keywords": "invert scrolling обратная прокрутка natural scroll natural_scroll инверсия колеса"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Scroll speed",
+    "context": "",
+    "target": "pointerScrollSpeed",
+    "match": "Scroll speed",
+    "keywords": "scroll speed скорость прокрутки scroll factor колесо wheel"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Swap mouse buttons",
+    "context": "",
+    "target": "pointerSwapButtons",
+    "match": "Swap mouse buttons",
+    "keywords": "swap buttons левша left handed поменять кнопки кнопки мыши"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Focus follows the pointer",
+    "context": "",
+    "target": "pointerFocusFollows",
+    "match": "Focus follows the pointer",
+    "keywords": "focus follows pointer фокус за курсором follow mouse follow_mouse откреплённый detached отдельный separate"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Pointer size",
+    "context": "",
+    "target": "pointerCursorSize",
+    "match": "Pointer size",
+    "keywords": "cursor size размер курсора размер указателя pixels пиксели XCURSOR_SIZE"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Cursor theme",
+    "context": "",
+    "target": "pointerCursorTheme",
+    "match": "Cursor theme",
+    "keywords": "cursor theme тема курсора тема указателя иконки icon theme XCURSOR_THEME"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Hide the pointer",
+    "context": "",
+    "target": "pointerCursorHide",
+    "match": "Hide the pointer",
+    "keywords": "hide pointer скрыть курсор спрятать курсор inactive timeout прятать"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Invert touchpad scrolling",
+    "context": "",
+    "target": "pointerTouchpadInvertScrolling",
+    "match": "Invert touchpad scrolling",
+    "keywords": "touchpad invert scrolling тачпад обратная прокрутка пальцы natural scroll"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Tap to click",
+    "context": "",
+    "target": "pointerTouchpadTapToClick",
+    "match": "Tap to click",
+    "keywords": "tap to click касание тап тачпад touchpad тапнуть"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Disable while typing",
+    "context": "",
+    "target": "pointerTouchpadTyping",
+    "match": "Disable while typing",
+    "keywords": "disable while typing отключать при наборе печати тачпад touchpad"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Touchpad scroll speed",
+    "context": "",
+    "target": "pointerTouchpadScrollSpeed",
+    "match": "Touchpad scroll speed",
+    "keywords": "touchpad scroll speed скорость прокрутки тачпада scroll factor"
+  },
+  {
+    "page": 12,
+    "subpages": [],
+    "path": [
       "About"
     ],
     "label": "About",
@@ -3398,7 +3566,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"
@@ -3410,7 +3578,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"
@@ -3422,7 +3590,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"
@@ -3434,7 +3602,7 @@ var catalogue = [
     "keywords": "Prepare the update again Download release background build"
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"
@@ -3446,7 +3614,7 @@ var catalogue = [
     "keywords": "Save your work. Installation ends the Hyprland session."
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"
@@ -3458,7 +3626,7 @@ var catalogue = [
     "keywords": ""
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"
@@ -3470,7 +3638,7 @@ var catalogue = [
     "keywords": "Check stable releases at startup and every six hours."
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"
@@ -3482,7 +3650,7 @@ var catalogue = [
     "keywords": "Show a small notification once for each new version."
   },
   {
-    "page": 12,
+    "page": 13,
     "subpages": [],
     "path": [
       "Updates"

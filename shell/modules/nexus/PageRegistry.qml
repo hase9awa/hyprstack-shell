@@ -87,6 +87,12 @@ QtObject {
             description: Tr.tr("Effects, tearing, auto-enable"),
             category: "shell"
         },
+        {
+            label: Tr.tr("Mouse & pointer"),
+            icon: "mouse",
+            description: Tr.tr("Pointer speed, scrolling, cursor"),
+            category: "shell"
+        },
 
         // About
         {
