@@ -448,11 +448,12 @@ for (const [query, target] of [['Check for updates','updatesCheck'], ['Пров�
 }
 assert.ok(scope.find('обновления', tr).some(result => result.page === 13));
 // The mouse and pointer page sits between game mode and about
-for (const [query, target] of [['мышь','mousePointerPage'], ['cursor theme','pointerCursorTheme']]) {
-    const result = scope.find(query, tr)[0];
-    assert.equal(result?.page, 11, query);
-    assert.equal(result?.target, target, query);
-}
+const mousePage = scope.find('мышь', tr)[0];
+assert.equal(mousePage?.page, 11, 'мышь');
+assert.equal(mousePage?.target, '', 'мышь');
+const cursorTheme = scope.find('cursor theme', tr)[0];
+assert.equal(cursorTheme?.page, 11, 'cursor theme');
+assert.equal(cursorTheme?.target, 'pointerCursorTheme', 'cursor theme');
 assert.ok(scope.find('тачпад', tr).some(result => result.page === 11
     && result.target === 'pointerTouchpadTapToClick'));
 """

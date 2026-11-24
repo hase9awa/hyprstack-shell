@@ -6,7 +6,7 @@
 
 | Файл | Назначение |
 | --- | --- |
-| `hyprstack/shell.json` | Панели, темы, уведомления, погода и анимации |
+| `hyprstack/shell.json` | Панели, темы, уведомления, погода, анимации, мышь и курсор |
 | `hyprstack/layouts.json` | Scrolling / stacking |
 | `hyprstack/workspaces.json` | Рабочие столы и распределение по мониторам |
 | `hyprstack/file-dialog.json` | Представление и сортировка файлового диалога |
@@ -293,6 +293,56 @@ return {
 ```
 
 Добавьте нужные поля в существующую таблицу и выполните `hyprctl reload`.
+
+## Мышь и указатель
+
+**Настройки → Мышь и указатель** управляет мышью, тачпадом и курсором.
+Настройки хранятся в `shell.json` в секции `pointer` и применяются к
+Hyprland сразу после изменения, а также при каждом запуске оболочки
+и перезагрузке конфигурации.
+
+Пока параметр не тронут, он не записывается в `shell.json` и не передаётся
+композитору: значение берётся из `hypr-vars.lua` и конфигурации Hyprland,
+а в интерфейсе показывается текущее фактическое значение. Как только
+параметр меняется, оболочка начинает управлять им сама.
+
+Секция **Мышь**:
+
+| Параметр | Поле | Назначение |
+| --- | --- | --- |
+| **Чувствительность** | `sensitivity` | От −1.0 до 1.0, `input:sensitivity` |
+| **Ускорение** | `accelProfile` | `adaptive` или `flat`, `input:accel_profile` |
+| **Инвертировать прокрутку** | `naturalScroll` | `input:natural_scroll` |
+| **Скорость прокрутки** | `scrollFactor` | `input:scroll_factor`, от 0 до 5 |
+| **Поменять кнопки мыши** | `leftHanded` | `input:left_handed` |
+| **Фокус следует за указателем** | `followMouse` | `input:follow_mouse`: 0 — никогда, 1 — всегда, 2 — откреплённый, 3 — раздельный |
+
+Секция **Курсор**:
+
+| Параметр | Поле | Назначение |
+| --- | --- | --- |
+| **Размер указателя** | `cursorSize` | От 8 до 64, `XCURSOR_SIZE` и `setcursor` |
+| **Тема курсора** | `cursorTheme` | Имя темы из папок значков, `XCURSOR_THEME` и `setcursor` |
+| **Прятать указатель** | `cursorHideTimeout` | Секунды до скрытия, `cursor:inactive_timeout`; 0 — не прятать |
+
+Секция **Тачпад**:
+
+| Параметр | Поле | Назначение |
+| --- | --- | --- |
+| **Инвертировать прокрутку тачпада** | `touchpadNaturalScroll` | `input:touchpad:natural_scroll` |
+| **Касание как клик** | `touchpadTapToClick` | `input:touchpad:tap_to_click` |
+| **Отключать при наборе** | `touchpadDisableWhileTyping` | `input:touchpad:disable_while_typing` |
+| **Скорость прокрутки тачпада** | `touchpadScrollFactor` | `input:touchpad:scroll_factor`, от 0 до 5 |
+
+Булевы поля `naturalScroll`, `leftHanded`, `touchpadNaturalScroll`,
+`touchpadTapToClick` и `touchpadDisableWhileTyping` принимают `"On"`, `"Off"`
+или `"Inherit"` (по умолчанию). Числовые поля используют `-2` (`sensitivity`),
+`-1` (`scrollFactor`, `followMouse`, `touchpadScrollFactor`,
+`cursorHideTimeout`) и `0` (`cursorSize`) как признак «наследовать».
+
+Тема и размер курсора читаются из `shell.json` при запуске `hyprland/env.lua`,
+поэтому действуют и для новых приложений; в сеансах с `hypr-vars.lua`
+значения по умолчанию берутся оттуда, пока вы не задали свои в настройках.
 
 ## Язык и регион
 

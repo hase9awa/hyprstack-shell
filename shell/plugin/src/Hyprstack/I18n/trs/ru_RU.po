@@ -45,8 +45,8 @@ msgstr "Ожидание авторизации…"
 msgid "Caps Lock is on"
 msgstr "Caps Lock включён"
 
-
 #. TRANSLATORS: %1 = name of the selected file
+
 #: components/filedialog/CurrentItem.qml
 #, qt-format
 msgctxt "selected file"
@@ -64,6 +64,7 @@ msgid ", "
 msgstr ", "
 
 #. TRANSLATORS: %1 = filter label, %2 = file patterns
+
 #: components/filedialog/DialogButtons.qml
 #, qt-format
 msgctxt "file filter label and patterns"
@@ -76,10 +77,15 @@ msgid "Select"
 msgstr "Выбрать"
 
 #: components/filedialog/DialogButtons.qml
+
 #: modules/bar/popouts/WirelessPassword.qml
+
 #: modules/nexus/common/DialogRowButton.qml
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/network/AddVpnPage.qml
+
 #: modules/utilities/RecordingDeleteModal.qml
 msgctxt "button"
 msgid "Cancel"
@@ -123,6 +129,7 @@ msgid "Select a wallpaper"
 msgstr "Выберите обои"
 
 #: modules/background/Wallpaper.qml modules/dashboard/Wrapper.qml
+
 #: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
 msgid "Image files"
 msgstr "Изображения"
@@ -137,6 +144,7 @@ msgid "Desktop"
 msgstr "Рабочий стол"
 
 #: modules/bar/components/NotificationCenterButton.qml
+
 #: modules/sidebar/NotifDock.qml
 msgid "Notification center"
 msgstr "Центр уведомлений"
@@ -280,20 +288,27 @@ msgid "Calculating time until charged..."
 msgstr "Расчёт времени до полной зарядки…"
 
 #. TRANSLATORS: charger or thermal warning: the battery cannot draw full power
+
 #: modules/bar/popouts/Battery.qml
 msgid "Performance degraded"
 msgstr "Производительность снижена"
 
 #: modules/bar/popouts/Bluetooth.qml modules/nexus/pages/BluetoothPage.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
 #: modules/bar/popouts/Bluetooth.qml modules/bar/popouts/Network.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgctxt "toggle label"
 msgid "Enabled"
@@ -305,6 +320,7 @@ msgid "Discovering"
 msgstr "Поиск устройств"
 
 #. TRANSLATORS: %n = total paired devices, %1 = how many of them are connected
+
 #: modules/bar/popouts/Bluetooth.qml
 #, qt-format, qt-plural-format
 msgid "%n device available (%1 connected)"
@@ -330,6 +346,7 @@ msgid "XKB limitation: maximum 4 layouts allowed"
 msgstr "Ограничение XKB: максимум 4 раскладки"
 
 #. TRANSLATORS: %1 = language, %2 = layout code
+
 #: modules/bar/popouts/kblayout/KbLayoutModel.qml
 #, qt-format
 msgctxt "keyboard layout language and code"
@@ -345,6 +362,7 @@ msgid "XKB supports only 4 layouts at a time"
 msgstr "XKB поддерживает только 4 раскладки одновременно"
 
 #. TRANSLATORS: %1 = layout code, %2 = layout name
+
 #: modules/bar/popouts/kblayout/KbLayoutModel.qml
 #, qt-format
 msgctxt "keyboard layout code and name"
@@ -352,21 +370,25 @@ msgid "%1 - %2"
 msgstr "%1 — %2"
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Caps lock enabled"
 msgstr "Caps Lock включён"
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Caps lock disabled"
 msgstr "Caps Lock выключен"
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Num lock enabled"
 msgstr "Num Lock включён"
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Num lock disabled"
 msgstr "Num Lock выключен"
@@ -388,6 +410,7 @@ msgid "Rescan networks"
 msgstr "Повторить поиск сетей"
 
 #: modules/bar/popouts/Network.qml modules/nexus/common/EthernetSection.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgid "Ethernet"
 msgstr "Ethernet"
@@ -403,7 +426,9 @@ msgid "Back"
 msgstr "Назад"
 
 #: modules/bar/popouts/WirelessPassword.qml
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgid "Connect"
 msgstr "Подключить"
@@ -413,6 +438,7 @@ msgid "Enter password"
 msgstr "Введите пароль"
 
 #. TRANSLATORS: %1 = the network SSID
+
 #: modules/bar/popouts/WirelessPassword.qml
 #, qt-format
 msgid "Network: %1"
@@ -431,6 +457,7 @@ msgid "Connecting..."
 msgstr "Подключение…"
 
 #: modules/bar/popouts/WirelessPassword.qml
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "Password"
 msgstr "Пароль"
@@ -468,6 +495,7 @@ msgid "Battery is charging"
 msgstr "Батарея заряжается"
 
 #: modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Dashboard"
 msgstr "Дашборд"
@@ -481,6 +509,7 @@ msgid "Performance"
 msgstr "Производительность"
 
 #: modules/dashboard/Content.qml modules/nexus/pages/LanguageAndRegion.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "Weather"
 msgstr "Погода"
@@ -498,11 +527,13 @@ msgid "Unknown album"
 msgstr "Неизвестный альбом"
 
 #: modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml
+
 #: modules/lock/Media.qml
 msgid "Unknown artist"
 msgstr "Неизвестный исполнитель"
 
 #. TRANSLATORS: %1 = system uptime, e.g. "2 days, 3 hours"
+
 #: modules/dashboard/dash/User.qml
 #, qt-format
 msgctxt "system uptime"
@@ -535,24 +566,28 @@ msgid "No players"
 msgstr "Нет проигрывателей"
 
 #. TRANSLATORS: %1 = lyrics backend name, e.g. LRCLIB
+
 #: modules/dashboard/media/LyricsInfo.qml
 #, qt-format
 msgid "Backend: %1"
 msgstr "Служба: %1"
 
 #. TRANSLATORS: %1/%2/%3 = matched track title, artist and album
+
 #: modules/dashboard/media/LyricsInfo.qml
 #, qt-format
 msgid "Selected candidate: %1 | %2 | %3"
 msgstr "Выбран вариант: %1 | %2 | %3"
 
 #. TRANSLATORS: %1 = lyric timing offset; ms is the millisecond unit, leave untranslated
+
 #: modules/dashboard/media/LyricsInfo.qml
 #, qt-format
 msgid "Offset: %1 ms"
 msgstr "Смещение: %1 мс"
 
 #: modules/dashboard/media/LyricsInfo.qml modules/dashboard/WeatherTab.qml
+
 #: modules/lock/center/InputField.qml
 msgid "Loading..."
 msgstr "Загрузка…"
@@ -566,12 +601,15 @@ msgid "Enable widgets in the dashboard settings"
 msgstr "Включите виджеты в настройках дашборда"
 
 #: modules/dashboard/Performance.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "CPU"
 msgstr "Процессор"
 
 #: modules/dashboard/Performance.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "GPU"
 msgstr "Видеокарта"
@@ -586,8 +624,11 @@ msgid "None"
 msgstr "Нет"
 
 #: modules/dashboard/performance/BatteryTank.qml
+
 #: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
 msgid "Battery"
 msgstr "Батарея"
@@ -603,6 +644,7 @@ msgid "Charging"
 msgstr "Зарядка"
 
 #. TRANSLATORS: %1 = hours, %2 = minutes
+
 #: modules/dashboard/performance/BatteryTank.qml
 #, qt-format
 msgctxt "battery time remaining"
@@ -610,6 +652,7 @@ msgid "%1h %2m"
 msgstr "%1 ч %2 мин"
 
 #. TRANSLATORS: %1 = minutes
+
 #: modules/dashboard/performance/BatteryTank.qml
 #, qt-format
 msgctxt "battery time remaining"
@@ -617,12 +660,14 @@ msgid "%1m"
 msgstr "%1 мин"
 
 #. TRANSLATORS: labels the CPU or GPU utilisation percentage shown below it
+
 #: modules/dashboard/performance/HeroCard.qml
 msgctxt "resource usage"
 msgid "Usage"
 msgstr "Использование"
 
 #: modules/dashboard/performance/MemoryCard.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "Memory"
 msgstr "Память"
@@ -633,9 +678,13 @@ msgid "Used"
 msgstr "Занято"
 
 #: modules/dashboard/performance/NetworkCard.qml modules/nexus/PageRegistry.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
 msgid "Network"
 msgstr "Сеть"
@@ -660,6 +709,7 @@ msgid "Total"
 msgstr "Всего"
 
 #. TRANSLATORS: %1 = downloaded total, %2 = uploaded total
+
 #: modules/dashboard/performance/NetworkCard.qml
 #, qt-format
 msgid "↓%1 ↑%2"
@@ -671,6 +721,7 @@ msgid "Used"
 msgstr "Занято"
 
 #: modules/dashboard/performance/StorageCard.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "Storage"
 msgstr "Диски"
@@ -730,6 +781,7 @@ msgid "Select a profile picture"
 msgstr "Выберите изображение профиля"
 
 #. TRANSLATORS: %1 = a file path
+
 #: modules/dashboard/Wrapper.qml
 #, qt-format
 msgid "Profile picture changed"
@@ -741,6 +793,7 @@ msgid "Profile picture changed to %1"
 msgstr "Изображение профиля изменено на %1"
 
 #. TRANSLATORS: %1 = a file path
+
 #: modules/dashboard/Wrapper.qml
 #, qt-format
 msgid "Unable to change profile picture"
@@ -900,24 +953,28 @@ msgid "PW ERROR: %1"
 msgstr "ОШИБКА ПАРОЛЯ: %1"
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Fingerprint not recognised (%1/%2). Please try again or use password."
 msgstr "Отпечаток не распознан (%1/%2). Попробуйте снова или введите пароль."
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Face not recognised (%1/%2). Please try again or use password."
 msgstr "Лицо не распознано (%1/%2). Попробуйте снова или введите пароль."
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Fingerprint not recognised (%1/%2). Please try again."
 msgstr "Отпечаток не распознан (%1/%2). Попробуйте снова."
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Face not recognised (%1/%2). Please try again."
@@ -972,30 +1029,35 @@ msgid "Num lock is ON."
 msgstr "Num Lock включён."
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "OS  : %1"
 msgstr "ОС  : %1"
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "WM  : %1"
 msgstr "ОКОННЫЙ МЕНЕДЖЕР: %1"
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "USER: %1"
 msgstr "ПОЛЬЗОВАТЕЛЬ: %1"
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "UP  : %1"
 msgstr "ВРЕМЯ РАБОТЫ: %1"
 
 #. TRANSLATORS: keep the label padded to 4 chars, (+) marks charging
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "BATT: (+) %1%"
@@ -1023,7 +1085,9 @@ msgstr[1] "%n уведомления"
 msgstr[2] "%n уведомлений"
 
 #: modules/lock/NotifDock.qml
+
 #: modules/nexus/pages/services/NotificationsPage.qml
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "Notifications"
 msgstr "Уведомления"
@@ -1037,12 +1101,14 @@ msgid "No notifications"
 msgstr "Нет уведомлений"
 
 #. TRANSLATORS: %1 = apparent temperature, unit already included
+
 #: modules/lock/weather/BriefInfo.qml
 #, qt-format
 msgid "Feels like %1"
 msgstr "Ощущается как %1"
 
 #. TRANSLATORS: %1/%2 = today's max and min temperature, units already included
+
 #: modules/lock/weather/BriefInfo.qml
 #, qt-format
 msgid "High %1 • Low %2"
@@ -1063,18 +1129,21 @@ msgid "Unknown"
 msgstr "Неизвестно"
 
 #: modules/nexus/common/EthernetSection.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgctxt "ethernet link state"
 msgid "Connected"
 msgstr "Подключено"
 
 #: modules/nexus/common/EthernetSection.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgctxt "ethernet link state"
 msgid "Not connected"
 msgstr "Нет подключения"
 
 #. TRANSLATORS: %1 = data transferred, already formatted with a unit
+
 #: modules/nexus/common/EthernetSection.qml
 #, qt-format
 msgid "Data usage: %1"
@@ -1117,6 +1186,7 @@ msgid "Saved"
 msgstr "Сохранено"
 
 #. TRANSLATORS: %1 = security type, %2 = connection status
+
 #: modules/nexus/common/NetworkList.qml
 #, qt-format
 msgctxt "network security and status"
@@ -1182,6 +1252,7 @@ msgid "Dashboard, taskbar, launcher, sidebar"
 msgstr "Дашборд, панель задач, меню приложений и боковая панель"
 
 #: modules/nexus/PageRegistry.qml modules/nexus/pages/AppsPage.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
 msgid "Apps"
 msgstr "Приложения"
@@ -1244,6 +1315,7 @@ msgid "Kernel"
 msgstr "Ядро"
 
 #. TRANSLATORS: BIOS or UEFI firmware version
+
 #: modules/nexus/pages/AboutPage.qml
 msgid "Firmware"
 msgstr "Прошивка"
@@ -1279,7 +1351,9 @@ msgid "App info"
 msgstr "Сведения о приложении"
 
 #: modules/nexus/pages/apps/AppInfo.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Launcher"
 msgstr "Меню приложений"
@@ -1404,6 +1478,7 @@ msgstr[1] "%n приложения воспроизводят звук"
 msgstr[2] "%n приложений воспроизводят звук"
 
 #: modules/nexus/pages/bluetooth/BluetoothPairing.qml
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgid "Pair new device"
 msgstr "Добавить новое устройство"
@@ -1425,7 +1500,9 @@ msgid "Pairing..."
 msgstr "Сопряжение…"
 
 #. TRANSLATORS: %1 = battery level, already formatted as a percentage
+
 #: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+
 #: modules/nexus/pages/BluetoothPage.qml
 #, qt-format
 msgctxt "bluetooth device state with battery"
@@ -1433,6 +1510,7 @@ msgid "Connected • %1"
 msgstr "Подключено • %1"
 
 #: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgctxt "bluetooth device state"
 msgid "Connected"
@@ -1523,6 +1601,7 @@ msgid "Saved"
 msgstr "Сохранено"
 
 #. TRANSLATORS: adjective: other devices can find this computer
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgctxt "bluetooth setting"
 msgid "Discoverable"
@@ -1533,6 +1612,7 @@ msgid "Allow nearby devices to find this one"
 msgstr "Разрешить устройствам поблизости находить этот компьютер"
 
 #. TRANSLATORS: adjective: other devices are allowed to pair with this computer
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgctxt "bluetooth setting"
 msgid "Pairable"
@@ -1727,6 +1807,7 @@ msgid "How times are shown across the shell"
 msgstr "Формат времени во всей оболочке"
 
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
 msgid "Add network"
 msgstr "Добавить сеть"
@@ -1736,11 +1817,13 @@ msgid "Enter the details below to manually connect to a network."
 msgstr "Введите данные ниже для подключения к сети вручную."
 
 #. TRANSLATORS: SSID is a protocol term, leave it untranslated
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "Network name (SSID)"
 msgstr "Название сети (SSID)"
 
 #. TRANSLATORS: sample network name, translate the e.g. but the name is a placeholder
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "e.g. MyHiddenNetwork"
 msgstr "например, MyHiddenNetwork"
@@ -1758,11 +1841,13 @@ msgid "Actively probe for a network that doesn't broadcast its name"
 msgstr "Искать сеть, которая не передаёт своё имя"
 
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Security"
 msgstr "Защита"
 
 #. TRANSLATORS: WPA/WPA2/WPA3 are protocol names, leave them untranslated
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "WPA/WPA2/WPA3 Personal"
 msgstr "WPA/WPA2/WPA3 Personal"
@@ -1773,6 +1858,7 @@ msgid "None (open)"
 msgstr "Нет (открытая сеть)"
 
 #. TRANSLATORS: WPA is a protocol name, leave it untranslated
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "WPA passwords are at least 8 characters"
 msgstr "Пароль WPA должен содержать хотя бы 8 символов"
@@ -1794,6 +1880,7 @@ msgid "Add VPN provider"
 msgstr "Добавить провайдера VPN"
 
 #. TRANSLATORS: the four names in brackets are provider identifiers, leave them untranslated
+
 #: modules/nexus/pages/network/AddVpnPage.qml
 msgid "Built-in names (wireguard, warp, tailscale, netbird) auto-fill their commands. For others, provide the connect/disconnect commands."
 msgstr "Для встроенных провайдеров (wireguard, warp, tailscale, netbird) команды заполняются автоматически. Для остальных укажите команды подключения и отключения."
@@ -1803,6 +1890,7 @@ msgid "Provider name"
 msgstr "Название провайдера"
 
 #. TRANSLATORS: id here means the provider identifier, e.g. wireguard
+
 #: modules/nexus/pages/network/AddVpnPage.qml
 msgid "Built-in id or a custom name"
 msgstr "Встроенный идентификатор или своё название"
@@ -1816,12 +1904,15 @@ msgid "Display name"
 msgstr "Отображаемое имя"
 
 #. TRANSLATORS: the name shown in the VPN provider list on the network page
+
 #: modules/nexus/pages/network/AddVpnPage.qml
 msgid "Shown in the list"
 msgstr "Показывается в списке"
 
 #: modules/nexus/pages/network/AddVpnPage.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
 msgctxt "network interface"
 msgid "Interface"
@@ -1857,6 +1948,7 @@ msgid "Save"
 msgstr "Сохранить"
 
 #: modules/nexus/pages/network/AddVpnPage.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
 msgctxt "button"
 msgid "Add"
@@ -1892,11 +1984,13 @@ msgid "2.4 GHz"
 msgstr "2,4 ГГц"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Disconnect"
 msgstr "Отключить"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Connection"
 msgstr "Подключение"
@@ -1910,85 +2004,104 @@ msgid "Speed"
 msgstr "Скорость"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IP address"
 msgstr "IP-адрес"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Gateway"
 msgstr "Шлюз"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "MAC address"
 msgstr "MAC-адрес"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IPv4"
 msgstr "IPv4"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IP assignment"
 msgstr "Назначение IP"
 
 #. TRANSLATORS: DHCP and DNS are protocol names, leave them untranslated
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Automatic (DHCP)"
 msgstr "Автоматически (DHCP)"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Automatic, DNS only"
 msgstr "Автоматически, только DNS"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgctxt "ip configuration method"
 msgid "Manual"
 msgstr "Вручную"
 
 #. TRANSLATORS: CIDR is a networking term, leave it untranslated
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Address (CIDR)"
 msgstr "Адрес (CIDR)"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IP and prefix, e.g. 192.168.1.50/24"
 msgstr "IP и префикс, например 192.168.1.50/24"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter a valid address in CIDR notation"
 msgstr "Введите корректный адрес в формате CIDR"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter a valid gateway address"
 msgstr "Введите корректный адрес шлюза"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "DNS servers"
 msgstr "Серверы DNS"
 
 #. TRANSLATORS: describes the DNS servers field above: several addresses separated by commas
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Comma-separated"
 msgstr "Через запятую"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter valid DNS server addresses"
 msgstr "Введите корректные адреса серверов DNS"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Apply"
 msgstr "Применить"
@@ -2002,6 +2115,7 @@ msgid "Signal"
 msgstr "Сигнал"
 
 #: modules/nexus/pages/network/NetworkDetailPage.qml
+
 #: modules/nexus/pages/network/SavedNetworksPage.qml services/Nmcli.qml
 msgctxt "wifi security type"
 msgid "Open"
@@ -2012,15 +2126,20 @@ msgid "Frequency"
 msgstr "Частота"
 
 #. TRANSLATORS: %1 = channel frequency; MHz is a unit, leave it untranslated
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 #, qt-format
 msgid "%1 MHz"
 msgstr "%1 МГц"
 
 #: modules/nexus/pages/network/NetworkDetailPage.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Behaviour"
 msgstr "Поведение"
@@ -2034,6 +2153,7 @@ msgid "Join this network when it's in range"
 msgstr "Подключаться к этой сети в зоне её действия"
 
 #: modules/nexus/pages/network/SavedNetworksPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
 msgid "Saved networks"
 msgstr "Сохранённые сети"
@@ -2048,6 +2168,7 @@ msgid "Unknown"
 msgstr "Неизвестно"
 
 #. TRANSLATORS: %1 = security type
+
 #: modules/nexus/pages/network/SavedNetworksPage.qml
 #, qt-format
 msgctxt "network connected with security"
@@ -2055,17 +2176,20 @@ msgid "Connected • %1"
 msgstr "Подключено • %1"
 
 #: modules/nexus/pages/NetworkPage.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
 
 #. TRANSLATORS: %1 = number of networks found
+
 #: modules/nexus/pages/NetworkPage.qml
 #, qt-format
 msgid "Show all networks (%1)"
 msgstr "Показать все сети (%1)"
 
 #: modules/nexus/pages/NetworkPage.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml services/VPN.qml
 msgid "VPN"
 msgstr "VPN"
@@ -2114,20 +2238,27 @@ msgid "Add provider"
 msgstr "Добавить провайдера"
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "General"
 msgstr "Общие"
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Show on hover"
 msgstr "Показывать при наведении"
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
 msgid "Reveal when the cursor reaches the screen edge"
 msgstr "Показывать, когда курсор достигает края экрана"
@@ -2157,8 +2288,11 @@ msgid "Performance widgets"
 msgstr "Виджеты производительности"
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Drag threshold"
 msgstr "Порог перетаскивания"
@@ -2228,12 +2362,15 @@ msgid "Variants"
 msgstr "Варианты"
 
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Wallpapers"
 msgstr "Обои"
 
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Sidebar"
 msgstr "Боковая панель"
@@ -2243,6 +2380,7 @@ msgid "Pixels dragged before the sidebar opens"
 msgstr "Расстояние перетаскивания до открытия боковой панели (пиксели)"
 
 #: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Active window"
 msgstr "Активное окно"
@@ -2262,7 +2400,9 @@ msgid "Only show the active window title while hovering"
 msgstr "Показывать заголовок активного окна только при наведении"
 
 #: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/taskbar/BarTray.qml
 msgid "Popout on hover"
 msgstr "Показывать при наведении"
@@ -2272,6 +2412,7 @@ msgid "Show a window details popout when hovering"
 msgstr "Показывать сведения об окне при наведении"
 
 #: modules/nexus/pages/panels/taskbar/BarClock.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Clock"
 msgstr "Часы"
@@ -2306,11 +2447,13 @@ msgid "Speakers"
 msgstr "Динамики"
 
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "Microphone"
 msgstr "Микрофон"
 
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Status icons"
 msgstr "Иконки состояния"
@@ -2332,6 +2475,7 @@ msgid "Show a details popout when hovering the status icons"
 msgstr "Показывать подробности при наведении на иконки состояния"
 
 #: modules/nexus/pages/panels/taskbar/BarTray.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Tray"
 msgstr "Системный трей"
@@ -2342,6 +2486,7 @@ msgid "Background"
 msgstr "Фон"
 
 #. TRANSLATORS: tint system tray icons with the theme accent colour
+
 #: modules/nexus/pages/panels/taskbar/BarTray.qml
 msgid "Recolour icons"
 msgstr "Перекрашивать иконки"
@@ -2356,6 +2501,7 @@ msgid "Show the tray menu popout when hovering"
 msgstr "Показывать меню системного трея при наведении"
 
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Workspaces"
 msgstr "Рабочие пространства"
@@ -2385,6 +2531,7 @@ msgid "Workspace icons"
 msgstr "Иконки рабочих пространств"
 
 #. TRANSLATORS: the number of workspaces shown on the bar
+
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
 msgctxt "bar workspaces"
 msgid "Shown"
@@ -2442,6 +2589,7 @@ msgid "Windows on special workspaces"
 msgstr "Окна на специальных рабочих пространствах"
 
 #. TRANSLATORS: maximum number of window icons shown per workspace
+
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
 msgctxt "bar workspaces"
 msgid "Max window icons"
@@ -2476,6 +2624,7 @@ msgid "Inactive icon colour"
 msgstr "Цвет неактивной иконки"
 
 #: modules/nexus/pages/panels/TaskbarPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Taskbar"
 msgstr "Панель задач"
@@ -2561,6 +2710,7 @@ msgid "Scroll over the workspace indicator to switch workspaces"
 msgstr "Прокручивать индикатор рабочих пространств для их переключения"
 
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Utilities"
 msgstr "Утилиты"
@@ -2582,6 +2732,7 @@ msgid "Show the idle inhibitor card"
 msgstr "Показывать карточку запрета сна"
 
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
+
 #: modules/utilities/cards/Record.qml
 msgid "Screen recorder"
 msgstr "Запись экрана"
@@ -2591,6 +2742,7 @@ msgid "Show the screen recorder card"
 msgstr "Показывать карточку записи экрана"
 
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
+
 #: modules/utilities/cards/Toggles.qml
 msgid "Quick toggles"
 msgstr "Быстрые переключатели"
@@ -2662,6 +2814,7 @@ msgid "Reveal on drag"
 msgstr "Показывать при перетаскивании"
 
 #: modules/nexus/pages/PanelsPage.qml
+
 #: modules/nexus/pages/panels/OsdPanel.qml
 msgid "Sound and brightness"
 msgstr "Звук и яркость"
@@ -2671,6 +2824,7 @@ msgid "Hide delay"
 msgstr "Задержка скрытия"
 
 #. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+
 #: modules/nexus/pages/panels/OsdPanel.qml
 msgid "Time before the indicator hides (ms)"
 msgstr "Время до скрытия индикатора (мс)"
@@ -2765,6 +2919,7 @@ msgid "Default timeout"
 msgstr "Время показа по умолчанию"
 
 #. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+
 #: modules/nexus/pages/services/NotificationsPage.qml
 msgid "Time before a notification dismisses (ms)"
 msgstr "Время до скрытия уведомления (мс)"
@@ -2875,6 +3030,7 @@ msgid "Media refresh"
 msgstr "Обновление медиа"
 
 #. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "How often the media position updates (ms)"
 msgstr "Интервал обновления позиции воспроизведения (мс)"
@@ -2884,6 +3040,7 @@ msgid "System stats refresh"
 msgstr "Обновление статистики системы"
 
 #. TRANSLATORS: CPU and GPU are hardware abbreviations, leave them untranslated
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "CPU, memory and GPU update interval (seconds)"
 msgstr "Интервал обновления данных процессора, памяти и видеокарты (секунды)"
@@ -2954,6 +3111,7 @@ msgid "Service tuning"
 msgstr "Настройка служб"
 
 #. TRANSLATORS: bars of a spectrum analyser, not the taskbar
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "Visualiser bars"
 msgstr "Столбцы визуализатора"
@@ -2980,6 +3138,7 @@ msgid "Override for GPU type"
 msgstr "Переопределить тип видеокарты"
 
 #: modules/nexus/pages/wallandstyle/ColourSelect.qml
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Colours"
 msgstr "Цвета"
@@ -3085,6 +3244,7 @@ msgid "Transparency"
 msgstr "Прозрачность"
 
 #. TRANSLATORS: %1/%2 = opacity values from 0 to 1 for the base surface and layered surfaces
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 #, qt-format
 msgid "Base %1, layers %2"
@@ -3263,6 +3423,7 @@ msgid "Normal power management"
 msgstr "Обычное управление питанием"
 
 #. TRANSLATORS: %1 = a clock time, e.g. 14:30
+
 #: modules/utilities/cards/IdleInhibit.qml
 #, qt-format
 msgid "Active since %1"
@@ -3320,6 +3481,7 @@ msgid "REC"
 msgstr "ЗАПИСЬ"
 
 #. TRANSLATORS: %1 = elapsed recording duration, e.g. 01:23
+
 #: modules/utilities/cards/Record.qml
 #, qt-format
 msgid "Recording for %1"
@@ -3392,24 +3554,28 @@ msgid "Address: unknown"
 msgstr "Адрес неизвестен"
 
 #. TRANSLATORS: %1/%2 = x and y position in pixels
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Position: %1, %2"
 msgstr "Позиция: %1, %2"
 
 #. TRANSLATORS: %1/%2 = width and height in pixels; the x is a multiplication sign
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Size: %1 x %2"
 msgstr "Размер: %1 × %2"
 
 #. TRANSLATORS: %1 = workspace name, %2 = workspace id
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Workspace: %1 (%2)"
 msgstr "Рабочее пространство: %1 (%2)"
 
 #. TRANSLATORS: %1 = monitor name, %2 = monitor id, %3/%4 = x/y position in pixels
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Monitor: %1 (%2) at %3, %4"
@@ -3438,6 +3604,7 @@ msgid "Initial class: unknown"
 msgstr "Исходный класс неизвестен"
 
 #. TRANSLATORS: %1 = process id
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Process id: %1"
@@ -3488,6 +3655,7 @@ msgid "Try switching to a window"
 msgstr "Переключитесь на окно"
 
 #. TRANSLATORS: %1 = window title, %2 = monitor name, %3/%4 = x/y position in pixels
+
 #: modules/windowinfo/Preview.qml
 #, qt-format
 msgid "%1 on monitor %2 at %3, %4"
@@ -3608,6 +3776,7 @@ msgid "%1 TiB/s"
 msgstr "%1 ТиБ/с"
 
 #. TRANSLATORS: %1 = used amount, %2 = total amount with unit
+
 #: plugin/src/Hyprstack/I18n/Units.qml
 #, qt-format
 msgctxt "used / total amount"
@@ -3672,12 +3841,14 @@ msgid "Enhanced Open"
 msgstr "Enhanced Open"
 
 #. TRANSLATORS: %1 = a number
+
 #: services/Nmcli.qml
 #, qt-format
 msgid "%1 Gbps"
 msgstr "%1 Гбит/с"
 
 #. TRANSLATORS: %1 = a number
+
 #: services/Nmcli.qml
 #, qt-format
 msgid "%1 Mbps"
@@ -3826,18 +3997,21 @@ msgid "VPN error"
 msgstr "Ошибка VPN"
 
 #. TRANSLATORS: %1 = a shell command, leave it untranslated
+
 #: services/VPN.qml
 #, qt-format
 msgid "WireGuard module not loaded. Run: %1"
 msgstr "Модуль WireGuard не загружен. Выполните: %1"
 
 #. TRANSLATORS: %1 = a shell command, leave it untranslated
+
 #: services/VPN.qml
 #, qt-format
 msgid "Permission denied. Run in terminal: %1"
 msgstr "Доступ запрещён. Выполните в терминале: %1"
 
 #. TRANSLATORS: %1 = a shell command, leave it untranslated
+
 #: services/VPN.qml
 #, qt-format
 msgid "Service not running (run: %1)"
@@ -3952,12 +4126,14 @@ msgid "Unknown"
 msgstr "Неизвестно"
 
 #. TRANSLATORS: %1 = a number
+
 #: utils/Strings.qml
 #, qt-format
 msgid "%1%"
 msgstr "%1%"
 
 #. TRANSLATORS: joins uptime components, e.g. "2 days, 3 hours"
+
 #: utils/SysInfo.qml
 msgctxt "uptime component separator"
 msgid ", "
@@ -3992,12 +4168,14 @@ msgid "Failed to parse token config"
 msgstr "Не удалось прочитать конфигурацию токенов"
 
 #. TRANSLATORS: %1 = a monitor name
+
 #: plugin/src/Hyprstack/Config/rootnodes.cpp
 #, qt-format
 msgid "Failed to parse token config for %1"
 msgstr "Не удалось прочитать конфигурацию токенов %1"
 
 #. TRANSLATORS: %1 = a monitor name
+
 #: plugin/src/Hyprstack/Config/rootnodes.cpp
 #, qt-format
 msgid "Failed to parse config"
@@ -4009,6 +4187,7 @@ msgid "Failed to parse config for %1"
 msgstr "Не удалось прочитать конфигурацию %1"
 
 #. TRANSLATORS: %1 = a monitor name
+
 #: plugin/src/Hyprstack/Config/rootnodes.cpp
 #, qt-format
 msgid "Failed to save config"
@@ -4020,12 +4199,14 @@ msgid "Failed to save config for %1"
 msgstr "Не удалось сохранить конфигурацию %1"
 
 #. TRANSLATORS: %1 = a message from Qalculate, we don't translate it
+
 #: plugin/src/Hyprstack/qalculator.cpp
 #, qt-format
 msgid "error: %1"
 msgstr "ошибка: %1"
 
 #. TRANSLATORS: %1 = a message from Qalculate, we don't translate it
+
 #: plugin/src/Hyprstack/qalculator.cpp
 #, qt-format
 msgid "warning: %1"
@@ -4048,6 +4229,7 @@ msgid "Num lock is currently disabled"
 msgstr "Num Lock сейчас выключен"
 
 #. TRANSLATORS: %1 = an XKB keyboard layout name, e.g. English (US)
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 #, qt-format
 msgid "Keyboard layout changed"
@@ -4067,24 +4249,28 @@ msgid "Enable hibernation to use this feature."
 msgstr "Для этой функции необходимо включить гибернацию."
 
 #. TRANSLATORS: %1 = the non-integer number that was found
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Expected an integer, got the real %1"
 msgstr "Ожидалось целое число, получено дробное %1"
 
 #. TRANSLATORS: %1 = the value given, %2/%3 = the allowed minimum and maximum
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Integer %1 is out of range, expected between %2 and %3"
 msgstr "Целое число %1 вне диапазона. Ожидается значение от %2 до %3"
 
 #. TRANSLATORS: %1 = a config key name, %2 = a C++ type name; both are untranslated identifiers
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Could not convert %1 to %2"
 msgstr "Не удалось преобразовать %1 в %2"
 
 #. TRANSLATORS: %1 = a config key name, %2 = a comma-separated list of allowed values; both untranslated
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Invalid enum value %1. Expected one of %2"
@@ -4156,24 +4342,28 @@ msgid "nothing"
 msgstr "ничего"
 
 #. TRANSLATORS: %1/%2 = the allowed types, %3 = the type that was found; all nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected %1 or %2, got %3"
 msgstr "Ожидалось %1 или %2, получено %3"
 
 #. TRANSLATORS: %1-%3 = the allowed types, %4 = the type that was found; all nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected %1, %2 or %3, got %4"
 msgstr "Ожидалось %1, %2 или %3, получено %4"
 
 #. TRANSLATORS: %1-%4 = the allowed types, %5 = the type that was found; all nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected one of: %1, %2, %3, %4; got %5"
 msgstr "Ожидалось одно из: %1, %2, %3, %4; получено %5"
 
 #. TRANSLATORS: %1 = the expected type, %2 = the type that was found; both nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected %1, got %2"
@@ -4184,6 +4374,7 @@ msgid "Global options should not be defined in overlay files"
 msgstr "Глобальные параметры нельзя задавать в файлах отдельных экранов"
 
 #. TRANSLATORS: %1 = a config key name
+
 #: plugin/src/Hyprstack/Settings/objectnode.cpp
 #, qt-format
 msgid "Unknown option %1"
@@ -5592,7 +5783,6 @@ msgstr "VPN · все приложения"
 msgid "Local proxy · selected applications"
 msgstr "Локальный прокси · выбранные приложения"
 
-
 #. VPN controls
 msgid "Traffic is routed through a VPN tunnel, including applications without proxy settings."
 msgstr "Трафик проходит через VPN-туннель, в том числе в приложениях без настроек прокси."
@@ -5665,11 +5855,9 @@ msgstr "Сначала добавьте или выберите профиль V
 msgid "Paste a profile link or subscription URL"
 msgstr "Вставьте ссылку на профиль или подписку"
 
-
 #. VPN controls
 msgid "Disconnect this profile before deleting it"
 msgstr "Отключите профиль перед его удалением"
-
 
 #. VPN controls
 msgid "VPN tunnel authorization failed or was cancelled"
@@ -5824,6 +6012,7 @@ msgid "Permission request"
 msgstr "Запрос разрешения"
 
 #. TRANSLATORS: %1 = name of the application asking for the permission
+
 #: modules/portals/AccessDialog.qml
 #, qt-format
 msgid "Requested by %1"
@@ -5885,7 +6074,6 @@ msgstr "Скопируйте что-нибудь, и оно появится з�
 msgid "Pinned"
 msgstr "Закреплено"
 
-
 #: modules/launcher/items/ClipItem.qml
 msgid "Delete entry"
 msgstr "Удалить запись"
@@ -5916,6 +6104,7 @@ msgid "Type something to add it"
 msgstr "Введите что-нибудь, чтобы добавить"
 
 #. TRANSLATORS: %1 = what the user typed, which becomes a character of their own
+
 #: modules/launcher/EmojiList.qml
 #, qt-format
 msgid "Add \"%1\""
@@ -5943,6 +6132,7 @@ msgid "Unlock"
 msgstr "Разблокировать"
 
 #. TRANSLATORS: %1 = name of the application offering the picture
+
 #: modules/portals/WallpaperDialog.qml
 #, qt-format
 msgid "Set %1 as the wallpaper?"
@@ -6274,7 +6464,6 @@ msgstr "Нативный модуль загружен"
 
 msgid "Rebuild Hyprstack for the running Hyprland and log in again"
 msgstr "Пересоберите Hyprstack для установленной версии Hyprland и войдите в сеанс заново"
-
 
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Scrolling: 0 hides the border. Stacking: 1 px; maximized windows have no border."
@@ -6651,146 +6840,117 @@ msgstr "Выбрать сервер или добавить подключени
 msgid "External VPN provider"
 msgstr "Внешний VPN-клиент"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Animations"
 msgstr "Анимации"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell and window presets, live preview and motion speed"
 msgstr "Пресеты оболочки и окон, предпросмотр и скорость движения"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Snappy"
 msgstr "Быстрый"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Cinematic"
 msgstr "Кинематографичный"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Reduced motion"
 msgstr "Без движения"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Spring"
 msgstr "Пружина"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Glide"
 msgstr "Скольжение"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Goop-inspired springs, soft panel stretch and squishy buttons"
 msgstr "Пружинное движение в стиле Goop, мягкое растяжение панелей и упругие кнопки"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Fluid, restrained transitions inspired by Fluent 2"
 msgstr "Плавные сдержанные переходы по мотивам Fluent 2"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Short, precise movements with a quick response"
 msgstr "Короткие точные движения с быстрым откликом"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Measured acceleration and spacious, flowing transitions"
 msgstr "Размеренное ускорение и выразительные плавные переходы"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Instant shell transitions with no animated travel"
 msgstr "Мгновенные переходы оболочки без анимированного перемещения"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Original Hyprstack animations and your existing motion tokens"
 msgstr "Исходные анимации Hyprstack с вашими текущими параметрами движения"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Gentle spring opening and elastic workspace transitions"
 msgstr "Мягкое пружинное открытие и упругие переходы между рабочими столами"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Windows slide into place and workspaces drift smoothly"
 msgstr "Скользящее появление окон и плавное движение рабочих столов"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Fast opening with a subtle zoom and short workspace travel"
 msgstr "Быстрое открытие с лёгким увеличением и короткие переходы рабочих столов"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Deep zoom opening and flowing vertical workspace transitions"
 msgstr "Выразительное увеличение при открытии и плавные вертикальные переходы рабочих столов"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Instant window opening, closing, movement and workspace changes"
 msgstr "Мгновенное открытие, закрытие, перемещение окон и переключение рабочих столов"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Original window and workspace animations"
 msgstr "Исходные анимации окон и рабочих столов"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Presets apply immediately and are saved independently."
 msgstr "Пресеты применяются сразу и сохраняются независимо друг от друга."
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell animations"
 msgstr "Анимации оболочки"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell preset"
 msgstr "Пресет оболочки"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell animation speed"
 msgstr "Скорость анимаций оболочки"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Window animations"
 msgstr "Анимации окон"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Window preset"
 msgstr "Пресет окон"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Game mode temporarily disables window animations. Your preset is kept."
 msgstr "Игровой режим временно отключает анимации окон. Выбранный пресет сохраняется."
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Replay preview"
 msgstr "Повторить предпросмотр"
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Restore defaults"
 msgstr "Восстановить по умолчанию"
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Viscous panels, workspace splashes and drips on hover"
@@ -6851,7 +7011,6 @@ msgstr "Открыть центр уведомлений"
 #: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Mark all as read"
 msgstr "Отметить всё прочитанным"
-
 
 #: modules/nexus/pages/power
 msgid "Battery warnings"
@@ -7239,3 +7398,143 @@ msgstr "Уведомления при автоматическом перекл�
 #: modules/nexus/pages/GameModePage.qml
 msgid "Show a toast when a rule switches game mode on or off"
 msgstr "Показывать тост, когда правило включает или выключает игровой режим"
+
+#: modules/nexus/PageRegistry.qml
+msgid "Mouse & pointer"
+msgstr "Мышь и указатель"
+
+#: modules/nexus/PageRegistry.qml
+msgid "Pointer speed, scrolling, cursor"
+msgstr "Скорость указателя, прокрутка, курсор"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Mouse"
+msgstr "Мышь"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Sensitivity"
+msgstr "Чувствительность"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Acceleration"
+msgstr "Ускорение"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Adaptive"
+msgstr "Адаптивное"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Flat"
+msgstr "Плоское"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Adaptive speeds the pointer up as it moves, flat keeps one speed"
+msgstr "Адаптивное разгоняет указатель по мере движения, плоское держит одну скорость"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Invert scrolling"
+msgstr "Инвертировать прокрутку"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "The wheel scrolls in the opposite direction"
+msgstr "Колесо прокручивает в обратную сторону"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scroll speed"
+msgstr "Скорость прокрутки"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swap mouse buttons"
+msgstr "Поменять кнопки мыши"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "The right button becomes the primary one"
+msgstr "Правая кнопка становится основной"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Focus follows the pointer"
+msgstr "Фокус следует за указателем"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Detached lets clicks choose the window, separate keeps clicks from moving focus"
+msgstr "Откреплённый позволяет кликам выбирать окно, раздельный не даёт кликам менять фокус"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Never"
+msgstr "Никогда"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Follow the pointer"
+msgstr "Следовать за указателем"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Detached"
+msgstr "Откреплённый"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Separate"
+msgstr "Раздельный"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Cursor"
+msgstr "Курсор"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Pointer size"
+msgstr "Размер указателя"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Cursor size in pixels, from 8 to 64"
+msgstr "Размер курсора в пикселях, от 8 до 64"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Cursor theme"
+msgstr "Тема курсора"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "A theme from your icon folders; empty keeps the Hyprland one"
+msgstr "Тема из папок со значками; пустое поле оставляет тему Hyprland"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Hide the pointer"
+msgstr "Прятать указатель"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Seconds of inactivity before it disappears; 0 keeps it visible"
+msgstr "Секунд бездействия, прежде чем он исчезнет; 0 оставляет его видимым"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Touchpad"
+msgstr "Тачпад"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Invert touchpad scrolling"
+msgstr "Инвертировать прокрутку тачпада"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipes move the content the way your fingers do"
+msgstr "Свайпы двигают содержимое так же, как пальцы"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Tap to click"
+msgstr "Касание как клик"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "A tap on the touchpad acts as a click"
+msgstr "Касание тачпада работает как клик"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Disable while typing"
+msgstr "Отключать при наборе"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Ignore the touchpad while you type"
+msgstr "Игнорировать тачпад во время набора"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Touchpad scroll speed"
+msgstr "Скорость прокрутки тачпада"

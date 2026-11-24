@@ -3393,7 +3393,7 @@ var catalogue = [
     ],
     "label": "Mouse & pointer",
     "context": "",
-    "target": "mousePointerPage",
+    "target": "",
     "match": "",
     "keywords": "mouse pointer мышь указатель курсор cursor тачпад touchpad"
   },
