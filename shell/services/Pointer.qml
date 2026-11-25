@@ -21,6 +21,32 @@ Singleton {
     readonly property int cursorSize: cfg.cursorSize > 0 ? cfg.cursorSize : varsCursorSize
     readonly property bool cursorManaged: cfg.cursorTheme !== "" || cfg.cursorSize > 0
 
+    // Cursor themes are icon folders holding a cursors subfolder, found in the
+    // same places libXcursor looks. A stored theme whose package is gone stays
+    // in the list so the settings never silently drop the choice.
+    property var cursorThemes: []
+
+    function cursorThemeRoots(): var {
+        const roots = [];
+        const add = path => {
+            if (path !== "" && !roots.includes(path))
+                roots.push(path);
+        };
+        for (const path of (Quickshell.env("XCURSOR_PATH") || "").split(":"))
+            add(path);
+        const home = Quickshell.env("HOME") || "";
+        add(`${home}/.icons`);
+        add(`${Quickshell.env("XDG_DATA_HOME") || `${home}/.local/share`}/icons`);
+        for (const dir of (Quickshell.env("XDG_DATA_DIRS") || "/usr/local/share:/usr/share").split(":"))
+            add(`${dir}/icons`);
+        return roots;
+    }
+
+    function refreshCursorThemes(): void {
+        if (!themeScan.running)
+            themeScan.running = true;
+    }
+
     // What a control shows: the shell's own value once the user moved it,
     // otherwise whatever the compositor uses right now.
     function shownBool(explicit: int, live, fallback: bool): bool {
@@ -155,6 +181,7 @@ Singleton {
             parseVars(vars);
         inputTimer.restart();
         cursorTimer.restart();
+        refreshCursorThemes();
     }
 
     Timer {
@@ -206,5 +233,30 @@ Singleton {
         const size = /cursorSize\s*=\s*(\d+)/.exec(contents);
         root.varsCursorTheme = theme && theme[1] !== "" ? theme[1] : "Adwaita";
         root.varsCursorSize = size ? Number(size[1]) : 24;
+    }
+
+    // A theme is a directory with a cursors subfolder. The loop skips roots
+    // that do not exist, so find only ever reports what is installed.
+    Process {
+        id: themeScan
+
+        command: ["sh", "-c", 'for d in "$@"; do if [ -d "$d" ]; then find "$d" -maxdepth 2 -type d -name cursors 2>/dev/null; fi; done', "theme-scan", ...root.cursorThemeRoots()]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const themes = [];
+                for (const line of text.split("\n")) {
+                    const path = line.trim();
+                    if (!path.endsWith("/cursors"))
+                        continue;
+                    const name = path.split("/").slice(-2)[0];
+                    if (name !== "" && !themes.includes(name))
+                        themes.push(name);
+                }
+                themes.sort();
+                if (root.cfg.cursorTheme !== "" && !themes.includes(root.cfg.cursorTheme))
+                    themes.push(root.cfg.cursorTheme);
+                root.cursorThemes = themes;
+            }
+        }
     }
 }

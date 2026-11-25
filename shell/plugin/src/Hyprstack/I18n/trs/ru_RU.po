@@ -7496,8 +7496,12 @@ msgid "Cursor theme"
 msgstr "Тема курсора"
 
 #: modules/nexus/pages/pointer/PointerPage.qml
-msgid "A theme from your icon folders; empty keeps the Hyprland one"
-msgstr "Тема из папок со значками; пустое поле оставляет тему Hyprland"
+msgid "A theme from your icon folders; the first entry keeps the Hyprland one"
+msgstr "Тема из папок со значками; первый пункт оставляет тему Hyprland"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Keep the Hyprland theme"
+msgstr "Оставить тему Hyprland"
 
 #: modules/nexus/pages/pointer/PointerPage.qml
 msgid "Hide the pointer"

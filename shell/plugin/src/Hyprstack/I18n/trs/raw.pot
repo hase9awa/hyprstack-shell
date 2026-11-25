@@ -6348,7 +6348,11 @@ msgid "Cursor theme"
 msgstr ""
 
 #: modules/nexus/pages/pointer/PointerPage.qml
-msgid "A theme from your icon folders; empty keeps the Hyprland one"
+msgid "A theme from your icon folders; the first entry keeps the Hyprland one"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Keep the Hyprland theme"
 msgstr ""
 
 #: modules/nexus/pages/pointer/PointerPage.qml

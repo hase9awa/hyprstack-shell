@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components.controls
@@ -72,6 +73,14 @@ PageBase {
 
     title: Tr.tr("Mouse & pointer")
     objectName: "mousePointerPage"
+
+    // The page is rebuilt on every visit, so each build kicks one cheap scan
+    // of the icon folders in case a theme was installed since the shell started.
+    readonly property Timer themeScanKick: Timer {
+        interval: 0
+        running: true
+        onTriggered: Pointer.refreshCursorThemes()
+    }
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -156,13 +165,38 @@ PageBase {
             onMoved: v => root.cfg.cursorSize = Math.round(v)
         }
 
-        TextFieldRow {
+        SelectRow {
             objectName: "pointerCursorTheme"
             label: Tr.tr("Cursor theme")
-            subtext: Tr.tr("A theme from your icon folders; empty keeps the Hyprland one")
-            value: root.cfg.cursorTheme
-            placeholderText: Pointer.cursorTheme
-            onEditingFinished: v => root.cfg.cursorTheme = v.trim()
+            subtext: Tr.tr("A theme from your icon folders; the first entry keeps the Hyprland one")
+            menuItems: [inheritTheme, ...themeVariants.instances]
+            // The list is rebuilt when a scan finishes, so the selection must
+            // stay a binding instead of being pinned to one instance.
+            updateActiveOnSelection: false
+            active: menuItems.find(i => i.value === root.cfg.cursorTheme) ?? inheritTheme
+            onSelected: item => root.cfg.cursorTheme = item.value
+
+            MenuItem {
+                id: inheritTheme
+
+                text: Tr.tr("Keep the Hyprland theme")
+                value: ""
+            }
+
+            Variants {
+                id: themeVariants
+
+                // The scan keeps a stored theme that is no longer installed in
+                // the list, so the model never has to depend on the config.
+                model: Pointer.cursorThemes
+
+                MenuItem {
+                    required property string modelData
+
+                    text: modelData
+                    value: modelData
+                }
+            }
         }
 
         StepperRow {

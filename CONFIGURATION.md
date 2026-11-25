@@ -322,7 +322,7 @@ Hyprland сразу после изменения, а также при кажд
 | Параметр | Поле | Назначение |
 | --- | --- | --- |
 | **Размер указателя** | `cursorSize` | От 8 до 64, `XCURSOR_SIZE` и `setcursor` |
-| **Тема курсора** | `cursorTheme` | Имя темы из папок значков, `XCURSOR_THEME` и `setcursor` |
+| **Тема курсора** | `cursorTheme` | Список тем, найденных в папках значков (`XCURSOR_PATH`, `~/.icons`, каталоги `icons` из `XDG_DATA_DIRS`); первый пункт «Оставить тему Hyprland» — наследование. `XCURSOR_THEME` и `setcursor` |
 | **Прятать указатель** | `cursorHideTimeout` | Секунды до скрытия, `cursor:inactive_timeout`; 0 — не прятать |
 
 Секция **Тачпад**:
