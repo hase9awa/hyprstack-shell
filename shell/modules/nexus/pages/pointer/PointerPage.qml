@@ -88,68 +88,9 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
-        // Mouse
-        SectionHeader {
-            first: true
-            text: Tr.tr("Mouse")
-        }
-
-        SliderRow {
-            objectName: "pointerSensitivity"
-            first: true
-            icon: "speed"
-            label: Tr.tr("Sensitivity")
-            value: (root.sensitivity + 1) / 2
-            valueLabel: root.sensitivity.toFixed(2)
-            onMoved: value => root.cfg.sensitivity = Math.round((value * 2 - 1) * 100) / 100
-        }
-
-        SelectRow {
-            objectName: "pointerAcceleration"
-            label: Tr.tr("Acceleration")
-            subtext: Tr.tr("Adaptive speeds the pointer up as it moves, flat keeps one speed")
-            menuItems: root.accelItems
-            active: root.accelItems.find(i => i.value === root.accelProfile) ?? null
-            onSelected: item => root.cfg.accelProfile = item.value
-        }
-
-        ToggleRow {
-            objectName: "pointerInvertScrolling"
-            text: Tr.tr("Invert scrolling")
-            subtext: Tr.tr("The wheel scrolls in the opposite direction")
-            checked: root.naturalScroll
-            onToggled: root.cfg.naturalScroll = checked ? PointerTriState.On : PointerTriState.Off
-        }
-
-        SliderRow {
-            objectName: "pointerScrollSpeed"
-            icon: "swap_vert"
-            label: Tr.tr("Scroll speed")
-            value: Math.min(5, root.scrollFactor) / 5
-            valueLabel: `${root.scrollFactor.toFixed(2)}×`
-            onMoved: value => root.cfg.scrollFactor = Math.round(value * 500) / 100
-        }
-
-        ToggleRow {
-            objectName: "pointerSwapButtons"
-            text: Tr.tr("Swap mouse buttons")
-            subtext: Tr.tr("The right button becomes the primary one")
-            checked: root.leftHanded
-            onToggled: root.cfg.leftHanded = checked ? PointerTriState.On : PointerTriState.Off
-        }
-
-        SelectRow {
-            objectName: "pointerFocusFollows"
-            label: Tr.tr("Focus follows the pointer")
-            subtext: Tr.tr("Detached lets clicks choose the window, separate keeps clicks from moving focus")
-            menuItems: root.focusItems
-            active: root.focusItems.find(i => i.value === root.followMouse) ?? null
-            onSelected: item => root.cfg.followMouse = item.value
-            last: true
-        }
-
         // Cursor
         SectionHeader {
+            first: true
             text: Tr.tr("Cursor")
         }
 
@@ -208,6 +149,65 @@ PageBase {
             to: 600
             stepSize: 1
             onMoved: v => root.cfg.cursorHideTimeout = Math.round(v)
+            last: true
+        }
+
+        // Mouse
+        SectionHeader {
+            text: Tr.tr("Mouse")
+        }
+
+        SliderRow {
+            objectName: "pointerSensitivity"
+            first: true
+            icon: "speed"
+            label: Tr.tr("Sensitivity")
+            value: (root.sensitivity + 1) / 2
+            valueLabel: root.sensitivity.toFixed(2)
+            onMoved: value => root.cfg.sensitivity = Math.round((value * 2 - 1) * 100) / 100
+        }
+
+        SelectRow {
+            objectName: "pointerAcceleration"
+            label: Tr.tr("Acceleration")
+            subtext: Tr.tr("Adaptive speeds the pointer up as it moves, flat keeps one speed")
+            menuItems: root.accelItems
+            active: root.accelItems.find(i => i.value === root.accelProfile) ?? null
+            onSelected: item => root.cfg.accelProfile = item.value
+        }
+
+        ToggleRow {
+            objectName: "pointerInvertScrolling"
+            text: Tr.tr("Invert scrolling")
+            subtext: Tr.tr("The wheel scrolls in the opposite direction")
+            checked: root.naturalScroll
+            onToggled: root.cfg.naturalScroll = checked ? PointerTriState.On : PointerTriState.Off
+        }
+
+        SliderRow {
+            objectName: "pointerScrollSpeed"
+            icon: "swap_vert"
+            label: Tr.tr("Scroll speed")
+            value: Math.min(5, root.scrollFactor) / 5
+            valueLabel: `${root.scrollFactor.toFixed(2)}×`
+            onMoved: value => root.cfg.scrollFactor = Math.round(value * 500) / 100
+        }
+
+        ToggleRow {
+            objectName: "pointerSwapButtons"
+            text: Tr.tr("Swap mouse buttons")
+            subtext: Tr.tr("The right button becomes the primary one")
+            checked: root.leftHanded
+            onToggled: root.cfg.leftHanded = checked ? PointerTriState.On : PointerTriState.Off
+        }
+
+        SelectRow {
+            objectName: "pointerFocusFollows"
+            label: Tr.tr("Focus follows the pointer")
+            subtext: Tr.tr("Detached lets clicks choose the window, separate keeps clicks from moving focus")
+            menuItems: root.focusItems
+            active: root.focusItems.find(i => i.value === root.followMouse) ?? null
+            onSelected: item => root.cfg.followMouse = item.value
             last: true
         }
 
