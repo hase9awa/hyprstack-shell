@@ -218,6 +218,9 @@ CustomMouseArea {
 
                     required property var model
 
+                    // Match daysRow: MonthGrid does not always resize its cells to the final width.
+                    width: (grid.availableWidth - grid.spacing * 6) / 7
+                    height: root.dayHeight
                     implicitWidth: implicitHeight
                     implicitHeight: root.dayHeight
 
