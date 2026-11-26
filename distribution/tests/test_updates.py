@@ -438,7 +438,9 @@ urllib.request.urlopen = download
 const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
 const scope = vm.createContext({});
 vm.runInContext(fs.readFileSync(process.argv[1], 'utf8').replace(/^\\.pragma library\\s*/, ''), scope);
-const translated = {'Check for updates':'Проверить обновления', 'Updates':'Обновления'};
+const translated = {'Check for updates':'Проверить обновления', 'Updates':'Обновления',
+    'Swipe to scroll':'Свайп для прокрутки', 'Swipe to switch workspaces':'Свайп для переключения рабочих столов',
+    'Swipe for overview':'Свайп для обзора'};
 const tr = text => translated[text] ?? text;
 for (const [query, target] of [['Check for updates','updatesCheck'], ['Проверить обновления','updatesCheck'],
     ['Download and prepare update','updatesPrepare'], ['Install update','updatesInstall']]) {
@@ -447,6 +449,16 @@ for (const [query, target] of [['Check for updates','updatesCheck'], ['Пров�
     assert.equal(result?.target, target, query);
 }
 assert.ok(scope.find('обновления', tr).some(result => result.page === 13));
+for (const [query, target] of [['Swipe to scroll','pointerTouchpadGestureScroll'],
+    ['Свайп для прокрутки','pointerTouchpadGestureScroll'],
+    ['Swipe to switch workspaces','pointerTouchpadGestureWorkspace'],
+    ['Свайп для переключения рабочих столов','pointerTouchpadGestureWorkspace'],
+    ['Swipe for overview','pointerTouchpadGestureOverview'],
+    ['Свайп для обзора','pointerTouchpadGestureOverview']]) {
+    const result = scope.find(query, tr)[0];
+    assert.equal(result?.page, 11, query);
+    assert.equal(result?.target, target, query);
+}
 // The mouse and pointer page sits between game mode and about
 const mousePage = scope.find('мышь', tr)[0];
 assert.equal(mousePage?.page, 11, 'мышь');

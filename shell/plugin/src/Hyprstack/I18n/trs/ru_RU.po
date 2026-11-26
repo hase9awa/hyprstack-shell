@@ -7542,3 +7542,55 @@ msgstr "Игнорировать тачпад во время набора"
 #: modules/nexus/pages/pointer/PointerPage.qml
 msgid "Touchpad scroll speed"
 msgstr "Скорость прокрутки тачпада"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Touchpad gestures"
+msgstr "Жесты тачпада"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe to scroll"
+msgstr "Свайп для прокрутки"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scroll horizontally with a touchpad swipe"
+msgstr "Прокручивать горизонтальным свайпом на тачпаде"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scrolling fingers"
+msgstr "Пальцы для прокрутки"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the scrolling gesture"
+msgstr "Количество пальцев для жеста прокрутки"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe to switch workspaces"
+msgstr "Свайп для переключения рабочих столов"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Switch workspaces with a vertical touchpad swipe"
+msgstr "Переключать рабочие столы вертикальным свайпом на тачпаде"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Workspace swipe fingers"
+msgstr "Пальцы для рабочих столов"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the workspace gesture"
+msgstr "Количество пальцев для жеста рабочих столов"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe for overview"
+msgstr "Свайп для обзора"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe up to open the overview and down to accept"
+msgstr "Смахните вверх, чтобы открыть обзор, и вниз, чтобы принять"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Overview fingers"
+msgstr "Пальцы для обзора"
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the overview gesture"
+msgstr "Количество пальцев для жеста обзора"

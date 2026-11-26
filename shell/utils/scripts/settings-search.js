@@ -3554,6 +3554,78 @@ var catalogue = [
     "keywords": "touchpad scroll speed скорость прокрутки тачпада scroll factor"
   },
   {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Swipe to scroll",
+    "context": "",
+    "target": "pointerTouchpadGestureScroll",
+    "match": "Swipe to scroll",
+    "keywords": "touchpad gesture swipe scroll жест тачпада свайп прокрутка горизонтальный"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Scrolling fingers",
+    "context": "",
+    "target": "pointerTouchpadGestureScrollFingers",
+    "match": "Scrolling fingers",
+    "keywords": "touchpad gesture fingers scroll пальцы жест тачпада прокрутка"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Swipe to switch workspaces",
+    "context": "",
+    "target": "pointerTouchpadGestureWorkspace",
+    "match": "Swipe to switch workspaces",
+    "keywords": "touchpad gesture swipe workspaces жест тачпада свайп рабочие столы вертикальный"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Workspace swipe fingers",
+    "context": "",
+    "target": "pointerTouchpadGestureWorkspaceFingers",
+    "match": "Workspace swipe fingers",
+    "keywords": "touchpad gesture fingers workspace пальцы жест тачпада рабочие столы"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Swipe for overview",
+    "context": "",
+    "target": "pointerTouchpadGestureOverview",
+    "match": "Swipe for overview",
+    "keywords": "touchpad gesture swipe overview жест тачпада свайп обзор"
+  },
+  {
+    "page": 11,
+    "subpages": [],
+    "path": [
+      "Mouse & pointer"
+    ],
+    "label": "Overview fingers",
+    "context": "",
+    "target": "pointerTouchpadGestureOverviewFingers",
+    "match": "Overview fingers",
+    "keywords": "touchpad gesture fingers overview пальцы жест тачпада обзор"
+  },
+  {
     "page": 12,
     "subpages": [],
     "path": [

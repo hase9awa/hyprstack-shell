@@ -1012,8 +1012,16 @@ local function refresh_decorations(animate, keep_appearance)
         extend_border_grab_area = scrolling and tiled_border_grab or 8 } })
     if scrolling ~= swipe_enabled then
         local vars = require("variables")
-        hl.gesture({ fingers = vars.gestureFingers, direction = "horizontal", action = scrolling and "scroll_move" or "unset" })
-        hl.gesture({ fingers = vars.workspaceSwipeFingers, direction = "vertical", action = scrolling and "workspace" or "unset" })
+        -- The enabled flags guard both directions: when the shell disabled a
+        -- gesture there is no registration to remove on stacking entry and
+        -- none to restore on return, and an unguarded unset pops a runtime
+        -- error notification.
+        if vars.gestureScrollEnabled then
+            hl.gesture({ fingers = vars.gestureFingers, direction = "horizontal", action = scrolling and "scroll_move" or "unset" })
+        end
+        if vars.gestureWorkspaceEnabled then
+            hl.gesture({ fingers = vars.workspaceSwipeFingers, direction = "vertical", action = scrolling and "workspace" or "unset" })
+        end
         swipe_enabled = scrolling
     end
     -- Border width changes atomically with the layout. There is no interpolated

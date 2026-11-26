@@ -334,11 +334,25 @@ Hyprland сразу после изменения, а также при кажд
 | **Отключать при наборе** | `touchpadDisableWhileTyping` | `input:touchpad:disable_while_typing` |
 | **Скорость прокрутки тачпада** | `touchpadScrollFactor` | `input:touchpad:scroll_factor`, от 0 до 5 |
 
+Секция **Жесты тачпада**:
+
+| Параметр | Поле | Назначение |
+| --- | --- | --- |
+| **Свайп для прокрутки** | `touchpadGestureScroll` | Горизонтальный жест `scroll_move` |
+| **Пальцы для прокрутки** | `touchpadGestureScrollFingers` | Количество пальцев, от 3 до 9 |
+| **Свайп для переключения рабочих столов** | `touchpadGestureWorkspace` | Вертикальный жест `workspace` |
+| **Пальцы для рабочих столов** | `touchpadGestureWorkspaceFingers` | Количество пальцев, от 3 до 9 |
+| **Свайп для обзора** | `touchpadGestureOverview` | Вверх — открыть обзор, вниз — принять |
+| **Пальцы для обзора** | `touchpadGestureOverviewFingers` | Количество пальцев, от 3 до 9 |
+
 Булевы поля `naturalScroll`, `leftHanded`, `touchpadNaturalScroll`,
-`touchpadTapToClick` и `touchpadDisableWhileTyping` принимают `"On"`, `"Off"`
-или `"Inherit"` (по умолчанию). Числовые поля используют `-2` (`sensitivity`),
-`-1` (`scrollFactor`, `followMouse`, `touchpadScrollFactor`,
-`cursorHideTimeout`) и `0` (`cursorSize`) как признак «наследовать».
+`touchpadTapToClick`, `touchpadDisableWhileTyping`, `touchpadGestureScroll`,
+`touchpadGestureWorkspace` и `touchpadGestureOverview` принимают `"On"`,
+`"Off"` или `"Inherit"` (по умолчанию). Числовые поля используют `-2`
+(`sensitivity`), `-1` (`scrollFactor`, `followMouse`, `touchpadScrollFactor`,
+`cursorHideTimeout`) и `0` (`cursorSize`, количества пальцев для жестов) как
+признак «наследовать». Жесты прокрутки и рабочих столов доступны в режиме
+прокрутки; обзор работает в обоих режимах макетов.
 
 Тема и размер курсора читаются из `shell.json` при запуске `hyprland/env.lua`,
 поэтому действуют и для новых приложений; в сеансах с `hypr-vars.lua`

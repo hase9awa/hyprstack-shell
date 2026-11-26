@@ -22,6 +22,11 @@ return {
     gestureFingers             = 3,
     workspaceSwipeFingers      = 3,
     gestureFingersMore         = 4,
+    -- The shell flips these when the user disables a gesture, so
+    -- layouts.lua and gestures.lua skip its unset/add instead of erroring
+    -- on a registration that no longer exists.
+    gestureScrollEnabled       = true,
+    gestureWorkspaceEnabled    = true,
 
     -- Blur
     blurEnabled                = false,

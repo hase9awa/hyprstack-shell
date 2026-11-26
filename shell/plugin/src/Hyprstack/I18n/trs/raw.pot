@@ -6394,3 +6394,55 @@ msgstr ""
 #: modules/nexus/pages/pointer/PointerPage.qml
 msgid "Touchpad scroll speed"
 msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Touchpad gestures"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe to scroll"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scroll horizontally with a touchpad swipe"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scrolling fingers"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the scrolling gesture"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe to switch workspaces"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Switch workspaces with a vertical touchpad swipe"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Workspace swipe fingers"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the workspace gesture"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe for overview"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe up to open the overview and down to accept"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Overview fingers"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the overview gesture"
+msgstr ""

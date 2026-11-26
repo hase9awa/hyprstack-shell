@@ -27,6 +27,12 @@ PageBase {
     readonly property bool touchpadNaturalScroll: Pointer.shownBool(cfg.touchpadNaturalScroll, live["input:touchpad:natural_scroll"], false)
     readonly property bool touchpadTapToClick: Pointer.shownBool(cfg.touchpadTapToClick, live["input:touchpad:tap-to-click"], true)
     readonly property bool touchpadWhileTyping: Pointer.shownBool(cfg.touchpadDisableWhileTyping, live["input:touchpad:disable_while_typing"], true)
+    readonly property bool touchpadGestureScroll: Pointer.shownBool(cfg.touchpadGestureScroll, null, Pointer.varsGestureScrollEnabled)
+    readonly property bool touchpadGestureWorkspace: Pointer.shownBool(cfg.touchpadGestureWorkspace, null, Pointer.varsGestureWorkspaceEnabled)
+    readonly property bool touchpadGestureOverview: Pointer.shownBool(cfg.touchpadGestureOverview, null, true)
+    readonly property int touchpadGestureScrollFingers: Pointer.shownInt(cfg.touchpadGestureScrollFingers, 0, null, Pointer.varsGestureScrollFingers)
+    readonly property int touchpadGestureWorkspaceFingers: Pointer.shownInt(cfg.touchpadGestureWorkspaceFingers, 0, null, Pointer.varsGestureWorkspaceFingers)
+    readonly property int touchpadGestureOverviewFingers: Pointer.shownInt(cfg.touchpadGestureOverviewFingers, 0, null, Pointer.varsGestureOverviewFingers)
     readonly property string accelProfile: {
         if (cfg.accelProfile !== "")
             return cfg.accelProfile;
@@ -243,12 +249,78 @@ PageBase {
 
         SliderRow {
             objectName: "pointerTouchpadScrollSpeed"
-            last: true
             icon: "swap_vert"
             label: Tr.tr("Touchpad scroll speed")
             value: Math.min(5, root.touchpadScrollFactor) / 5
             valueLabel: `${root.touchpadScrollFactor.toFixed(2)}×`
             onMoved: value => root.cfg.touchpadScrollFactor = Math.round(value * 500) / 100
+        }
+
+        // Touchpad gestures
+        SectionHeader {
+            text: Tr.tr("Touchpad gestures")
+        }
+
+        ToggleRow {
+            objectName: "pointerTouchpadGestureScroll"
+            first: true
+            text: Tr.tr("Swipe to scroll")
+            subtext: Tr.tr("Scroll horizontally with a touchpad swipe")
+            checked: root.touchpadGestureScroll
+            onToggled: root.cfg.touchpadGestureScroll = checked ? PointerTriState.On : PointerTriState.Off
+        }
+
+        StepperRow {
+            objectName: "pointerTouchpadGestureScrollFingers"
+            label: Tr.tr("Scrolling fingers")
+            subtext: Tr.tr("Finger count for the scrolling gesture")
+            value: root.touchpadGestureScrollFingers
+            from: 3
+            to: 9
+            stepSize: 1
+            enabled: root.touchpadGestureScroll
+            onMoved: v => root.cfg.touchpadGestureScrollFingers = Math.round(v)
+        }
+
+        ToggleRow {
+            objectName: "pointerTouchpadGestureWorkspace"
+            text: Tr.tr("Swipe to switch workspaces")
+            subtext: Tr.tr("Switch workspaces with a vertical touchpad swipe")
+            checked: root.touchpadGestureWorkspace
+            onToggled: root.cfg.touchpadGestureWorkspace = checked ? PointerTriState.On : PointerTriState.Off
+        }
+
+        StepperRow {
+            objectName: "pointerTouchpadGestureWorkspaceFingers"
+            label: Tr.tr("Workspace swipe fingers")
+            subtext: Tr.tr("Finger count for the workspace gesture")
+            value: root.touchpadGestureWorkspaceFingers
+            from: 3
+            to: 9
+            stepSize: 1
+            enabled: root.touchpadGestureWorkspace
+            onMoved: v => root.cfg.touchpadGestureWorkspaceFingers = Math.round(v)
+        }
+
+        ToggleRow {
+            objectName: "pointerTouchpadGestureOverview"
+            text: Tr.tr("Swipe for overview")
+            subtext: Tr.tr("Swipe up to open the overview and down to accept")
+            checked: root.touchpadGestureOverview
+            onToggled: root.cfg.touchpadGestureOverview = checked ? PointerTriState.On : PointerTriState.Off
+        }
+
+        StepperRow {
+            objectName: "pointerTouchpadGestureOverviewFingers"
+            label: Tr.tr("Overview fingers")
+            subtext: Tr.tr("Finger count for the overview gesture")
+            value: root.touchpadGestureOverviewFingers
+            from: 3
+            to: 9
+            stepSize: 1
+            enabled: root.touchpadGestureOverview
+            onMoved: v => root.cfg.touchpadGestureOverviewFingers = Math.round(v)
+            last: true
         }
     }
 }

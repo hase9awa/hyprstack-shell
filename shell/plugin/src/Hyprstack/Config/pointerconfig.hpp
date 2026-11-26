@@ -30,6 +30,12 @@ class PointerConfig : public settings::ObjectNode {
     CONFIG_ENUM_PROPERTY(PointerTriState, touchpadTapToClick, PointerTriState::Inherit)
     CONFIG_ENUM_PROPERTY(PointerTriState, touchpadDisableWhileTyping, PointerTriState::Inherit)
     CONFIG_PROPERTY(double, touchpadScrollFactor, -1.0)
+    CONFIG_ENUM_PROPERTY(PointerTriState, touchpadGestureScroll, PointerTriState::Inherit)
+    CONFIG_PROPERTY(int, touchpadGestureScrollFingers, 0)      // Inherit, otherwise 3 to 9
+    CONFIG_ENUM_PROPERTY(PointerTriState, touchpadGestureWorkspace, PointerTriState::Inherit)
+    CONFIG_PROPERTY(int, touchpadGestureWorkspaceFingers, 0)   // Inherit, otherwise 3 to 9
+    CONFIG_ENUM_PROPERTY(PointerTriState, touchpadGestureOverview, PointerTriState::Inherit)
+    CONFIG_PROPERTY(int, touchpadGestureOverviewFingers, 0)    // Inherit, otherwise 3 to 9
 
     // Cursor
     CONFIG_PROPERTY(QString, cursorTheme, {})      // Inherit, otherwise a theme name
