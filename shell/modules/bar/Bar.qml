@@ -296,7 +296,8 @@ Item {
         screen: root.screen
         popouts: root.popouts
         maxWidth: Math.max(0, root.width - root.leftWidth - root.sideWidth - 2 * root.tasksGap)
-        visible: showTasks && maxWidth > 0
+        // No empty pill on a screen without windows.
+        visible: showTasks && maxWidth > 0 && groups.length > 0
     }
 
     component EntryWrapper: Item {
