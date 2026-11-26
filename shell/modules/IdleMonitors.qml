@@ -62,6 +62,8 @@ Scope {
             enabled: {
                 if (!root.enabled || !(modelData.enabled ?? true))
                     return false;
+                if ((modelData.respectInhibitors ?? true) && IdleInhibitor.enabled)
+                    return false;
                 if (modelData.inhibitWhenAudio && root.hasPlayer)
                     return false;
                 if (modelData.inhibitWhenCharging && root.isCharging)
