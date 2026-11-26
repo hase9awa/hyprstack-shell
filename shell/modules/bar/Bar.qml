@@ -36,6 +36,12 @@ Item {
         }
         return PanelLayout.centeredWidth(width, left, right, spacing);
     }
+    // Items left of the first spacer (the logo). Tasks only use the space between both sides.
+    readonly property real leftWidth: {
+        const firstSpacer = rowEntries.findIndex(c => c.entryId === "spacer");
+        return rowEntries.slice(0, Math.max(0, firstSpacer)).reduce((width, item) => width + item.width + spacing, hPadding);
+    }
+    readonly property real tasksGap: 12 * Tokens.scale
     readonly property real sideWidth: entryItems.filter(c => !["logo", "spacer", "workspaces", "activeWindow"].includes(c.entryId))
         .reduce((width, item) => width + item.width + spacing, hPadding)
 
@@ -282,10 +288,14 @@ Item {
     Tasks {
         id: tasks
         objectName: "taskbarTasks"
-        anchors.centerIn: parent
+        // Centred while it fits; on narrow screens it moves into the free space
+        // instead of reserving the wider side on both sides.
+        anchors.verticalCenter: parent.verticalCenter
+        x: Math.max(root.leftWidth + root.tasksGap,
+            Math.min((root.width - width) / 2, root.width - root.sideWidth - root.tasksGap - width))
         screen: root.screen
         popouts: root.popouts
-        maxWidth: Math.max(0, root.width - 2 * Math.max(root.sideWidth, root.hPadding + 40 * Tokens.scale) - 24 * Tokens.scale)
+        maxWidth: Math.max(0, root.width - root.leftWidth - root.sideWidth - 2 * root.tasksGap)
         visible: showTasks && maxWidth > 0
     }
 
