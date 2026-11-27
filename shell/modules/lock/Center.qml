@@ -7,14 +7,14 @@ import qs.services
 
 ColumnLayout {
     id: root
+    objectName: "lockLogin"
 
     required property var lock
-    readonly property real centerScale: Math.min(1, (lock.screen?.height ?? 1440) / 1440)
+    required property real centerScale
     readonly property int centerWidth: Tokens.sizes.lock.centerWidth * centerScale
 
     Layout.preferredWidth: centerWidth
     Layout.fillWidth: false
-    Layout.fillHeight: true
 
     spacing: Tokens.spacing.largeIncreased
 

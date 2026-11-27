@@ -1239,13 +1239,13 @@ var catalogue = [
     "path": [
       "Panels",
       "Taskbar",
-      "Active window"
+      "Workspace windows"
     ],
-    "label": "Active window",
+    "label": "Workspace windows",
     "context": "",
     "target": "",
     "match": "",
-    "keywords": "Title display, popout"
+    "keywords": "Open windows on the current workspace"
   },
   {
     "page": 4,
@@ -1352,10 +1352,10 @@ var catalogue = [
       "Panels",
       "Taskbar"
     ],
-    "label": "Active window",
+    "label": "Workspace windows",
     "context": "",
     "target": "taskbarElement_activeWindow",
-    "match": "Active window",
+    "match": "Workspace windows",
     "keywords": "Screen element visibility monitor hide"
   },
   {
@@ -2072,12 +2072,12 @@ var catalogue = [
     "path": [
       "Panels",
       "Taskbar",
-      "Active window"
+      "Workspace windows"
     ],
-    "label": "Compact",
-    "context": "taskbar active window layout",
+    "label": "Icon only",
+    "context": "",
     "target": "",
-    "match": "Compact",
+    "match": "Icon only",
     "keywords": ""
   },
   {
@@ -2089,7 +2089,7 @@ var catalogue = [
     "path": [
       "Panels",
       "Taskbar",
-      "Active window"
+      "Workspace windows"
     ],
     "label": "Inverted",
     "context": "taskbar active window: swap the title and class order",
@@ -2106,30 +2106,13 @@ var catalogue = [
     "path": [
       "Panels",
       "Taskbar",
-      "Active window"
+      "Workspace windows"
     ],
     "label": "Show on hover",
     "context": "",
     "target": "",
     "match": "Show on hover",
-    "keywords": "Only show the active window title while hovering"
-  },
-  {
-    "page": 4,
-    "subpages": [
-      2,
-      7
-    ],
-    "path": [
-      "Panels",
-      "Taskbar",
-      "Active window"
-    ],
-    "label": "Popout on hover",
-    "context": "",
-    "target": "",
-    "match": "Popout on hover",
-    "keywords": "Show a window details popout when hovering"
+    "keywords": "Open the workspace window list on hover"
   },
   {
     "page": 4,

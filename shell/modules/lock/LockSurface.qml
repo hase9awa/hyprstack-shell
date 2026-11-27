@@ -15,6 +15,12 @@ WlSessionLockSurface {
     required property Pam pam
 
     readonly property alias unlocking: unlockAnim.running
+    readonly property real availableWidth: Math.max(0, (screen?.width ?? 0) - lockContent.Tokens.padding.large * 2)
+    readonly property real availableHeight: Math.max(0, (screen?.height ?? 0) - lockContent.Tokens.padding.large * 2)
+    readonly property real padding: lockContent.Tokens.padding.extraLargeIncreased
+    readonly property real preferredHeight: Math.min(availableHeight, (screen?.height ?? 0) * lockContent.Tokens.sizes.lock.heightMult)
+    readonly property real dashboardWidth: Math.min(availableWidth, preferredHeight * lockContent.Tokens.sizes.lock.ratio)
+    readonly property real dashboardHeight: Math.min(availableHeight, Math.max(preferredHeight, content.implicitHeight + padding))
 
     contentItem.Config.screen: screen.name
     contentItem.Tokens.screen: screen.name
@@ -35,8 +41,9 @@ WlSessionLockSurface {
         ParallelAnimation {
             Anim {
                 target: lockContent
-                properties: "implicitWidth,implicitHeight"
-                to: lockContent.size
+                property: "dashboardProgress"
+                to: 0
+                bounded: true
             }
             Anim {
                 target: lockBg
@@ -143,13 +150,9 @@ WlSessionLockSurface {
                 }
                 Anim {
                     target: lockContent
-                    property: "implicitWidth"
-                    to: (root.screen?.height ?? 0) * lockContent.Tokens.sizes.lock.heightMult * lockContent.Tokens.sizes.lock.ratio
-                }
-                Anim {
-                    target: lockContent
-                    property: "implicitHeight"
-                    to: (root.screen?.height ?? 0) * lockContent.Tokens.sizes.lock.heightMult
+                    property: "dashboardProgress"
+                    to: 1
+                    bounded: true
                 }
             }
         }
@@ -194,13 +197,15 @@ WlSessionLockSurface {
 
     Item {
         id: lockContent
+        objectName: "lockDashboard"
 
-        readonly property int size: lockIcon.implicitHeight + Tokens.padding.large * 4
+        property real dashboardProgress: 0
+        readonly property real size: Math.min(root.availableWidth, root.availableHeight, lockIcon.implicitHeight + Tokens.padding.large * 4)
         readonly property int radius: size / 4 * Tokens.rounding.scale
 
         anchors.centerIn: parent
-        implicitWidth: size
-        implicitHeight: size
+        implicitWidth: size + (root.dashboardWidth - size) * dashboardProgress
+        implicitHeight: size + (root.dashboardHeight - size) * dashboardProgress
 
         visible: Config.lock.enabled
         rotation: 180
@@ -235,8 +240,9 @@ WlSessionLockSurface {
             id: content
 
             anchors.centerIn: parent
-            width: (root.screen?.height ?? 0) * Tokens.sizes.lock.heightMult * Tokens.sizes.lock.ratio - Tokens.padding.extraLargeIncreased
-            height: (root.screen?.height ?? 0) * Tokens.sizes.lock.heightMult - Tokens.padding.extraLargeIncreased
+            width: Math.max(0, root.dashboardWidth - root.padding)
+            height: Math.max(0, root.dashboardHeight - root.padding)
+            preferredHeight: Math.max(0, root.preferredHeight - root.padding)
 
             lock: root
             opacity: 0

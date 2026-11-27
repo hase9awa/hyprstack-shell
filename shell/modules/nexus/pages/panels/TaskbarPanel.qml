@@ -30,7 +30,7 @@ PageBase {
     readonly property var componentChoices: [
         {id: "logo", label: Tr.tr("Logo")},
         {id: "workspaces", label: Tr.tr("Workspaces")},
-        {id: "activeWindow", label: Tr.tr("Active window")},
+        {id: "activeWindow", label: Tr.tr("Workspace windows")},
         {id: "tray", label: Tr.tr("Tray")},
         {id: "clock", label: Tr.tr("Clock")},
         {id: "statusIcons", label: Tr.tr("Status icons")},
@@ -173,9 +173,8 @@ PageBase {
         }
 
         NavRow {
-            icon: "web_asset"
-            text: Tr.tr("Active window")
-            subtext: Tr.tr("Title display, popout")
+            icon: "view_list"
+            text: Tr.tr("Workspace windows")
             onClicked: root.nState.openSubPage(7)
         }
 

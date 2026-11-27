@@ -10,7 +10,6 @@ import Quickshell.Services.SystemTray
 import Hyprstack.Config
 import qs.components
 import qs.services
-import "../../utils/scripts/panel-layout.js" as PanelLayout
 
 Item {
     id: root
@@ -22,28 +21,27 @@ Item {
     readonly property int hPadding: Hypr.stacking ? 12 * Tokens.scale : Tokens.padding.large
     readonly property real spacing: Tokens.spacing.medium
     readonly property var rowEntries: layout.children.filter(c => c.entryId && c.visible)
-    readonly property var entryItems: centeredTitle.visible ? [...rowEntries, centeredTitle] : rowEntries
-    readonly property real titleWidth: {
-        let left = hPadding, right = hPadding;
-        const firstSpacer = rowEntries.findIndex(c => c.entryId === "spacer");
-        for (let i = 0; i < rowEntries.length; ++i) {
-            const item = rowEntries[i];
-            if (item.entryId === "spacer") continue;
-            if ((firstSpacer < 0 && ["logo", "workspaces"].includes(item.entryId)) || i < firstSpacer)
-                left += item.width + spacing;
-            else
-                right += item.width + spacing;
+    readonly property var entryItems: windowList.visible ? [...rowEntries, windowList] : rowEntries
+    readonly property point taskbarBounds: {
+        const gap = 12 * Tokens.scale;
+        const occupied = rowEntries.filter(item => item.entryId !== "spacer" && item.width > 0)
+            .sort((a, b) => a.x - b.x);
+        let start = hPadding;
+        let best = Qt.point(start, start);
+        for (const item of occupied) {
+            const end = item.x - gap;
+            if (end - start > best.y - best.x)
+                best = Qt.point(start, end);
+            start = Math.max(start, item.x + item.width + gap);
         }
-        return PanelLayout.centeredWidth(width, left, right, spacing);
+        const end = width - hPadding;
+        return end - start > best.y - best.x ? Qt.point(start, end) : best;
     }
-    // Items left of the first spacer (the logo). Tasks only use the space between both sides.
-    readonly property real leftWidth: {
-        const firstSpacer = rowEntries.findIndex(c => c.entryId === "spacer");
-        return rowEntries.slice(0, Math.max(0, firstSpacer)).reduce((width, item) => width + item.width + spacing, hPadding);
+    readonly property real taskbarWidth: taskbarBounds.y - taskbarBounds.x
+
+    function centeredX(itemWidth: real): real {
+        return Math.max(taskbarBounds.x, Math.min((width - itemWidth) / 2, taskbarBounds.y - itemWidth));
     }
-    readonly property real tasksGap: 12 * Tokens.scale
-    readonly property real sideWidth: entryItems.filter(c => !["logo", "spacer", "workspaces", "activeWindow"].includes(c.entryId))
-        .reduce((width, item) => width + item.width + spacing, hPadding)
 
     function entryAt(x: real): Item {
         for (const item of entryItems) {
@@ -134,10 +132,12 @@ Item {
                 missPopout();
                 tray.expanded = true;
             }
-        } else if (id === "activeWindow" && Config.bar.popouts.activeWindow && Config.bar.activeWindow.showOnHover) {
-            popouts.currentName = id.toLowerCase();
-            popouts.currentCenter = (ch.item as Item).mapToItem(root, (ch.item as Item).width / 2, 0).x ?? 0;
-            popouts.hasCurrent = true;
+        } else if (id === "activeWindow") {
+            const trigger = windowList.item as WorkspaceWindows;
+            if (trigger.opensOnHover)
+                trigger.open();
+            else if (popouts.currentName !== "workspacewindows")
+                missPopout();
         } else {
             missPopout();
         }
@@ -269,19 +269,17 @@ Item {
     }
 
     EntryWrapper {
-        id: centeredTitle
-        objectName: "taskbarCenteredTitle"
+        id: windowList
+        objectName: "taskbarWorkspaceWindows"
         modelData: ({id: "activeWindow"})
         index: -1
-        x: (root.width - width) / 2
+        x: root.centeredX(width)
         y: (root.height - height) / 2
-        visible: !Hypr.stacking && root.titleWidth > 0
+        visible: !Hypr.stacking && root.taskbarWidth >= 24 * Tokens.scale
             && root.Config.bar.entries.values.some(e => e.id === "activeWindow" && e.enabled)
 
-        ActiveWindow {
-            objectName: "taskbarActiveWindow"
+        WorkspaceWindows {
             bar: root
-            monitor: Brightness.getMonitorForScreen(root.screen)
         }
     }
 
@@ -291,13 +289,11 @@ Item {
         // Centred while it fits; on narrow screens it moves into the free space
         // instead of reserving the wider side on both sides.
         anchors.verticalCenter: parent.verticalCenter
-        x: Math.max(root.leftWidth + root.tasksGap,
-            Math.min((root.width - width) / 2, root.width - root.sideWidth - root.tasksGap - width))
+        x: root.centeredX(width)
         screen: root.screen
         popouts: root.popouts
-        maxWidth: Math.max(0, root.width - root.leftWidth - root.sideWidth - 2 * root.tasksGap)
-        // No empty pill on a screen without windows.
-        visible: showTasks && maxWidth > 0 && groups.length > 0
+        maxWidth: root.taskbarWidth
+        visible: showTasks && maxWidth >= 40 * Tokens.scale + Tokens.padding.extraSmall * 2 && groups.length > 0
     }
 
     component EntryWrapper: Item {

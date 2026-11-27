@@ -8,7 +8,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: Tr.tr("Active window")
+    title: Tr.tr("Workspace windows")
     isSubPage: true
 
     ColumnLayout {
@@ -19,7 +19,7 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: Tr.trCtx("Compact", "taskbar active window layout")
+            text: Tr.tr("Icon only")
             checked: Config.bar.activeWindow.compact
             onToggled: GlobalConfig.bar.activeWindow.compact = checked
         }
@@ -31,18 +31,15 @@ PageBase {
         }
 
         ToggleRow {
-            text: Tr.tr("Show on hover")
-            subtext: Tr.tr("Only show the active window title while hovering")
-            checked: Config.bar.activeWindow.showOnHover
-            onToggled: GlobalConfig.bar.activeWindow.showOnHover = checked
-        }
-
-        ToggleRow {
             last: true
-            text: Tr.tr("Popout on hover")
-            subtext: Tr.tr("Show a window details popout when hovering")
-            checked: Config.bar.popouts.activeWindow
-            onToggled: GlobalConfig.bar.popouts.activeWindow = checked
+            text: Tr.tr("Show on hover")
+            subtext: Tr.tr("Open the workspace window list on hover")
+            checked: Config.bar.activeWindow.showOnHover && Config.bar.popouts.activeWindow
+            onToggled: {
+                GlobalConfig.bar.activeWindow.showOnHover = checked;
+                if (checked)
+                    GlobalConfig.bar.popouts.activeWindow = true;
+            }
         }
     }
 }

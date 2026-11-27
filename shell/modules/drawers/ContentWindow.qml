@@ -133,6 +133,16 @@ StyledWindow {
         win: root
     }
 
+    Connections {
+        target: panels.popoutsWrapper
+
+        // Wait for the popout's geometry and the input region to agree before
+        // applying the mask to the layer surface.
+        function onReservedChanged(): void {
+            Qt.callLater(regions.changed);
+        }
+    }
+
     HyprlandFocusGrab {
         id: focusGrab
 
