@@ -17,9 +17,15 @@ hl.config({
 })
 
 -- The scrolling layout owns these two bindings; layouts.lua removes them in
--- stacking mode and restores them when returning to scrolling.
-hl.gesture({ fingers = vars.gestureFingers, direction = "horizontal", action = "scroll_move" })
-hl.gesture({ fingers = vars.workspaceSwipeFingers, direction = "vertical", action = "workspace" })
+-- stacking mode and restores them when returning to scrolling. The enabled
+-- flags let the shell disable a gesture without leaving a registration that
+-- layouts.lua would later unset by mistake.
+if vars.gestureScrollEnabled then
+    hl.gesture({ fingers = vars.gestureFingers, direction = "horizontal", action = "scroll_move" })
+end
+if vars.gestureWorkspaceEnabled then
+    hl.gesture({ fingers = vars.workspaceSwipeFingers, direction = "vertical", action = "workspace" })
+end
 
 local function overview(open)
     -- Function actions work with the pinned Hyprland package on both Arch and

@@ -1,9 +1,32 @@
 local vars = require("variables")
 
+-- The shell owns the cursor once a theme or a size is set in its settings, so
+-- its values win over hypr-vars.lua the same way they do in the settings app.
+local function shell_cursor()
+    local path = (os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/hyprstack/shell.json"
+    local file = io.open(path, "r")
+    if not file then return nil end
+    local ok, data = pcall(require("utils.json").decode, file:read("*a"))
+    file:close()
+    if not ok or type(data) ~= "table" or type(data.pointer) ~= "table" then return nil end
+    return data.pointer
+end
+
+local cursor_theme, cursor_size = vars.cursorTheme, vars.cursorSize
+local pointer = shell_cursor()
+if pointer then
+    if type(pointer.cursorTheme) == "string" and pointer.cursorTheme ~= "" then
+        cursor_theme = pointer.cursorTheme
+    end
+    if type(pointer.cursorSize) == "number" and pointer.cursorSize > 0 then
+        cursor_size = pointer.cursorSize
+    end
+end
+
 -- Themes
 hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
-hl.env("XCURSOR_THEME", vars.cursorTheme)
-hl.env("XCURSOR_SIZE", vars.cursorSize)
+hl.env("XCURSOR_THEME", cursor_theme)
+hl.env("XCURSOR_SIZE", cursor_size)
 
 -- Toolkit backends
 hl.env("GDK_BACKEND", "wayland,x11")

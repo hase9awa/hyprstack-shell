@@ -27,6 +27,9 @@ ENUM(TemperatureUnit, Auto, Celsius, Fahrenheit, Kelvin)
 ENUM(DataUnit, Binary, Decimal)
 ENUM(ClockFormat, Auto, TwelveHour, TwentyFourHour)
 ENUM(OsdSide, Left, Right)
+// Pointer settings the shell has not been told to manage keep whatever the
+// compositor already uses, so hypr-vars.lua stays in charge until then.
+ENUM(PointerTriState, Inherit, On, Off)
 
 #undef ENUM
 

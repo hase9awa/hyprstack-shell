@@ -17,6 +17,7 @@ import qs.modules.nexus.pages.services
 import qs.modules.nexus.pages.wallandstyle
 import qs.modules.nexus.pages.panels.taskbar
 import qs.modules.nexus.pages.power
+import qs.modules.nexus.pages.pointer
 
 QtObject {
     id: root
@@ -211,6 +212,15 @@ QtObject {
             StackPage {
                 Component {
                     GameModePage {}
+                }
+            }
+        },
+
+        Component {
+            // Mouse & pointer
+            StackPage {
+                Component {
+                    PointerPage {}
                 }
             }
         },

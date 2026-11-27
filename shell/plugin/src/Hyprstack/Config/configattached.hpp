@@ -25,6 +25,7 @@ class Config : public QQuickAttachedPropertyPropagator, public QQmlParserStatus 
     Q_PROPERTY(const hyprstack::config::NexusConfig* nexus READ nexus NOTIFY sourceChanged)
     Q_PROPERTY(const hyprstack::config::NotifsConfig* notifs READ notifs NOTIFY sourceChanged)
     Q_PROPERTY(const hyprstack::config::OsdConfig* osd READ osd NOTIFY sourceChanged)
+    Q_PROPERTY(const hyprstack::config::PointerConfig* pointer READ pointer NOTIFY sourceChanged)
     Q_PROPERTY(const hyprstack::config::ServiceConfig* services READ services NOTIFY sourceChanged)
     Q_PROPERTY(const hyprstack::config::SessionConfig* session READ session NOTIFY sourceChanged)
     Q_PROPERTY(const hyprstack::config::SidebarConfig* sidebar READ sidebar NOTIFY sourceChanged)
@@ -48,6 +49,7 @@ public:
     [[nodiscard]] const NexusConfig* nexus() const;
     [[nodiscard]] const NotifsConfig* notifs() const;
     [[nodiscard]] const OsdConfig* osd() const;
+    [[nodiscard]] const PointerConfig* pointer() const;
     [[nodiscard]] const ServiceConfig* services() const;
     [[nodiscard]] const SessionConfig* session() const;
     [[nodiscard]] const SidebarConfig* sidebar() const;

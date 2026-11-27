@@ -19,6 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #. TRANSLATORS: %1 = name of the selected file
+
 #: components/filedialog/CurrentItem.qml
 #, qt-format
 msgctxt "selected file"
@@ -26,6 +27,7 @@ msgid "\"%1\" selected"
 msgstr ""
 
 #. TRANSLATORS: %1 = filter label, %2 = file patterns
+
 #: components/filedialog/DialogButtons.qml
 #, qt-format
 msgctxt "file filter label and patterns"
@@ -33,6 +35,7 @@ msgid "%1 (%2)"
 msgstr ""
 
 #. TRANSLATORS: %1 = language, %2 = layout code
+
 #: modules/bar/popouts/kblayout/KbLayoutModel.qml
 #, qt-format
 msgctxt "keyboard layout language and code"
@@ -40,6 +43,7 @@ msgid "%1 (%2)"
 msgstr ""
 
 #. TRANSLATORS: %1 = layout code, %2 = layout name
+
 #: modules/bar/popouts/kblayout/KbLayoutModel.qml
 #, qt-format
 msgctxt "keyboard layout code and name"
@@ -59,6 +63,7 @@ msgid "%1 / %2"
 msgstr ""
 
 #. TRANSLATORS: %1 = used amount, %2 = total amount with unit
+
 #: plugin/src/Hyprstack/I18n/Units.qml
 #, qt-format
 msgctxt "used / total amount"
@@ -86,6 +91,7 @@ msgid "%1 GB/s"
 msgstr ""
 
 #. TRANSLATORS: %1 = a number
+
 #: services/Nmcli.qml
 #, qt-format
 msgid "%1 Gbps"
@@ -138,12 +144,14 @@ msgid "%1 MB/s"
 msgstr ""
 
 #. TRANSLATORS: %1 = channel frequency; MHz is a unit, leave it untranslated
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 #, qt-format
 msgid "%1 MHz"
 msgstr ""
 
 #. TRANSLATORS: %1 = a number
+
 #: services/Nmcli.qml
 #, qt-format
 msgid "%1 Mbps"
@@ -195,6 +203,7 @@ msgid "%1 ms"
 msgstr ""
 
 #. TRANSLATORS: %1 = window title, %2 = monitor name, %3/%4 = x/y position in pixels
+
 #: modules/windowinfo/Preview.qml
 #, qt-format
 msgid "%1 on monitor %2 at %3, %4"
@@ -206,6 +215,7 @@ msgid "%1 wants to connect"
 msgstr ""
 
 #. TRANSLATORS: %1 = a number
+
 #: utils/Strings.qml
 #, qt-format
 msgid "%1%"
@@ -235,6 +245,7 @@ msgid "%1h"
 msgstr ""
 
 #. TRANSLATORS: %1 = hours, %2 = minutes
+
 #: modules/dashboard/performance/BatteryTank.qml
 #, qt-format
 msgctxt "battery time remaining"
@@ -248,6 +259,7 @@ msgid "%1m"
 msgstr ""
 
 #. TRANSLATORS: %1 = minutes
+
 #: modules/dashboard/performance/BatteryTank.qml
 #, qt-format
 msgctxt "battery time remaining"
@@ -294,6 +306,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATORS: %n = total paired devices, %1 = how many of them are connected
+
 #: modules/bar/popouts/Bluetooth.qml
 #, qt-format, qt-plural-format
 msgid "%n device available (%1 connected)"
@@ -362,6 +375,7 @@ msgid ", "
 msgstr ""
 
 #. TRANSLATORS: joins uptime components, e.g. "2 days, 3 hours"
+
 #: utils/SysInfo.qml
 msgctxt "uptime component separator"
 msgid ", "
@@ -441,6 +455,7 @@ msgid "Active indicator"
 msgstr ""
 
 #. TRANSLATORS: %1 = a clock time, e.g. 14:30
+
 #: modules/utilities/cards/IdleInhibit.qml
 #, qt-format
 msgid "Active since %1"
@@ -452,6 +467,7 @@ msgid "Active trail"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Active window"
 msgstr ""
@@ -461,12 +477,14 @@ msgid "Actively probe for a network that doesn't broadcast its name"
 msgstr ""
 
 #: modules/nexus/pages/network/AddVpnPage.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
 msgctxt "button"
 msgid "Add"
 msgstr ""
 
 #. TRANSLATORS: %1 = what the user typed, which becomes a character of their own
+
 #: modules/launcher/EmojiList.qml
 #, qt-format
 msgid "Add \"%1\""
@@ -485,6 +503,7 @@ msgid "Add entry"
 msgstr ""
 
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
 msgid "Add network"
 msgstr ""
@@ -507,7 +526,9 @@ msgid "Address"
 msgstr ""
 
 #. TRANSLATORS: CIDR is a networking term, leave it untranslated
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Address (CIDR)"
 msgstr ""
@@ -617,7 +638,9 @@ msgid "App volumes, sound devices"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+
 #: modules/nexus/pages/wallandstyle/ApplicationColours.qml
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Application colours"
 msgstr ""
@@ -631,6 +654,7 @@ msgid "Applications in stacking mode"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Apply"
 msgstr ""
@@ -650,6 +674,7 @@ msgid "Applying colours…"
 msgstr ""
 
 #: modules/nexus/PageRegistry.qml modules/nexus/pages/AppsPage.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
 msgid "Apps"
 msgstr ""
@@ -695,6 +720,7 @@ msgid "Authentication failed. Please try again."
 msgstr ""
 
 #: modules/nexus/pages/NetworkPage.qml modules/polkit/AuthDialog.qml
+
 #: services/VPN.qml
 msgid "Authentication required"
 msgstr ""
@@ -728,7 +754,9 @@ msgid "Auto"
 msgstr ""
 
 #. TRANSLATORS: DHCP and DNS are protocol names, leave them untranslated
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Automatic (DHCP)"
 msgstr ""
@@ -738,6 +766,7 @@ msgid "Automatic by IP"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Automatic, DNS only"
 msgstr ""
@@ -752,6 +781,7 @@ msgid "BATT: %1%"
 msgstr ""
 
 #. TRANSLATORS: keep the label padded to 4 chars, (+) marks charging
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "BATT: (+) %1%"
@@ -763,6 +793,7 @@ msgid "Back"
 msgstr ""
 
 #. TRANSLATORS: %1 = lyrics backend name, e.g. LRCLIB
+
 #: modules/dashboard/media/LyricsInfo.qml
 #, qt-format
 msgid "Backend: %1"
@@ -794,14 +825,18 @@ msgid "Balanced"
 msgstr ""
 
 #. TRANSLATORS: %1/%2 = opacity values from 0 to 1 for the base surface and layered surfaces
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 #, qt-format
 msgid "Base %1, layers %2"
 msgstr ""
 
 #: modules/dashboard/performance/BatteryTank.qml
+
 #: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
 msgid "Battery"
 msgstr ""
@@ -823,9 +858,13 @@ msgid "Battery warning"
 msgstr ""
 
 #: modules/nexus/pages/network/NetworkDetailPage.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Behaviour"
 msgstr ""
@@ -844,7 +883,9 @@ msgid "Blocked"
 msgstr ""
 
 #: modules/bar/popouts/Bluetooth.qml modules/nexus/pages/BluetoothPage.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "Bluetooth"
 msgstr ""
@@ -878,11 +919,13 @@ msgid "Browse installed apps, set favourites and hidden"
 msgstr ""
 
 #. TRANSLATORS: id here means the provider identifier, e.g. wireguard
+
 #: modules/nexus/pages/network/AddVpnPage.qml
 msgid "Built-in id or a custom name"
 msgstr ""
 
 #. TRANSLATORS: the four names in brackets are provider identifiers, leave them untranslated
+
 #: modules/nexus/pages/network/AddVpnPage.qml
 msgid ""
 "Built-in names (wireguard, warp, tailscale, netbird) auto-fill their "
@@ -895,11 +938,13 @@ msgid "CLI"
 msgstr ""
 
 #: modules/dashboard/Performance.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "CPU"
 msgstr ""
 
 #. TRANSLATORS: CPU and GPU are hardware abbreviations, leave them untranslated
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "CPU, memory and GPU update interval (seconds)"
 msgstr ""
@@ -926,10 +971,15 @@ msgid "Cancel"
 msgstr ""
 
 #: components/filedialog/DialogButtons.qml
+
 #: modules/bar/popouts/WirelessPassword.qml
+
 #: modules/nexus/common/DialogRowButton.qml
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/network/AddVpnPage.qml modules/polkit/AuthDialog.qml
+
 #: modules/utilities/RecordingDeleteModal.qml
 msgctxt "button"
 msgid "Cancel"
@@ -944,6 +994,7 @@ msgid "Caps lock and Num lock are ON."
 msgstr ""
 
 #. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid ""
@@ -956,11 +1007,13 @@ msgid "Caps lock changes"
 msgstr ""
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Caps lock disabled"
 msgstr ""
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Caps lock enabled"
 msgstr ""
@@ -970,6 +1023,7 @@ msgid "Caps lock is ON."
 msgstr ""
 
 #. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Caps lock is ON. Keyboard layout: %1"
@@ -1096,6 +1150,7 @@ msgid "Clipboard is empty"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarClock.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Clock"
 msgstr ""
@@ -1135,12 +1190,15 @@ msgid "Colour schemes"
 msgstr ""
 
 #: modules/nexus/pages/wallandstyle/ColourSelect.qml
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Colours"
 msgstr ""
 
 #. TRANSLATORS: describes the DNS servers field above: several addresses separated by commas
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Comma-separated"
 msgstr ""
@@ -1187,7 +1245,9 @@ msgid "Configure the shell"
 msgstr ""
 
 #: modules/bar/popouts/WirelessPassword.qml
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgid "Connect"
 msgstr ""
@@ -1210,12 +1270,14 @@ msgid "Connect or disconnect the VPN"
 msgstr ""
 
 #: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgctxt "bluetooth device state"
 msgid "Connected"
 msgstr ""
 
 #: modules/nexus/common/EthernetSection.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgctxt "ethernet link state"
 msgid "Connected"
@@ -1241,7 +1303,9 @@ msgid "Connected to %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = battery level, already formatted as a percentage
+
 #: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+
 #: modules/nexus/pages/BluetoothPage.qml
 #, qt-format
 msgctxt "bluetooth device state with battery"
@@ -1249,6 +1313,7 @@ msgid "Connected • %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = security type
+
 #: modules/nexus/pages/network/SavedNetworksPage.qml
 #, qt-format
 msgctxt "network connected with security"
@@ -1260,6 +1325,7 @@ msgid "Connecting..."
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Connection"
 msgstr ""
@@ -1304,6 +1370,7 @@ msgid "Could not connect to %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = a config key name, %2 = a C++ type name; both are untranslated identifiers
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Could not convert %1 to %2"
@@ -1350,6 +1417,7 @@ msgid "Custom commands (optional)"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "DNS servers"
 msgstr ""
@@ -1368,6 +1436,7 @@ msgid "Dark theme"
 msgstr ""
 
 #: modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Dashboard"
 msgstr ""
@@ -1381,6 +1450,7 @@ msgid "Data sizes"
 msgstr ""
 
 #. TRANSLATORS: %1 = data transferred, already formatted with a unit
+
 #: modules/nexus/common/EthernetSection.qml
 #, qt-format
 msgid "Data usage: %1"
@@ -1503,6 +1573,7 @@ msgid "Disabled Hyprland animations, blur, gaps and shadows"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Disconnect"
 msgstr ""
@@ -1526,6 +1597,7 @@ msgid "Disconnecting..."
 msgstr ""
 
 #. TRANSLATORS: adjective: other devices can find this computer
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgctxt "bluetooth setting"
 msgid "Discoverable"
@@ -1590,8 +1662,11 @@ msgid "Download"
 msgstr ""
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Drag threshold"
 msgstr ""
@@ -1643,9 +1718,13 @@ msgid "Enabled"
 msgstr ""
 
 #: modules/bar/popouts/Bluetooth.qml modules/bar/popouts/Network.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgctxt "toggle label"
 msgid "Enabled"
@@ -1660,11 +1739,13 @@ msgid "Enter a name and select a city from the results"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter a valid address in CIDR notation"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter a valid gateway address"
 msgstr ""
@@ -1686,6 +1767,7 @@ msgid "Enter the details below to manually connect to a network."
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter valid DNS server addresses"
 msgstr ""
@@ -1699,35 +1781,41 @@ msgid "Enterprise"
 msgstr ""
 
 #: modules/bar/popouts/Network.qml modules/nexus/common/EthernetSection.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgid "Ethernet"
 msgstr ""
 
 #. TRANSLATORS: %1/%2 = the allowed types, %3 = the type that was found; all nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected %1 or %2, got %3"
 msgstr ""
 
 #. TRANSLATORS: %1-%3 = the allowed types, %4 = the type that was found; all nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected %1, %2 or %3, got %4"
 msgstr ""
 
 #. TRANSLATORS: %1 = the expected type, %2 = the type that was found; both nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected %1, got %2"
 msgstr ""
 
 #. TRANSLATORS: %1 = the non-integer number that was found
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Expected an integer, got the real %1"
 msgstr ""
 
 #. TRANSLATORS: %1-%4 = the allowed types, %5 = the type that was found; all nouns such as "a string"
+
 #: plugin/src/Hyprstack/Settings/common.cpp
 #, qt-format
 msgid "Expected one of: %1, %2, %3, %4; got %5"
@@ -1757,12 +1845,14 @@ msgid "FP ERROR: %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Face not recognised (%1/%2). Please try again or use password."
 msgstr ""
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Face not recognised (%1/%2). Please try again."
@@ -1783,6 +1873,7 @@ msgid "Failed to open: %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = a monitor name
+
 #: plugin/src/Hyprstack/Config/rootnodes.cpp
 #, qt-format
 msgid "Failed to parse config"
@@ -1802,6 +1893,7 @@ msgid "Failed to parse token config"
 msgstr ""
 
 #. TRANSLATORS: %1 = a monitor name
+
 #: plugin/src/Hyprstack/Config/rootnodes.cpp
 #, qt-format
 msgid "Failed to parse token config for %1"
@@ -1813,6 +1905,7 @@ msgid "Failed to parse: %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = a monitor name
+
 #: plugin/src/Hyprstack/Config/rootnodes.cpp
 #, qt-format
 msgid "Failed to save config"
@@ -1842,6 +1935,7 @@ msgid "Feels like"
 msgstr ""
 
 #. TRANSLATORS: %1 = apparent temperature, unit already included
+
 #: modules/lock/weather/BriefInfo.qml
 #, qt-format
 msgid "Feels like %1"
@@ -1877,18 +1971,21 @@ msgid "Filters"
 msgstr ""
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Fingerprint not recognised (%1/%2). Please try again or use password."
 msgstr ""
 
 #. TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Fingerprint not recognised (%1/%2). Please try again."
 msgstr ""
 
 #. TRANSLATORS: BIOS or UEFI firmware version
+
 #: modules/nexus/pages/AboutPage.qml
 msgid "Firmware"
 msgstr ""
@@ -1971,7 +2068,9 @@ msgid "Fuzzy search"
 msgstr ""
 
 #: modules/dashboard/Performance.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "GPU"
 msgstr ""
@@ -2001,13 +2100,17 @@ msgid "Gaps in tiling mode"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Gateway"
 msgstr ""
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "General"
 msgstr ""
@@ -2090,6 +2193,7 @@ msgid "Hide workspaces not on the current monitor"
 msgstr ""
 
 #. TRANSLATORS: %1/%2 = today's max and min temperature, units already included
+
 #: modules/lock/weather/BriefInfo.qml
 #, qt-format
 msgid "High %1 • Low %2"
@@ -2125,6 +2229,7 @@ msgid "How often available networks are rescanned (seconds)"
 msgstr ""
 
 #. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "How often the media position updates (ms)"
 msgstr ""
@@ -2142,21 +2247,25 @@ msgid "Hyprland settings restored"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IP address"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IP and prefix, e.g. 192.168.1.50/24"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IP assignment"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IPv4"
 msgstr ""
@@ -2170,6 +2279,7 @@ msgid "Image"
 msgstr ""
 
 #: modules/background/Wallpaper.qml modules/dashboard/Wrapper.qml
+
 #: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
 msgid "Image files"
 msgstr ""
@@ -2248,13 +2358,16 @@ msgid "Install wf-recorder to record your screen"
 msgstr ""
 
 #. TRANSLATORS: %1 = the value given, %2/%3 = the allowed minimum and maximum
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Integer %1 is out of range, expected between %2 and %3"
 msgstr ""
 
 #: modules/nexus/pages/network/AddVpnPage.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
 msgctxt "network interface"
 msgid "Interface"
@@ -2278,6 +2391,7 @@ msgid "Invalid colour: %1; use #RRGGBB"
 msgstr ""
 
 #. TRANSLATORS: %1 = a config key name, %2 = a comma-separated list of allowed values; both untranslated
+
 #: plugin/src/Hyprstack/Settings/codecs.cpp
 #, qt-format
 msgid "Invalid enum value %1. Expected one of %2"
@@ -2340,6 +2454,7 @@ msgid "Keyboard layout"
 msgstr ""
 
 #. TRANSLATORS: %1 = an XKB keyboard layout name, e.g. English (US)
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 #, qt-format
 msgid "Keyboard layout changed"
@@ -2354,6 +2469,7 @@ msgid "Keyboard layout limit"
 msgstr ""
 
 #. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Keyboard layout: %1"
@@ -2380,7 +2496,9 @@ msgid "Language & region"
 msgstr ""
 
 #: modules/nexus/pages/apps/AppInfo.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Launcher"
 msgstr ""
@@ -2443,6 +2561,7 @@ msgid "Loading weather…"
 msgstr ""
 
 #: modules/dashboard/media/LyricsInfo.qml modules/dashboard/WeatherTab.qml
+
 #: modules/lock/center/InputField.qml
 msgid "Loading..."
 msgstr ""
@@ -2503,6 +2622,7 @@ msgid "Lyrics backend"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "MAC address"
 msgstr ""
@@ -2524,6 +2644,7 @@ msgid "Manage the shell"
 msgstr ""
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgctxt "ip configuration method"
 msgid "Manual"
@@ -2560,6 +2681,7 @@ msgid "Max wallpapers"
 msgstr ""
 
 #. TRANSLATORS: maximum number of window icons shown per workspace
+
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
 msgctxt "bar workspaces"
 msgid "Max window icons"
@@ -2611,11 +2733,13 @@ msgid "Media refresh"
 msgstr ""
 
 #: modules/dashboard/performance/MemoryCard.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "Memory"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "Microphone"
 msgstr ""
@@ -2647,6 +2771,7 @@ msgid "Mode for a Hyprstack .txt palette"
 msgstr ""
 
 #. TRANSLATORS: %1 = monitor name, %2 = monitor id, %3/%4 = x/y position in pixels
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Monitor: %1 (%2) at %3, %4"
@@ -2694,9 +2819,13 @@ msgid "Navigate results with Ctrl+hjkl"
 msgstr ""
 
 #: modules/dashboard/performance/NetworkCard.qml modules/nexus/PageRegistry.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
 msgid "Network"
 msgstr ""
@@ -2706,6 +2835,7 @@ msgid "Network interface (for WireGuard / status checks)"
 msgstr ""
 
 #. TRANSLATORS: SSID is a protocol term, leave it untranslated
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "Network name (SSID)"
 msgstr ""
@@ -2715,6 +2845,7 @@ msgid "Network name is required"
 msgstr ""
 
 #. TRANSLATORS: %1 = the network SSID
+
 #: modules/bar/popouts/WirelessPassword.qml
 #, qt-format
 msgid "Network: %1"
@@ -2884,6 +3015,7 @@ msgid "Normal power management"
 msgstr ""
 
 #: modules/nexus/common/EthernetSection.qml
+
 #: modules/nexus/pages/network/EthernetDetailPage.qml
 msgctxt "ethernet link state"
 msgid "Not connected"
@@ -2905,6 +3037,7 @@ msgid "Nothing playing"
 msgstr ""
 
 #: modules/bar/components/NotificationCenterButton.qml
+
 #: modules/sidebar/NotifDock.qml
 msgid "Notification center"
 msgstr ""
@@ -2914,7 +3047,9 @@ msgid "Notification centre"
 msgstr ""
 
 #: modules/lock/NotifDock.qml
+
 #: modules/nexus/pages/services/NotificationsPage.qml
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "Notifications"
 msgstr ""
@@ -2946,11 +3081,13 @@ msgid "Num lock changes"
 msgstr ""
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Num lock disabled"
 msgstr ""
 
 #: modules/bar/popouts/LockStatus.qml
+
 #: plugin/src/Hyprstack/Services/hyprdevices.cpp
 msgid "Num lock enabled"
 msgstr ""
@@ -2960,6 +3097,7 @@ msgid "Num lock is ON."
 msgstr ""
 
 #. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
+
 #: modules/lock/center/StateMessage.qml
 #, qt-format
 msgid "Num lock is ON. Keyboard layout: %1"
@@ -2990,6 +3128,7 @@ msgid "OK"
 msgstr ""
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "OS  : %1"
@@ -3011,6 +3150,7 @@ msgid "Off"
 msgstr ""
 
 #. TRANSLATORS: %1 = lyric timing offset; ms is the millisecond unit, leave untranslated
+
 #: modules/dashboard/media/LyricsInfo.qml
 #, qt-format
 msgid "Offset: %1 ms"
@@ -3044,6 +3184,7 @@ msgid "Open"
 msgstr ""
 
 #: modules/nexus/pages/network/NetworkDetailPage.qml
+
 #: modules/nexus/pages/network/SavedNetworksPage.qml services/Nmcli.qml
 msgctxt "wifi security type"
 msgid "Open"
@@ -3140,6 +3281,7 @@ msgid "Pair"
 msgstr ""
 
 #: modules/nexus/pages/bluetooth/BluetoothPairing.qml
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgid "Pair new device"
 msgstr ""
@@ -3154,6 +3296,7 @@ msgid "Pair with the device"
 msgstr ""
 
 #. TRANSLATORS: adjective: other devices are allowed to pair with this computer
+
 #: modules/nexus/pages/BluetoothPage.qml
 msgctxt "bluetooth setting"
 msgid "Pairable"
@@ -3193,6 +3336,7 @@ msgid "Passphrase required"
 msgstr ""
 
 #: modules/bar/popouts/WirelessPassword.qml
+
 #: modules/nexus/pages/network/AddNetworkPage.qml modules/polkit/AuthDialog.qml
 msgid "Password"
 msgstr ""
@@ -3238,6 +3382,7 @@ msgid "Performance"
 msgstr ""
 
 #. TRANSLATORS: charger or thermal warning: the battery cannot draw full power
+
 #: modules/bar/popouts/Battery.qml
 msgid "Performance degraded"
 msgstr ""
@@ -3247,6 +3392,7 @@ msgid "Performance widgets"
 msgstr ""
 
 #. TRANSLATORS: %1 = a shell command, leave it untranslated
+
 #: services/VPN.qml
 #, qt-format
 msgid "Permission denied. Run in terminal: %1"
@@ -3336,7 +3482,9 @@ msgid "Polling"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/taskbar/BarTray.qml
 msgid "Popout on hover"
 msgstr ""
@@ -3350,6 +3498,7 @@ msgid "Popup notifications are now enabled"
 msgstr ""
 
 #. TRANSLATORS: %1/%2 = x and y position in pixels
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Position: %1, %2"
@@ -3395,12 +3544,14 @@ msgid "Primary DNS"
 msgstr ""
 
 #. TRANSLATORS: %1 = process id
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Process id: %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = a file path
+
 #: modules/dashboard/Wrapper.qml
 #, qt-format
 msgid "Profile picture changed"
@@ -3420,6 +3571,7 @@ msgid "Provider name is required"
 msgstr ""
 
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
+
 #: modules/utilities/cards/Toggles.qml
 msgid "Quick toggles"
 msgstr ""
@@ -3470,6 +3622,7 @@ msgid "Reboot the system"
 msgstr ""
 
 #. TRANSLATORS: tint system tray icons with the theme accent colour
+
 #: modules/nexus/pages/panels/taskbar/BarTray.qml
 msgid "Recolour icons"
 msgstr ""
@@ -3510,6 +3663,7 @@ msgid "Recording at %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = elapsed recording duration, e.g. 01:23
+
 #: modules/utilities/cards/Record.qml
 #, qt-format
 msgid "Recording for %1"
@@ -3553,6 +3707,7 @@ msgid "Replace"
 msgstr ""
 
 #. TRANSLATORS: %1 = name of the application asking for the permission
+
 #: modules/portals/AccessDialog.qml
 #, qt-format
 msgid "Requested by %1"
@@ -3571,6 +3726,7 @@ msgid "Reveal on drag"
 msgstr ""
 
 #: modules/nexus/pages/PanelsPage.qml
+
 #: modules/nexus/pages/panels/OsdPanel.qml
 msgid "Sound and brightness"
 msgstr ""
@@ -3580,6 +3736,7 @@ msgid "Hide delay"
 msgstr ""
 
 #. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+
 #: modules/nexus/pages/panels/OsdPanel.qml
 msgid "Time before the indicator hides (ms)"
 msgstr ""
@@ -3629,6 +3786,7 @@ msgid "Reveal the bar when the cursor reaches the screen edge"
 msgstr ""
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
 msgid "Reveal when the cursor reaches the screen edge"
 msgstr ""
@@ -3681,6 +3839,7 @@ msgid "Saved"
 msgstr ""
 
 #: modules/nexus/pages/network/SavedNetworksPage.qml
+
 #: modules/nexus/pages/NetworkPage.qml
 msgid "Saved networks"
 msgstr ""
@@ -3703,6 +3862,7 @@ msgid "Screen"
 msgstr ""
 
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
+
 #: modules/utilities/cards/Record.qml
 msgid "Screen recorder"
 msgstr ""
@@ -3774,6 +3934,7 @@ msgid "Secured"
 msgstr ""
 
 #: modules/nexus/pages/network/AddNetworkPage.qml
+
 #: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Security"
 msgstr ""
@@ -3785,6 +3946,7 @@ msgid "Security: %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = security type, %2 = connection status
+
 #: modules/nexus/common/NetworkList.qml
 #, qt-format
 msgctxt "network security and status"
@@ -3826,6 +3988,7 @@ msgid "Selected"
 msgstr ""
 
 #. TRANSLATORS: %1/%2/%3 = matched track title, artist and album
+
 #: modules/dashboard/media/LyricsInfo.qml
 #, qt-format
 msgid "Selected candidate: %1 | %2 | %3"
@@ -3840,6 +4003,7 @@ msgid "Send the palette to open terminals in the current session"
 msgstr ""
 
 #. TRANSLATORS: %1 = a shell command, leave it untranslated
+
 #: services/VPN.qml
 #, qt-format
 msgid "Service not running (run: %1)"
@@ -3854,6 +4018,7 @@ msgid "Services"
 msgstr ""
 
 #. TRANSLATORS: %1 = name of the application offering the picture
+
 #: modules/portals/WallpaperDialog.qml
 #, qt-format
 msgid "Set %1 as the wallpaper?"
@@ -3924,6 +4089,7 @@ msgid "Show a window details popout when hovering"
 msgstr ""
 
 #. TRANSLATORS: %1 = number of networks found
+
 #: modules/nexus/pages/NetworkPage.qml
 #, qt-format
 msgid "Show all networks (%1)"
@@ -3958,8 +4124,11 @@ msgid "Show notifications expanded by default"
 msgstr ""
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
+
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Show on hover"
 msgstr ""
@@ -4007,12 +4176,14 @@ msgid "Show windows"
 msgstr ""
 
 #. TRANSLATORS: the number of workspaces shown on the bar
+
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
 msgctxt "bar workspaces"
 msgid "Shown"
 msgstr ""
 
 #. TRANSLATORS: the name shown in the VPN provider list on the network page
+
 #: modules/nexus/pages/network/AddVpnPage.qml
 msgid "Shown in the list"
 msgstr ""
@@ -4027,6 +4198,7 @@ msgid "Shutdown the system"
 msgstr ""
 
 #: modules/nexus/pages/panels/SidebarPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Sidebar"
 msgstr ""
@@ -4040,6 +4212,7 @@ msgid "Silence notifications"
 msgstr ""
 
 #. TRANSLATORS: %1/%2 = width and height in pixels; the x is a multiplication sign
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Size: %1 x %2"
@@ -4093,11 +4266,13 @@ msgid "Status"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Status icons"
 msgstr ""
 
 #: modules/dashboard/performance/StorageCard.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "Storage"
 msgstr ""
@@ -4179,6 +4354,7 @@ msgid "Tap to select"
 msgstr ""
 
 #: modules/nexus/pages/panels/TaskbarPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Taskbar"
 msgstr ""
@@ -4293,6 +4469,7 @@ msgid "Time & date"
 msgstr ""
 
 #. TRANSLATORS: ms is the millisecond unit, leave it untranslated
+
 #: modules/nexus/pages/services/NotificationsPage.qml
 msgid "Time before a notification dismisses (ms)"
 msgstr ""
@@ -4363,6 +4540,7 @@ msgid "Transparency"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarTray.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Tray"
 msgstr ""
@@ -4415,12 +4593,14 @@ msgid "UI language, weather location, display units"
 msgstr ""
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "UP  : %1"
 msgstr ""
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "USER: %1"
@@ -4436,6 +4616,7 @@ msgid "Unable to change colour scheme: %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = a file path
+
 #: modules/dashboard/Wrapper.qml
 #, qt-format
 msgid "Unable to change profile picture"
@@ -4541,6 +4722,7 @@ msgid "Unknown application"
 msgstr ""
 
 #: modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml
+
 #: modules/lock/Media.qml
 msgid "Unknown artist"
 msgstr ""
@@ -4577,6 +4759,7 @@ msgid "Unknown network"
 msgstr ""
 
 #. TRANSLATORS: %1 = a config key name
+
 #: plugin/src/Hyprstack/Settings/objectnode.cpp
 #, qt-format
 msgid "Unknown option %1"
@@ -4639,6 +4822,7 @@ msgid "Upper limit for output volume (%)"
 msgstr ""
 
 #. TRANSLATORS: labels the CPU or GPU utilisation percentage shown below it
+
 #: modules/dashboard/performance/HeroCard.qml
 msgctxt "resource usage"
 msgid "Usage"
@@ -4661,11 +4845,13 @@ msgid "Used"
 msgstr ""
 
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
+
 #: modules/nexus/pages/PanelsPage.qml
 msgid "Utilities"
 msgstr ""
 
 #: modules/nexus/pages/NetworkPage.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml services/VPN.qml
 msgid "VPN"
 msgstr ""
@@ -4737,6 +4923,7 @@ msgid "Visible toasts"
 msgstr ""
 
 #. TRANSLATORS: bars of a spectrum analyser, not the taskbar
+
 #: modules/nexus/pages/ServicesPage.qml
 msgid "Visualiser bars"
 msgstr ""
@@ -4759,17 +4946,20 @@ msgid "WARP registration required"
 msgstr ""
 
 #. TRANSLATORS: keep the label padded to 4 chars so the column stays aligned
+
 #: modules/lock/Fetch.qml
 #, qt-format
 msgid "WM  : %1"
 msgstr ""
 
 #. TRANSLATORS: WPA is a protocol name, leave it untranslated
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "WPA passwords are at least 8 characters"
 msgstr ""
 
 #. TRANSLATORS: WPA/WPA2/WPA3 are protocol names, leave them untranslated
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "WPA/WPA2/WPA3 Personal"
 msgstr ""
@@ -4812,12 +5002,15 @@ msgid "Wallpaper, fonts, colours"
 msgstr ""
 
 #: modules/nexus/pages/panels/LauncherPanel.qml
+
 #: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+
 #: modules/nexus/pages/WallpaperAndStyle.qml
 msgid "Wallpapers"
 msgstr ""
 
 #: modules/dashboard/Content.qml modules/nexus/pages/LanguageAndRegion.qml
+
 #: modules/nexus/pages/panels/DashboardPanel.qml
 msgid "Weather"
 msgstr ""
@@ -4863,6 +5056,7 @@ msgid "Whether toasts appear over fullscreen apps"
 msgstr ""
 
 #: modules/nexus/pages/NetworkPage.qml
+
 #: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "Wi-Fi"
 msgstr ""
@@ -4926,6 +5120,7 @@ msgid "Windows on special workspaces"
 msgstr ""
 
 #. TRANSLATORS: %1 = a shell command, leave it untranslated
+
 #: services/VPN.qml
 #, qt-format
 msgid "WireGuard module not loaded. Run: %1"
@@ -4954,12 +5149,14 @@ msgid "Workspace indicator"
 msgstr ""
 
 #. TRANSLATORS: %1 = workspace name, %2 = workspace id
+
 #: modules/windowinfo/Details.qml
 #, qt-format
 msgid "Workspace: %1 (%2)"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+
 #: modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Workspaces"
 msgstr ""
@@ -5044,11 +5241,13 @@ msgid "an object"
 msgstr ""
 
 #. TRANSLATORS: sample network name, translate the e.g. but the name is a placeholder
+
 #: modules/nexus/pages/network/AddNetworkPage.qml
 msgid "e.g. MyHiddenNetwork"
 msgstr ""
 
 #. TRANSLATORS: %1 = a message from Qalculate, we don't translate it
+
 #: plugin/src/Hyprstack/qalculator.cpp
 #, qt-format
 msgid "error: %1"
@@ -5073,6 +5272,7 @@ msgid "null"
 msgstr ""
 
 #. TRANSLATORS: %1 = system uptime, e.g. "2 days, 3 hours"
+
 #: modules/dashboard/dash/User.qml
 #, qt-format
 msgctxt "system uptime"
@@ -5080,6 +5280,7 @@ msgid "up %1"
 msgstr ""
 
 #. TRANSLATORS: %1 = a message from Qalculate, we don't translate it
+
 #: plugin/src/Hyprstack/qalculator.cpp
 #, qt-format
 msgid "warning: %1"
@@ -5094,6 +5295,7 @@ msgid "°F"
 msgstr ""
 
 #. TRANSLATORS: %1 = downloaded total, %2 = uploaded total
+
 #: modules/dashboard/performance/NetworkCard.qml
 #, qt-format
 msgid "↓%1 ↑%2"
@@ -5474,146 +5676,117 @@ msgstr ""
 msgid "External VPN provider"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Animations"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell and window presets, live preview and motion speed"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Snappy"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Cinematic"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Reduced motion"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Spring"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Glide"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Goop-inspired springs, soft panel stretch and squishy buttons"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Fluid, restrained transitions inspired by Fluent 2"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Short, precise movements with a quick response"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Measured acceleration and spacious, flowing transitions"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Instant shell transitions with no animated travel"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Original Hyprstack animations and your existing motion tokens"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Gentle spring opening and elastic workspace transitions"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Windows slide into place and workspaces drift smoothly"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Fast opening with a subtle zoom and short workspace travel"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Deep zoom opening and flowing vertical workspace transitions"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Instant window opening, closing, movement and workspace changes"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Original window and workspace animations"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Presets apply immediately and are saved independently."
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell animations"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell preset"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Shell animation speed"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Window animations"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Window preset"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Game mode temporarily disables window animations. Your preset is kept."
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Replay preview"
 msgstr ""
 
-
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Restore defaults"
 msgstr ""
-
 
 #: modules/nexus/pages/AnimationSettings.qml
 msgid "Viscous panels, workspace splashes and drips on hover"
@@ -5674,7 +5847,6 @@ msgstr ""
 #: modules/bar/popouts modules/nexus/pages/panels/TaskbarPanel.qml
 msgid "Mark all as read"
 msgstr ""
-
 
 #: modules/nexus/pages/power
 msgid "Battery warnings"
@@ -6077,4 +6249,200 @@ msgstr ""
 
 #: modules/nexus/pages/GameModePage.qml
 msgid "Show a toast when a rule switches game mode on or off"
+msgstr ""
+
+#: modules/nexus/PageRegistry.qml
+msgid "Mouse & pointer"
+msgstr ""
+
+#: modules/nexus/PageRegistry.qml
+msgid "Pointer speed, scrolling, cursor"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Mouse"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Sensitivity"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Acceleration"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Adaptive"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Flat"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Adaptive speeds the pointer up as it moves, flat keeps one speed"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Invert scrolling"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "The wheel scrolls in the opposite direction"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scroll speed"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swap mouse buttons"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "The right button becomes the primary one"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Focus follows the pointer"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Detached lets clicks choose the window, separate keeps clicks from moving focus"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Never"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Follow the pointer"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Detached"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgctxt "focus follows the pointer"
+msgid "Separate"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Cursor"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Pointer size"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Cursor size in pixels, from 8 to 64"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Cursor theme"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "A theme from your icon folders; the first entry keeps the Hyprland one"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Keep the Hyprland theme"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Hide the pointer"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Seconds of inactivity before it disappears; 0 keeps it visible"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Touchpad"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Invert touchpad scrolling"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipes move the content the way your fingers do"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Tap to click"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "A tap on the touchpad acts as a click"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Disable while typing"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Ignore the touchpad while you type"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Touchpad scroll speed"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Touchpad gestures"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe to scroll"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scroll horizontally with a touchpad swipe"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Scrolling fingers"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the scrolling gesture"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe to switch workspaces"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Switch workspaces with a vertical touchpad swipe"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Workspace swipe fingers"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the workspace gesture"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe for overview"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Swipe up to open the overview and down to accept"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Overview fingers"
+msgstr ""
+
+#: modules/nexus/pages/pointer/PointerPage.qml
+msgid "Finger count for the overview gesture"
 msgstr ""

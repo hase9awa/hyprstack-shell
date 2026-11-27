@@ -21,6 +21,7 @@ qml_module(hyprstack-config
         nexusconfig.hpp
         notifsconfig.hpp
         osdconfig.hpp
+        pointerconfig.hpp
         serviceconfig.hpp
         sessionconfig.hpp
         sidebarconfig.hpp
