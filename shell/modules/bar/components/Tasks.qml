@@ -41,6 +41,9 @@ StyledClippingRect {
     property string dragIcon
     property real dragWidth
     property string lastTargets: ""
+    // Icon-only buttons when labelled ones would not fit (e.g. a portrait screen).
+    readonly property bool compact: groups.length > 0 && (maxWidth - Tokens.padding.extraSmall * 2
+        - (groups.length - 1) * Tokens.spacing.extraSmall) / groups.length < 100 * Tokens.scale
     readonly property real buttonHeight: Math.max(0, height - Tokens.padding.extraSmall * 2 - 4 * Tokens.scale)
     readonly property real buttonInset: (height - buttonHeight) / 2
     readonly property Item selectionButton: {
@@ -273,7 +276,7 @@ StyledClippingRect {
                     readonly property alias pinControl: pinButton
                     onPopupOpenChanged: if (!popupOpen && root.popupTask === task) root.popupTask = null
 
-                    width: Math.min(210 * Tokens.scale, Math.max(100 * Tokens.scale, (root.maxWidth - Tokens.padding.extraSmall * 2
+                    width: root.compact ? 40 * Tokens.scale : Math.min(210 * Tokens.scale, Math.max(100 * Tokens.scale, (root.maxWidth - Tokens.padding.extraSmall * 2
                         - (root.groups.length - 1) * taskRow.spacing) / Math.max(1, root.groups.length)))
                     height: root.implicitHeight
                     opacity: root.draggedKey === group?.key ? 0.35 : 1
@@ -335,8 +338,7 @@ StyledClippingRect {
 
                     IconImage {
                         id: appIcon
-                        anchors.left: parent.left
-                        anchors.leftMargin: 9 * Tokens.scale
+                        x: root.compact ? (parent.width - width) / 2 : 9 * Tokens.scale
                         anchors.verticalCenter: parent.verticalCenter
                         implicitSize: 20 * Tokens.scale
                         visible: !!task.iconSource && status !== Image.Error
@@ -352,8 +354,7 @@ StyledClippingRect {
                     }
 
                     MaterialIcon {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 9 * Tokens.scale
+                        x: root.compact ? (parent.width - width) / 2 : 9 * Tokens.scale
                         anchors.verticalCenter: parent.verticalCenter
                         width: 20 * Tokens.scale
                         visible: !appIcon.visible
@@ -369,6 +370,7 @@ StyledClippingRect {
                         anchors.right: parent.right
                         anchors.rightMargin: (task.windows.length > 1 ? 39 : 9) * Tokens.scale
                         anchors.verticalCenter: parent.verticalCenter
+                        visible: !root.compact
                         text: task.entry?.name ?? task.modelData
                         elide: Text.ElideRight
                         font: Tokens.font.body.small
@@ -387,7 +389,7 @@ StyledClippingRect {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 24 * Tokens.scale
                         height: 20 * Tokens.scale
-                        visible: task.windows.length > 1
+                        visible: task.windows.length > 1 && !root.compact
                         opacity: task.allMinimized ? 0.55 : 1
 
                         Repeater {

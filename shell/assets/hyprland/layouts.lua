@@ -376,7 +376,7 @@ end
 local function client_decorated(window)
     local class = window.class:lower()
     return browser(window) or class:find("ayugram", 1, true) or class:find("telegram", 1, true)
-        or class == "discord" or class:match("^org%.gnome%.")
+        or class == "discord" or class == "steam" or class:match("^org%.gnome%.")
 end
 
 local function scroll_position(window)
@@ -989,7 +989,7 @@ function layouts.theme(palette)
         ["hyprbars:bar_color"] = header_color,
         ["hyprbars:title_color"] = color("primary", "7e9cd8") })
     hl.window_rule({ name = "hyprstack-client-decorations", match = {
-        class = "(?i)^(thorium(-browser)?|chromium(-browser)?|google-chrome.*|firefox|librewolf|zen(-browser)?|com\\.ayugram\\.desktop|AyugramDesktop|org\\.telegram\\.desktop|TelegramDesktop|discord|org\\.gnome\\..*)$"
+        class = "(?i)^(thorium(-browser)?|chromium(-browser)?|google-chrome.*|firefox|librewolf|zen(-browser)?|com\\.ayugram\\.desktop|AyugramDesktop|org\\.telegram\\.desktop|TelegramDesktop|discord|steam|org\\.gnome\\..*)$"
     }, ["hyprbars:no_bar"] = true })
     hl.plugin.hyprbars.clear_buttons()
     local controls = { close = "e46876", maximize = "98bb6c", minimize = "e6c384" }

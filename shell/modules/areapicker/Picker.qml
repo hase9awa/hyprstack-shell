@@ -17,6 +17,9 @@ MouseArea {
 
     property bool onClient
     property bool saving: false
+    // The capture is taken a little after the release. Until then nothing may
+    // replace the chosen region with the window under the pointer.
+    property bool committed: false
 
     property real realBorderWidth: onClient ? (Hypr.options["general:border_size"] ?? 1) : 2
     property real realRounding: onClient ? (Hypr.options["decoration:rounding"] ?? 0) : 0
@@ -55,6 +58,8 @@ MouseArea {
     }
 
     function checkClientRects(x: real, y: real): void {
+        if (pressed || committed || saving || loader.closing)
+            return;
         for (const client of clients) {
             if (!client)
                 continue;
@@ -138,14 +143,18 @@ MouseArea {
     }
 
     onPressed: event => {
+        if (saving || screencopy.active && !loader.freeze)
+            return;
+        committed = false;
         ssx = event.x;
         ssy = event.y;
     }
 
     onReleased: {
-        if (closeAnim.running || saving || loader.closing)
+        if (closeAnim.running || saving || committed || loader.closing)
             return;
 
+        committed = true;
         if (root.loader.regionOnly) {
             reportRegion();
         } else if (root.loader.freeze) {
@@ -161,6 +170,8 @@ MouseArea {
         const x = event.x;
         const y = event.y;
 
+        if (committed || saving || loader.closing)
+            return;
         if (pressed) {
             onClient = false;
             sx = ssx;

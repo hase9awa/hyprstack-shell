@@ -113,9 +113,14 @@ Item {
     }
 
     HyprlandFocusGrab {
-        active: root.isDetached
+        // A dialog takes exclusive focus, which clears the grab. Closing the
+        // settings then would destroy the dialog they have just opened.
+        active: root.isDetached && Dialogs.dialogs.length === 0
         windows: [QsWindow.window]
-        onCleared: root.close()
+        onCleared: {
+            if (Dialogs.dialogs.length === 0)
+                root.close();
+        }
     }
 
     Binding {
