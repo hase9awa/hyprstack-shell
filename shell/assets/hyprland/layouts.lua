@@ -1523,6 +1523,26 @@ function layouts.action(operation, address, stable_id)
     local window = address and hl.get_window("address:" .. address) or hl.get_active_window()
     if not window or not window.mapped then return end
     if stable_id and stable_id ~= window.stable_id then return end
+    if operation == "focus-preview" then
+        local monitor = window.monitor
+        local workspace = window.workspace
+        if not monitor or not workspace or workspace ~= (monitor.active_special_workspace or monitor.active_workspace) then return end
+        without_cursor_warps(function()
+            local reveal = not window.floating and workspace.tiled_layout == "scrolling"
+            local enable_follow = reveal and hl.get_config("scrolling.follow_focus") == 0
+            if enable_follow then hl.config({ scrolling = { follow_focus = 1 } }) end
+            local ok, err = pcall(function()
+                if not monitor.focused then hl.dispatch(hl.dsp.focus({ monitor = monitor })) end
+                hl.dispatch(hl.dsp.focus({ window = window }))
+                if reveal and monitor.focused and window == hl.get_active_window() then
+                    hl.dispatch(hl.dsp.layout("fit_into_view"))
+                end
+            end)
+            if enable_follow then hl.config({ scrolling = { follow_focus = 0 } }) end
+            if not ok then error(err) end
+        end)
+        return
+    end
     if operation == "toggle-floating" then layouts.toggle_floating(window); return end
     if layouts.mode() ~= "stacking" then return end
     local record = record_for(window) or { id = window.stable_id, workspace = key(window.workspace) }

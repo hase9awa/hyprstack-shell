@@ -33,7 +33,7 @@ Item {
         if (opened)
             return;
         bar.popouts.currentName = "workspacewindows";
-        bar.popouts.currentCenter = Qt.binding(() => root.parent.x + root.width / 2);
+        bar.popouts.currentCenter = root.parent.x + root.width / 2;
         bar.popouts.hasCurrent = true;
     }
 

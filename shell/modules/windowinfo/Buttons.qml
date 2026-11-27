@@ -12,6 +12,8 @@ ColumnLayout {
 
     required property var client
     property bool moveToWsExpanded
+    readonly property int workspaceBase: Hypr.perMonitorWorkspaces ? Hypr.workspaceBase(client?.monitor ?? null)
+        : Math.floor((Math.max(1, client?.workspace?.id ?? Hypr.activeWsId) - 1) / 10) * 10
 
     anchors.fill: parent
     spacing: Tokens.spacing.small
@@ -88,11 +90,11 @@ ColumnLayout {
         }
 
         Repeater {
-            model: 10
+            model: Hypr.perMonitorWorkspaces ? Hypr.workspaceCount : 10
 
             Button {
                 required property int index
-                readonly property int wsId: Math.floor((Hypr.activeWsId - 1) / 10) * 10 + index + 1
+                readonly property int wsId: root.workspaceBase + index + 1
                 readonly property bool isCurrent: root.client?.workspace.id === wsId
 
                 onClicked: {

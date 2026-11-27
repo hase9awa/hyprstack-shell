@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import Hyprstack.Config
@@ -13,22 +12,19 @@ import qs.services
 Item {
     id: root
 
-    required property ShellScreen screen
     required property HyprlandToplevel client
 
-    Layout.preferredWidth: preview.implicitWidth + Tokens.padding.extraLargeIncreased
     Layout.fillHeight: true
 
     StyledClippingRect {
         id: preview
 
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.left: parent.left
+        anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: label.top
         anchors.topMargin: Tokens.padding.large
         anchors.bottomMargin: Tokens.spacing.medium
-
-        implicitWidth: view.implicitWidth
 
         color: Colours.tPalette.m3surfaceContainer
         radius: Tokens.rounding.medium
@@ -72,15 +68,12 @@ Item {
         }
 
         ScreencopyView {
-            id: view
-
             anchors.centerIn: parent
 
             captureSource: root.client?.wayland ?? null // qmllint disable unresolved-type
             live: root.visible && !!root.client
 
-            constraintSize.width: root.client ? parent.height * Math.min(root.screen.width / root.screen.height, root.client?.lastIpcObject.size[0] / root.client?.lastIpcObject.size[1]) : parent.height
-            constraintSize.height: parent.height
+            constraintSize: Qt.size(Math.max(1, preview.width), Math.max(1, preview.height))
         }
     }
 

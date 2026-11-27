@@ -8,6 +8,7 @@ import Hyprstack.Config
 import qs.components
 import qs.services
 import qs.modules.nexus
+import qs.modules.windowinfo
 
 Item {
     id: root
@@ -36,6 +37,7 @@ Item {
 
     property string detachedMode
     property string queuedMode
+    property HyprlandToplevel inspectedWindow
 
     // Dummy object so Tokens attached prop resolves to global config
     // Anim configs are not per-monitor
@@ -55,8 +57,12 @@ Item {
 
     function detach(mode: string): void {
         setAnims(true);
-        queuedMode = mode;
-        detachedMode = "any";
+        if (mode === "winfo") {
+            detachedMode = mode;
+        } else {
+            queuedMode = mode;
+            detachedMode = "any";
+        }
         setAnims(false);
         focus = true;
     }
@@ -65,6 +71,7 @@ Item {
         hasCurrent = false;
         detachedMode = "";
     }
+    onInspectedWindowChanged: if (!inspectedWindow && detachedMode === "winfo") close()
 
     implicitWidth: flowClipped ? flowingWidth : nonAnimWidth
     implicitHeight: flowClipped ? flowingHeight : nonAnimHeight
@@ -104,6 +111,12 @@ Item {
         screen: root.screen
 
         onDetachRequested: mode => root.detach(mode)
+        onWindowInfoRequested: client => {
+            if (client) {
+                root.inspectedWindow = client;
+                root.detach("winfo");
+            }
+        }
     }
 
     HyprlandFocusGrab {
@@ -134,6 +147,16 @@ Item {
 
         sourceComponent: Content {
             popouts: popoutState
+        }
+    }
+
+    Comp {
+        shouldBeActive: root.detachedMode === "winfo"
+        anchors.centerIn: parent
+
+        sourceComponent: WindowInfo {
+            screen: root.screen
+            client: root.inspectedWindow
         }
     }
 

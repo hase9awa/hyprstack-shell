@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 
 QtObject {
     required property ShellScreen screen
@@ -11,4 +12,5 @@ QtObject {
     onTrayItemChanged: ++trayRevision
 
     signal detachRequested(mode: string)
+    signal windowInfoRequested(client: HyprlandToplevel)
 }
