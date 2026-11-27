@@ -27,8 +27,8 @@ Singleton {
     IdleInhibitor {
         enabled: props.enabled
         window: PanelWindow {
-            implicitWidth: 0
-            implicitHeight: 0
+            implicitWidth: 1
+            implicitHeight: 1
             color: "transparent"
             mask: Region {}
         }
