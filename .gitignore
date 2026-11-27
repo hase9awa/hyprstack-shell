@@ -78,6 +78,8 @@
 !/native/hyprbars/*.cpp
 !/native/hyprbars/*.hpp
 !/native/hyprbars/LICENSE
+!/native/workspace-previews/
+!/native/workspace-previews/main.cpp
 
 !/third_party/
 /third_party/*

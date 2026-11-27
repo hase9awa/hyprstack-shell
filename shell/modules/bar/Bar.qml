@@ -133,7 +133,7 @@ Item {
                 tray.expanded = true;
             }
         } else if (id === "activeWindow") {
-            const trigger = windowList.item as WorkspaceWindows;
+            const trigger = windowList.item as ActiveWindow;
             if (trigger.opensOnHover)
                 trigger.open();
             else if (popouts.currentName !== "workspacewindows")
@@ -278,7 +278,8 @@ Item {
         visible: !Hypr.stacking && root.taskbarWidth >= 24 * Tokens.scale
             && root.Config.bar.entries.values.some(e => e.id === "activeWindow" && e.enabled)
 
-        WorkspaceWindows {
+        ActiveWindow {
+            objectName: "taskbarActiveWindow"
             bar: root
         }
     }

@@ -8,7 +8,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: Tr.tr("Workspace windows")
+    title: Tr.tr("Active window")
     isSubPage: true
 
     ColumnLayout {
@@ -19,15 +19,9 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: Tr.tr("Icon only")
+            text: Tr.trCtx("Compact", "taskbar active window layout")
             checked: Config.bar.activeWindow.compact
             onToggled: GlobalConfig.bar.activeWindow.compact = checked
-        }
-
-        ToggleRow {
-            text: Tr.trCtx("Inverted", "taskbar active window: swap the title and class order")
-            checked: Config.bar.activeWindow.inverted
-            onToggled: GlobalConfig.bar.activeWindow.inverted = checked
         }
 
         ToggleRow {

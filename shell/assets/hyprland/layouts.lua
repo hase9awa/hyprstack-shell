@@ -927,6 +927,9 @@ if not plugin_override and plugin_path:sub(1, #native_dir) == native_dir
 end
 local plugin_file = io.open(plugin_path, "r")
 if plugin_file then plugin_file:close(); hl.plugin.load(plugin_path) end
+local previews_path = native_dir .. "hyprstack-workspace-previews.so"
+local previews_file = io.open(previews_path, "r")
+if previews_file then previews_file:close(); hl.plugin.load(previews_path) end
 -- Loading is deferred until the config has been parsed. The plugin requests a
 -- reload after registering its effects; the first pass must use core rules only.
 local no_titlebar = hl.plugin.hyprbars and hl.plugin.hyprbars.clear_buttons and true or nil

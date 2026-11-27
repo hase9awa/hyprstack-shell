@@ -1239,9 +1239,9 @@ var catalogue = [
     "path": [
       "Panels",
       "Taskbar",
-      "Workspace windows"
+      "Active window"
     ],
-    "label": "Workspace windows",
+    "label": "Active window",
     "context": "",
     "target": "",
     "match": "",
@@ -1352,10 +1352,10 @@ var catalogue = [
       "Panels",
       "Taskbar"
     ],
-    "label": "Workspace windows",
+    "label": "Active window",
     "context": "",
     "target": "taskbarElement_activeWindow",
-    "match": "Workspace windows",
+    "match": "Active window",
     "keywords": "Screen element visibility monitor hide"
   },
   {
@@ -2072,12 +2072,12 @@ var catalogue = [
     "path": [
       "Panels",
       "Taskbar",
-      "Workspace windows"
+      "Active window"
     ],
-    "label": "Icon only",
-    "context": "",
+    "label": "Compact",
+    "context": "taskbar active window layout",
     "target": "",
-    "match": "Icon only",
+    "match": "Compact",
     "keywords": ""
   },
   {
@@ -2089,24 +2089,7 @@ var catalogue = [
     "path": [
       "Panels",
       "Taskbar",
-      "Workspace windows"
-    ],
-    "label": "Inverted",
-    "context": "taskbar active window: swap the title and class order",
-    "target": "",
-    "match": "Inverted",
-    "keywords": ""
-  },
-  {
-    "page": 4,
-    "subpages": [
-      2,
-      7
-    ],
-    "path": [
-      "Panels",
-      "Taskbar",
-      "Workspace windows"
+      "Active window"
     ],
     "label": "Show on hover",
     "context": "",

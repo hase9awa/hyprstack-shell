@@ -6447,16 +6447,8 @@ msgstr ""
 msgid "Finger count for the overview gesture"
 msgstr ""
 
-#: modules/bar/components/WorkspaceWindows.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
-msgid "Workspace windows"
-msgstr ""
-
 #: modules/bar/popouts/WorkspaceWindows.qml
 msgid "No windows on this workspace"
-msgstr ""
-
-#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
-msgid "Icon only"
 msgstr ""
 
 #: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
