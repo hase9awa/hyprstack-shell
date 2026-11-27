@@ -12,6 +12,8 @@
 #include <hyprland/src/managers/SessionLockManager.hpp>
 #include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
 #include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp>
+#include <hyprland/src/protocols/LayerShell.hpp>
+#include <hyprland/src/state/MonitorState.hpp>
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <chrono>
@@ -76,7 +78,20 @@ class Controller {
     }
     PHLWINDOW windowAt(Vector2D point) const {
         if (!eligible()) return nullptr;
-        const auto window = Desktop::viewState()->hitTest().windowAt(point,
+        const auto monitor = State::monitorState()->query().vec(point).run();
+        if (!monitor) return nullptr;
+
+        const auto& hitTest = Desktop::viewState()->hitTest();
+        Vector2D surfaceCoords;
+        PHLLS layer;
+        if (hitTest.layerPopupSurfaceAt(point, monitor, &surfaceCoords, &layer))
+            return nullptr;
+        for (const auto level : {ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, ZWLR_LAYER_SHELL_V1_LAYER_TOP}) {
+            if (hitTest.layerSurfaceAt(point, &monitor->m_layerSurfaceLayers[level], &surfaceCoords, &layer))
+                return nullptr;
+        }
+
+        const auto window = hitTest.windowAt(point,
             Desktop::View::ALLOW_FLOATING | Desktop::View::RESERVED_EXTENTS | Desktop::View::INPUT_EXTENTS);
         if (!window || !window->mapped() || window->isHidden()) return nullptr;
         return window;

@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Hyprstack.Config
 import qs.components
+import qs.components.containers
 import qs.services
 
 Item {
@@ -13,7 +14,8 @@ Item {
     required property ShellScreen screen
     required property HyprlandToplevel client
 
-    readonly property real maxWidth: Math.max(1, screen.width - Config.border.thickness * Tokens.scale * 2)
+    readonly property real maxWidth: Math.max(1,
+        screen.width - (Config.border.thickness * Tokens.scale + Tokens.padding.medium) * 2)
     readonly property real detailsWidth: Math.min(Tokens.sizes.winfo.detailsWidth, maxWidth / 2)
     readonly property real previewRatio: {
         const size = Hypr.clientData(client)?.size;
@@ -35,15 +37,19 @@ Item {
 
         Preview {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             Layout.minimumWidth: 0
+            Layout.preferredWidth: Math.max(1, root.implicitWidth - root.detailsWidth - child.spacing - Tokens.padding.large * 2)
 
             client: root.client
+            screen: root.screen
         }
 
         ColumnLayout {
             spacing: Tokens.spacing.medium
 
             Layout.preferredWidth: root.detailsWidth
+            Layout.fillWidth: false
             Layout.fillHeight: true
 
             StyledRect {
@@ -54,8 +60,16 @@ Item {
                 radius: Tokens.rounding.large
                 clip: true
 
-                Details {
-                    client: root.client
+                StyledFlickable {
+                    anchors.fill: parent
+                    contentWidth: width
+                    contentHeight: details.implicitHeight + Tokens.padding.large
+                    flickableDirection: Flickable.VerticalFlick
+
+                    Details {
+                        id: details
+                        client: root.client
+                    }
                 }
             }
 

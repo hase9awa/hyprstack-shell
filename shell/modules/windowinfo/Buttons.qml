@@ -172,11 +172,17 @@ ColumnLayout {
         StyledText {
             id: label
 
-            anchors.centerIn: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: Tokens.padding.small
+            anchors.rightMargin: Tokens.padding.small
+            anchors.verticalCenter: parent.verticalCenter
 
             animate: true
             color: parent.onColor
             font: Tokens.font.body.medium
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
         }
     }
 }

@@ -4,11 +4,10 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Hyprland
-import Quickshell.Io
-import Quickshell.Wayland
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
+import qs.components.widgets
 import qs.services
 
 Item {
@@ -170,18 +169,6 @@ Item {
         readonly property var client: Hypr.clientData(modelData)
         readonly property string windowTitle: modelData?.title || client?.class || ""
         readonly property bool inViewport: x + width > list.contentX && x < list.contentX + list.width
-        readonly property bool hasLivePreview: liveCapture.item?.hasContent ?? false
-        property bool liveCaptureTimedOut: false
-        readonly property bool offscreen: {
-            const output = root.monitor?.lastIpcObject;
-            if (!client?.at || !client?.size || !output)
-                return false;
-            const screen = root.popouts.screen;
-            const [x, y] = client.at;
-            const [width, height] = client.size;
-            return x + width <= output.x || y + height <= output.y
-                || x >= output.x + screen.width || y >= output.y + screen.height;
-        }
 
         width: root.previewSizes[index]?.width ?? 0
         height: root.previewSizes[index]?.height ?? 0
@@ -199,28 +186,13 @@ Item {
             color: Colours.palette.m3surfaceContainerLowest
             visible: thumbnail.inViewport
 
-            Loader {
-                id: liveCapture
-
+            WindowCapture {
+                objectName: "windowCapture"
                 anchors.fill: parent
-                asynchronous: true
-                active: visible && !!thumbnail.modelData?.wayland && (!thumbnail.offscreen || !Hypr.usingLua)
-                sourceComponent: ScreencopyView {
-                    objectName: "workspaceWindowThumbnail"
-                    captureSource: thumbnail.modelData?.wayland ?? null
-                    live: root.opened && visible
-                }
-            }
-
-            Image {
-                id: snapshot
-                objectName: "workspaceWindowSnapshot"
-
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                cache: false
-                visible: !thumbnail.hasLivePreview && status === Image.Ready
+                client: thumbnail.modelData
+                screen: root.popouts.screen
+                captureEnabled: root.opened && thumbnail.inViewport
+                fit: false
             }
         }
 
@@ -266,30 +238,6 @@ Item {
                     ctx.rect(inset, inset, width - thickness, height - thickness);
                 }
                 ctx.stroke();
-            }
-        }
-
-        Timer {
-            interval: 300
-            running: root.opened && thumbnail.inViewport && Hypr.usingLua
-                && !thumbnail.offscreen && !thumbnail.hasLivePreview && !thumbnail.liveCaptureTimedOut
-            onTriggered: thumbnail.liveCaptureTimedOut = true
-        }
-
-        Process {
-            running: root.opened && thumbnail.inViewport && Hypr.usingLua && !!thumbnail.client?.stableId
-                && !thumbnail.hasLivePreview && (thumbnail.offscreen || thumbnail.liveCaptureTimedOut)
-            command: {
-                const address = JSON.stringify(thumbnail.client?.address ?? "");
-                const stableId = JSON.stringify(thumbnail.client?.stableId ?? "");
-                return ["hyprctl", "repl", `if hl.plugin.hyprstack_previews then return hl.plugin.hyprstack_previews.capture(${address}, ${stableId}) end`];
-            }
-            stdout: StdioCollector {
-                onStreamFinished: {
-                    const url = text.trim();
-                    if (url.startsWith("data:image/png;base64,"))
-                        snapshot.source = url;
-                }
             }
         }
 
