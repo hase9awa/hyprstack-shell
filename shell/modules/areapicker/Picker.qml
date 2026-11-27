@@ -143,15 +143,16 @@ MouseArea {
     }
 
     onPressed: event => {
-        if (saving || screencopy.active && !loader.freeze)
+        if (committed || loader.closing) {
+            event.accepted = false;
             return;
-        committed = false;
+        }
         ssx = event.x;
         ssy = event.y;
     }
 
     onReleased: {
-        if (closeAnim.running || saving || committed || loader.closing)
+        if (closeAnim.running || saving || committed || loader.closing || sw < 1 || sh < 1)
             return;
 
         committed = true;
