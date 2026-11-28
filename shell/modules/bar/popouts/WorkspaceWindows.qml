@@ -33,15 +33,15 @@ Item {
         return entries.map(entry => entry.window);
     }
     property var shownWindows: []
+    property var windowSizes: []
+    property string focusRequest: ""
+    property int focusSequence: 0
+    readonly property bool switchingWindow: focusRequest.length > 0
     readonly property bool opened: popouts.hasCurrent && popouts.currentName === "workspacewindows"
     readonly property real spacing: Tokens.spacing.small
     readonly property real maxWidth: Math.max(1, popouts.screen.width - (Tokens.padding.large + Config.border.thickness * Tokens.scale) * 2)
     readonly property real maxPreviewWidth: Math.min(maxWidth, Math.max(1, Tokens.sizes.bar.windowPreviewSize))
     readonly property real heightLimit: Math.min(maxPreviewWidth * 9 / 16, popouts.screen.height * 0.3)
-    readonly property var windowSizes: windows.map(window => {
-        const size = Hypr.clientData(window)?.size;
-        return size?.[0] > 0 && size?.[1] > 0 ? Qt.size(size[0], size[1]) : Qt.size(1280, 720);
-    })
     readonly property real previewScale: {
         if (!windowSizes.length)
             return 1;
@@ -60,11 +60,20 @@ Item {
         Math.max(1, Math.round(size.width * previewScale)) + borderWidth * 2,
         Math.max(1, Math.round(size.height * previewScale)) + borderWidth * 2))
     readonly property real rowWidth: previewSizes.reduce((width, size) => width + size.width, 0)
-        + Math.max(0, windows.length - 1) * spacing
+        + Math.max(0, windowSizes.length - 1) * spacing
     readonly property real rowHeight: previewSizes.reduce((height, size) => Math.max(height, size.height), 0)
 
-    implicitWidth: Math.min(maxWidth, windows.length ? rowWidth : 360 * Tokens.scale)
-    implicitHeight: windows.length ? rowHeight + (rowWidth > maxWidth ? Tokens.padding.small : 0) : 46 * Tokens.scale
+    implicitWidth: Math.min(maxWidth, windowSizes.length ? rowWidth : 360 * Tokens.scale)
+    implicitHeight: windowSizes.length ? rowHeight + (rowWidth > maxWidth ? Tokens.padding.small : 0) : 46 * Tokens.scale
+
+    Binding on windowSizes {
+        when: !root.switchingWindow
+        value: root.shownWindows.map(window => {
+            const size = Hypr.clientData(window)?.size;
+            return size?.[0] > 0 && size?.[1] > 0 ? Qt.size(size[0], size[1]) : Qt.size(1280, 720);
+        })
+        restoreMode: Binding.RestoreNone
+    }
 
     function borderStyle(value: string, fallback: color): var {
         const parts = (value ?? "").split(/\s+/);
@@ -74,35 +83,67 @@ Item {
     }
 
     function refreshWindowModel(): void {
+        if (switchingWindow)
+            return;
         if (windows.length !== shownWindows.length || windows.some((window, index) => window !== shownWindows[index]))
             shownWindows = windows;
     }
 
     onWindowsChanged: refreshWindowModel()
-    onOpenedChanged: if (opened) Hypr.extras.refreshOptions()
+    onSwitchingWindowChanged: if (!switchingWindow) refreshWindowModel()
+    onOpenedChanged: {
+        if (opened)
+            Hypr.extras.refreshOptions();
+        else
+            finishFocusTransition();
+    }
     Component.onCompleted: {
         refreshWindowModel();
         Hypr.extras.refreshClients();
     }
 
+    function finishFocusTransition(): void {
+        focusTimeout.stop();
+        focusRequest = "";
+    }
+
     function focusWindow(window: HyprlandToplevel): void {
+        const client = Hypr.clientData(window);
+        if (!client?.address || (Hypr.usingLua && !client.stableId))
+            return;
+        focusRequest = `${popouts.screen.name}-${Date.now()}-${++focusSequence}`;
+        focusTimeout.restart();
+
         if (Hypr.usingLua) {
-            Hypr.windowAction("focus-preview", window);
+            const args = [client.address, client.stableId, focusRequest].map(value => JSON.stringify(value)).join(", ");
+            Hypr.extras.message(`eval hyprstack_layouts.action("focus-preview", ${args})`);
             return;
         }
-        const address = Hypr.clientData(window)?.address;
-        if (!address)
-            return;
-        const focus = "focuswindow address:" + address;
+        const focus = "focuswindow address:" + client.address;
         if (Hypr.options["cursor:no_warps"] === false)
             Hypr.extras.batchMessage(["keyword cursor:no_warps true", "dispatch " + focus, "keyword cursor:no_warps false"]);
         else
             Hypr.dispatch(focus);
     }
 
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event: HyprlandEvent): void {
+            if (root.switchingWindow && event.name === "custom" && event.data === "hyprstack-preview-settled:" + root.focusRequest)
+                root.finishFocusTransition();
+        }
+    }
+
+    Timer {
+        id: focusTimeout
+        interval: Hypr.usingLua ? 1600 : 550
+        onTriggered: root.finishFocusTransition()
+    }
+
     StyledText {
         anchors.fill: parent
-        visible: root.windows.length === 0
+        visible: root.windowSizes.length === 0
         text: Tr.tr("No windows on this workspace")
         color: Colours.palette.m3onSurfaceVariant
         horizontalAlignment: Text.AlignHCenter
@@ -128,7 +169,7 @@ Item {
                 const overflow = list.contentWidth - list.width;
                 const pixels = event.pixelDelta.x || event.pixelDelta.y;
                 const ticks = (event.angleDelta.x || event.angleDelta.y) / 120;
-                const steps = ticks * root.rowWidth / Math.max(1, root.windows.length);
+                const steps = ticks * root.rowWidth / Math.max(1, root.windowSizes.length);
                 const amount = event.device.type === PointerDevice.TouchPad ? pixels || steps : steps || pixels;
                 if (overflow <= 0 || amount === 0) {
                     event.accepted = false;
@@ -192,6 +233,7 @@ Item {
                 client: thumbnail.modelData
                 screen: root.popouts.screen
                 captureEnabled: root.opened && thumbnail.inViewport
+                paused: root.switchingWindow
                 fit: false
             }
         }

@@ -95,6 +95,7 @@ local titlebar_height = 32
 local swipe_enabled = true
 local pending_pins = {}
 local task_targets, minimize_timers = {}, {}
+local preview_timers = {}
 local layouts = {}
 hyprstack_layouts = layouts
 
@@ -1519,7 +1520,29 @@ function layouts.restore_window(window, focus)
     save()
 end
 
-function layouts.action(operation, address, stable_id)
+local function settle_previews(monitor_name, request)
+    if type(request) ~= "string" or request == "" then return end
+    local previous = preview_timers[monitor_name]
+    if previous then previous:set_enabled(false) end
+
+    local module = hl.plugin.hyprstack_previews
+    -- Allow clients to commit their first focused frame, even if the
+    -- compositor did not need to move any columns.
+    local elapsed = module and module.workspace_moving and 160 or 550
+    local function check()
+        local previews = hl.plugin.hyprstack_previews
+        if elapsed < 1400 and previews and previews.workspace_moving and previews.workspace_moving(monitor_name) then
+            elapsed = elapsed + 32
+            preview_timers[monitor_name] = hl.timer(check, { timeout = 32, type = "oneshot" })
+            return
+        end
+        preview_timers[monitor_name] = nil
+        hl.dispatch(hl.dsp.event("hyprstack-preview-settled:" .. request))
+    end
+    preview_timers[monitor_name] = hl.timer(check, { timeout = elapsed, type = "oneshot" })
+end
+
+function layouts.action(operation, address, stable_id, request)
     local window = address and hl.get_window("address:" .. address) or hl.get_active_window()
     if not window or not window.mapped then return end
     if stable_id and stable_id ~= window.stable_id then return end
@@ -1541,6 +1564,7 @@ function layouts.action(operation, address, stable_id)
             if enable_follow then hl.config({ scrolling = { follow_focus = 0 } }) end
             if not ok then error(err) end
         end)
+        settle_previews(monitor.name, request)
         return
     end
     if operation == "toggle-floating" then layouts.toggle_floating(window); return end

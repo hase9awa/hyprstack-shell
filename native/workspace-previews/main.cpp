@@ -22,6 +22,7 @@
 #include <hyprland/src/render/OpenGL.hpp>
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/render/gl/GLFramebuffer.hpp>
+#include <hyprland/src/state/MonitorState.hpp>
 
 extern "C" {
 #include <lauxlib.h>
@@ -175,6 +176,19 @@ int capture(lua_State* state) {
     return 0;
 }
 
+int workspaceMoving(lua_State* state) {
+    const auto monitor = State::monitorState()->query().name(luaL_checkstring(state, 1)).run();
+    const auto workspace = monitor ? (monitor->m_activeSpecialWorkspace ? monitor->m_activeSpecialWorkspace : monitor->m_activeWorkspace)
+                                   : nullptr;
+    const bool moving = workspace && std::ranges::any_of(Desktop::windowState()->windows(), [&](const auto& window) {
+        return window->mapped() && !window->isHidden() && window->m_workspace == workspace
+            && (window->positionAnimation()->isBeingAnimated() || window->sizeAnimation()->isBeingAnimated()
+                || window->presentation().alpha(Desktop::View::WINDOW_ALPHA_ACTIVE)->isBeingAnimated());
+    });
+    lua_pushboolean(state, moving);
+    return 1;
+}
+
 }
 
 APICALL EXPORT std::string PLUGIN_API_VERSION() {
@@ -186,6 +200,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         throw std::runtime_error("HyprStack workspace previews require matching Hyprland headers");
 
     HyprlandAPI::addLuaFunction(handle, "hyprstack_previews", "capture", capture);
+    HyprlandAPI::addLuaFunction(handle, "hyprstack_previews", "workspace_moving", workspaceMoving);
     return {"hyprstack-workspace-previews", "Undecorated previews of workspace windows", "HyprStack", HYPRSTACK_VERSION};
 }
 

@@ -13,6 +13,7 @@ Item {
     required property HyprlandToplevel client
     required property ShellScreen screen
     property bool captureEnabled: visible
+    property bool paused: false
     property bool fit: true
 
     readonly property var windowData: Hypr.clientData(client)
@@ -25,7 +26,7 @@ Item {
         return x + width <= output.x || y + height <= output.y
             || x >= output.x + screen.width || y >= output.y + screen.height;
     }
-    readonly property bool canStream: captureEnabled && !!client?.wayland && !offscreen
+    readonly property bool canStream: captureEnabled && !paused && !!client?.wayland && !offscreen
     readonly property bool hasFrame: hasLiveFrame || snapshot.status === Image.Ready
     readonly property real aspect: {
         const size = windowData?.size;
@@ -68,9 +69,9 @@ Item {
             anchors.fill: parent
             sourceItem: stream.item
             hideSource: true
-            // Keep displaying the last frame when scrolling takes the window
-            // outside the compositor's live capture area.
-            live: stream.item?.hasContent ?? false
+            // Keep the displayed texture through a focus transition or when
+            // scrolling takes its source outside the live capture area.
+            live: root.canStream && (stream.item?.hasContent ?? false)
             visible: root.hasLiveFrame
         }
 
@@ -88,7 +89,7 @@ Item {
 
     Timer {
         interval: 300
-        running: root.captureEnabled && Hypr.usingLua && !root.offscreen && !root.hasFrame && !root.streamTimedOut
+        running: root.captureEnabled && !root.paused && Hypr.usingLua && !root.offscreen && !root.hasFrame && !root.streamTimedOut
         onTriggered: root.streamTimedOut = true
     }
 
@@ -96,7 +97,7 @@ Item {
         id: capture
         property string requestedWindow
 
-        running: root.captureEnabled && Hypr.usingLua && !!root.windowData?.stableId && !root.hasFrame
+        running: root.captureEnabled && !root.paused && Hypr.usingLua && !!root.windowData?.stableId && !root.hasFrame
             && (root.offscreen || root.streamTimedOut)
         command: {
             const address = JSON.stringify(root.windowData?.address ?? "");
