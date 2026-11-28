@@ -59,20 +59,35 @@ Item {
             sourceComponent: ScreencopyView {
                 objectName: "workspaceWindowThumbnail"
 
+                // Release any pending export when pausing. It could otherwise
+                // deliver a frame taken while the compositor is moving windows.
                 captureSource: root.canStream ? root.client.wayland : null
                 live: root.canStream
-                onHasContentChanged: if (hasContent) root.hasLiveFrame = true
             }
         }
 
         ShaderEffectSource {
+            readonly property bool freshContent: root.canStream && (stream.item?.hasContent ?? false)
+            property bool presenting: false
+
             anchors.fill: parent
             sourceItem: stream.item
             hideSource: true
-            // Keep the displayed texture through a focus transition or when
-            // scrolling takes its source outside the live capture area.
-            live: root.canStream && (stream.item?.hasContent ?? false)
-            visible: root.hasLiveFrame
+            live: freshContent && presenting
+            visible: root.hasLiveFrame || freshContent
+            // Keep the displayed texture through a focus transition. Resume
+            // live updates after the capture has rendered into this texture.
+            onFreshContentChanged: {
+                presenting = false;
+                if (freshContent)
+                    scheduleUpdate();
+            }
+            onScheduledUpdateCompleted: {
+                if (freshContent) {
+                    root.hasLiveFrame = true;
+                    presenting = true;
+                }
+            }
         }
 
         Image {

@@ -1520,15 +1520,22 @@ function layouts.restore_window(window, focus)
     save()
 end
 
-local function settle_previews(monitor_name, request)
+function layouts.settle_previews(monitor_name, request, only_if_moving)
     if type(request) ~= "string" or request == "" then return end
     local previous = preview_timers[monitor_name]
     if previous then previous:set_enabled(false) end
 
     local module = hl.plugin.hyprstack_previews
+    local moving = module and module.workspace_moving
+    if only_if_moving and (not moving or not moving(monitor_name)) then
+        preview_timers[monitor_name] = nil
+        hl.dispatch(hl.dsp.event("hyprstack-preview-settled:" .. request))
+        return
+    end
+
     -- Allow clients to commit their first focused frame, even if the
     -- compositor did not need to move any columns.
-    local elapsed = module and module.workspace_moving and 160 or 550
+    local elapsed = moving and 160 or 550
     local function check()
         local previews = hl.plugin.hyprstack_previews
         if elapsed < 1400 and previews and previews.workspace_moving and previews.workspace_moving(monitor_name) then
@@ -1543,10 +1550,17 @@ local function settle_previews(monitor_name, request)
 end
 
 function layouts.action(operation, address, stable_id, request)
-    local window = address and hl.get_window("address:" .. address) or hl.get_active_window()
+    local window = hl.get_active_window()
+    if address then window = hl.get_window("address:" .. address) end
     if not window or not window.mapped then return end
     if stable_id and stable_id ~= window.stable_id then return end
-    if operation == "focus-preview" then
+    if operation == "close" then
+        local monitor = window.monitor
+        hl.dispatch(hl.dsp.window.close({ window = window }))
+        if monitor then layouts.settle_previews(monitor.name, request) end
+        return
+    end
+    if operation == "focus-preview" or operation == "maximize-preview" then
         local monitor = window.monitor
         local workspace = window.workspace
         if not monitor or not workspace or workspace ~= (monitor.active_special_workspace or monitor.active_workspace) then return end
@@ -1557,17 +1571,24 @@ function layouts.action(operation, address, stable_id, request)
             local ok, err = pcall(function()
                 if not monitor.focused then hl.dispatch(hl.dsp.focus({ monitor = monitor })) end
                 hl.dispatch(hl.dsp.focus({ window = window }))
-                if reveal and monitor.focused and window == hl.get_active_window() then
+                if operation == "maximize-preview" then
+                    hl.dispatch(hl.dsp.window.fullscreen({ window = window, mode = "maximized" }))
+                elseif reveal and monitor.focused and window == hl.get_active_window() then
                     hl.dispatch(hl.dsp.layout("fit_into_view"))
                 end
             end)
             if enable_follow then hl.config({ scrolling = { follow_focus = 0 } }) end
             if not ok then error(err) end
         end)
-        settle_previews(monitor.name, request)
+        layouts.settle_previews(monitor.name, request)
         return
     end
-    if operation == "toggle-floating" then layouts.toggle_floating(window); return end
+    if operation == "toggle-floating" then
+        local monitor = window.monitor
+        without_cursor_warps(function() layouts.toggle_floating(window) end)
+        if monitor then layouts.settle_previews(monitor.name, request) end
+        return
+    end
     if layouts.mode() ~= "stacking" then return end
     local record = record_for(window) or { id = window.stable_id, workspace = key(window.workspace) }
     records[window.address] = record
@@ -1575,9 +1596,7 @@ function layouts.action(operation, address, stable_id, request)
     -- minimize. That delayed state request must not undo a newer minimize.
     -- A hidden client cannot initiate a fresh click on its native titlebar.
     if record.minimized and (operation == "maximize-set" or operation == "maximize-unset") then return end
-    if operation == "close" then
-        hl.dispatch(hl.dsp.window.close({ window = window }))
-    elseif operation == "restore" or operation == "activate" then
+    if operation == "restore" or operation == "activate" then
         if record.minimized then
             layouts.restore_window(window)
         else

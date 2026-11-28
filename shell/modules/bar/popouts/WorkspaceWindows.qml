@@ -7,6 +7,7 @@ import Quickshell.Hyprland
 import Hyprstack.Config
 import Hyprstack.I18n
 import qs.components
+import qs.components.controls
 import qs.components.widgets
 import qs.services
 
@@ -36,7 +37,10 @@ Item {
     property var windowSizes: []
     property string focusRequest: ""
     property int focusSequence: 0
-    readonly property bool switchingWindow: focusRequest.length > 0
+    property bool holdLayout: false
+    property WindowPreview hoveredPreview: null
+    readonly property bool capturePaused: focusRequest.length > 0
+    readonly property bool switchingWindow: capturePaused && holdLayout
     readonly property bool opened: popouts.hasCurrent && popouts.currentName === "workspacewindows"
     readonly property real spacing: Tokens.spacing.small
     readonly property real maxWidth: Math.max(1, popouts.screen.width - (Tokens.padding.large + Config.border.thickness * Tokens.scale) * 2)
@@ -59,12 +63,21 @@ Item {
     readonly property var previewSizes: windowSizes.map(size => Qt.size(
         Math.max(1, Math.round(size.width * previewScale)) + borderWidth * 2,
         Math.max(1, Math.round(size.height * previewScale)) + borderWidth * 2))
+    readonly property var previewOffsets: {
+        let left = 0;
+        return previewSizes.map(size => {
+            const offset = left;
+            left += size.width + spacing;
+            return offset;
+        });
+    }
     readonly property real rowWidth: previewSizes.reduce((width, size) => width + size.width, 0)
         + Math.max(0, windowSizes.length - 1) * spacing
     readonly property real rowHeight: previewSizes.reduce((height, size) => Math.max(height, size.height), 0)
+    readonly property real stripHeight: rowHeight + (rowWidth > maxWidth ? Tokens.padding.small : 0)
 
-    implicitWidth: Math.min(maxWidth, windowSizes.length ? rowWidth : 360 * Tokens.scale)
-    implicitHeight: windowSizes.length ? rowHeight + (rowWidth > maxWidth ? Tokens.padding.small : 0) : 46 * Tokens.scale
+    implicitWidth: Math.min(maxWidth, windowSizes.length ? Math.max(rowWidth, actions.implicitWidth) : 360 * Tokens.scale)
+    implicitHeight: windowSizes.length ? stripHeight + spacing + actions.height : 46 * Tokens.scale
 
     Binding on windowSizes {
         when: !root.switchingWindow
@@ -92,10 +105,18 @@ Item {
     onWindowsChanged: refreshWindowModel()
     onSwitchingWindowChanged: if (!switchingWindow) refreshWindowModel()
     onOpenedChanged: {
-        if (opened)
+        if (opened) {
             Hypr.extras.refreshOptions();
-        else
+            if (Hypr.usingLua) {
+                // Offscreen windows get a still image. Wait for any motion
+                // already in progress so that image starts with settled content.
+                const args = [popouts.screen.name, beginFocusTransition(false)].map(value => JSON.stringify(value)).join(", ");
+                Hypr.extras.message(`eval hyprstack_layouts.settle_previews(${args}, true)`);
+            }
+        } else {
+            hoveredPreview = null;
             finishFocusTransition();
+        }
     }
     Component.onCompleted: {
         refreshWindowModel();
@@ -107,30 +128,53 @@ Item {
         focusRequest = "";
     }
 
-    function focusWindow(window: HyprlandToplevel): void {
+    function beginFocusTransition(freezeLayout: bool): string {
+        holdLayout = freezeLayout;
+        focusRequest = `${popouts.screen.name}-${Date.now()}-${++focusSequence}`;
+        focusTimeout.restart();
+        return focusRequest;
+    }
+
+    function act(window: HyprlandToplevel, operation: string): void {
         const client = Hypr.clientData(window);
         if (!client?.address || (Hypr.usingLua && !client.stableId))
             return;
-        focusRequest = `${popouts.screen.name}-${Date.now()}-${++focusSequence}`;
-        focusTimeout.restart();
+
+        const request = beginFocusTransition(operation !== "close");
 
         if (Hypr.usingLua) {
-            const args = [client.address, client.stableId, focusRequest].map(value => JSON.stringify(value)).join(", ");
-            Hypr.extras.message(`eval hyprstack_layouts.action("focus-preview", ${args})`);
+            const args = [operation, client.address, client.stableId, request].map(value => JSON.stringify(value)).join(", ");
+            Hypr.extras.message(`eval hyprstack_layouts.action(${args})`);
             return;
         }
-        const focus = "focuswindow address:" + client.address;
-        if (Hypr.options["cursor:no_warps"] === false)
-            Hypr.extras.batchMessage(["keyword cursor:no_warps true", "dispatch " + focus, "keyword cursor:no_warps false"]);
+
+        const address = " address:" + client.address;
+        if (operation === "close" || operation === "toggle-floating") {
+            Hypr.dispatch((operation === "close" ? "closewindow" : "togglefloating") + address);
+            return;
+        }
+        const commands = ["dispatch focuswindow" + address];
+        if (operation === "maximize-preview")
+            commands.push("dispatch fullscreen 1");
+        if (Hypr.options["cursor:no_warps"] === false) {
+            commands.unshift("keyword cursor:no_warps true");
+            commands.push("keyword cursor:no_warps false");
+        }
+        Hypr.extras.batchMessage(commands);
+    }
+
+    function updateActionHover(): void {
+        if (hoveredPreview?.hovered || actionHover.hovered)
+            hideActions.stop();
         else
-            Hypr.dispatch(focus);
+            hideActions.restart();
     }
 
     Connections {
         target: Hyprland
 
         function onRawEvent(event: HyprlandEvent): void {
-            if (root.switchingWindow && event.name === "custom" && event.data === "hyprstack-preview-settled:" + root.focusRequest)
+            if (root.capturePaused && event.name === "custom" && event.data === "hyprstack-preview-settled:" + root.focusRequest)
                 root.finishFocusTransition();
         }
     }
@@ -139,6 +183,12 @@ Item {
         id: focusTimeout
         interval: Hypr.usingLua ? 1600 : 550
         onTriggered: root.finishFocusTransition()
+    }
+
+    Timer {
+        id: hideActions
+        interval: 200
+        onTriggered: root.hoveredPreview = null
     }
 
     StyledText {
@@ -155,9 +205,12 @@ Item {
         id: list
         objectName: "workspaceWindowStrip"
 
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: root.stripHeight
         clip: true
-        contentWidth: root.rowWidth
+        contentWidth: Math.max(width, root.rowWidth)
         contentHeight: height
         flickableDirection: Flickable.HorizontalFlick
         boundsBehavior: Flickable.StopAtBounds
@@ -191,13 +244,88 @@ Item {
             }
         }
 
-        Row {
-            spacing: root.spacing
+        Repeater {
+            // Keep each capture and its rendered frame when the layout reorders
+            // windows or another window opens or closes.
+            model: ScriptModel { values: root.shownWindows }
+            delegate: WindowPreview {}
+        }
+    }
 
-            Repeater {
-                model: root.shownWindows
-                delegate: WindowPreview {}
-            }
+    Row {
+        id: actions
+        objectName: "workspaceWindowActions"
+
+        readonly property WindowPreview thumbnail: root.hoveredPreview
+        readonly property real buttonSize: 32 * Tokens.scale
+        readonly property bool floating: thumbnail?.client?.floating ?? false
+        readonly property bool maximized: Hypr.isMaximized(thumbnail?.modelData ?? null)
+
+        anchors.bottom: parent.bottom
+        x: Math.max(0, Math.min(root.width - width,
+            list.x + (thumbnail?.x ?? 0) - list.contentX + (thumbnail?.width ?? 0) / 2 - width / 2))
+        spacing: Tokens.spacing.extraSmall
+        height: buttonSize
+        visible: root.opened && !!thumbnail?.inViewport && !!thumbnail?.modelData
+
+        HoverHandler {
+            id: actionHover
+            onHoveredChanged: root.updateActionHover()
+        }
+
+        PreviewAction {
+            objectName: "workspaceWindowSettings"
+            icon: "settings"
+            actionLabel: Tr.tr("Settings")
+            onClicked: root.popouts.windowInfoRequested(actions.thumbnail?.modelData ?? null)
+        }
+
+        PreviewAction {
+            objectName: "workspaceWindowFloat"
+            icon: actions.floating ? "view_column" : "picture_in_picture_alt"
+            actionLabel: actions.floating ? Tr.tr("Tile") : Tr.tr("Float")
+            disabled: !!actions.thumbnail?.client?.pinned || (actions.thumbnail?.client?.workspace?.id ?? 0) < -1
+            onClicked: root.act(actions.thumbnail?.modelData ?? null, "toggle-floating")
+        }
+
+        PreviewAction {
+            objectName: "workspaceWindowMaximize"
+            icon: actions.maximized ? "filter_none" : "crop_square"
+            actionLabel: actions.maximized ? Tr.tr("Restore window size") : Tr.tr("Toggle maximized")
+            onClicked: root.act(actions.thumbnail?.modelData ?? null, "maximize-preview")
+        }
+
+        PreviewAction {
+            objectName: "workspaceWindowClose"
+            icon: "close"
+            actionLabel: Tr.tr("Close window")
+            inactiveOnColour: hovered ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
+            onClicked: root.act(actions.thumbnail?.modelData ?? null, "close")
+        }
+    }
+
+    component PreviewAction: IconButton {
+        id: button
+
+        required property string actionLabel
+
+        width: actions.buttonSize
+        height: actions.buttonSize
+        type: IconButton.Text
+        defaultRadius: Tokens.rounding.small
+        font: Tokens.font.icon.small
+
+        Accessible.role: Accessible.Button
+        Accessible.name: actionLabel
+        Accessible.description: actions.thumbnail?.windowTitle ?? ""
+        Accessible.onPressAction: if (!disabled) clicked()
+
+        ToolTip {
+            parent: button
+            visible: button.visible && button.hovered
+            delay: 600
+            y: button.height + Tokens.spacing.extraSmall
+            text: button.actionLabel
         }
     }
 
@@ -210,7 +338,9 @@ Item {
         readonly property var client: Hypr.clientData(modelData)
         readonly property string windowTitle: modelData?.title || client?.class || ""
         readonly property bool inViewport: x + width > list.contentX && x < list.contentX + list.width
+        readonly property bool hovered: hover.hovered
 
+        x: (root.previewOffsets[index] ?? 0) + Math.max(0, (list.width - root.rowWidth) / 2)
         width: root.previewSizes[index]?.width ?? 0
         height: root.previewSizes[index]?.height ?? 0
         readonly property real rounding: Math.min(root.previewRounding,
@@ -218,7 +348,7 @@ Item {
 
         Accessible.role: Accessible.Button
         Accessible.name: windowTitle
-        Accessible.onPressAction: root.focusWindow(modelData)
+        Accessible.onPressAction: root.act(modelData, "focus-preview")
 
         StyledClippingRect {
             anchors.fill: parent
@@ -233,7 +363,7 @@ Item {
                 client: thumbnail.modelData
                 screen: root.popouts.screen
                 captureEnabled: root.opened && thumbnail.inViewport
-                paused: root.switchingWindow
+                paused: root.capturePaused
                 fit: false
             }
         }
@@ -241,7 +371,8 @@ Item {
         Canvas {
             objectName: "workspaceWindowFrame"
 
-            readonly property var style: hover.hovered ? root.hoverBorder : root.inactiveBorder
+            readonly property var style: hover.hovered || (root.hoveredPreview === thumbnail && actionHover.hovered)
+                ? root.hoverBorder : root.inactiveBorder
             readonly property real thickness: root.borderWidth
             readonly property real rounding: thumbnail.rounding
             anchors.fill: parent
@@ -286,6 +417,11 @@ Item {
         HoverHandler {
             id: hover
             enabled: thumbnail.inViewport
+            onHoveredChanged: {
+                if (hovered)
+                    root.hoveredPreview = thumbnail;
+                root.updateActionHover();
+            }
         }
 
         MouseArea {
@@ -296,37 +432,7 @@ Item {
                 if (event.button === Qt.RightButton)
                     root.popouts.windowInfoRequested(thumbnail.modelData);
                 else
-                    root.focusWindow(thumbnail.modelData);
-            }
-        }
-
-        StyledRect {
-            objectName: "workspaceWindowSettings"
-
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.margins: Math.max(root.borderWidth + Tokens.padding.extraSmall, thumbnail.rounding / 2)
-            width: settingsIcon.implicitWidth + Tokens.padding.small
-            height: width
-            visible: hover.hovered && width + anchors.margins * 2 <= Math.min(parent.width, parent.height)
-            color: Colours.palette.m3surfaceContainerHigh
-            radius: Tokens.rounding.small
-
-            Accessible.role: Accessible.Button
-            Accessible.name: Tr.tr("Settings")
-            Accessible.description: thumbnail.windowTitle
-            Accessible.onPressAction: root.popouts.windowInfoRequested(thumbnail.modelData)
-
-            StateLayer {
-                onClicked: root.popouts.windowInfoRequested(thumbnail.modelData)
-            }
-
-            MaterialIcon {
-                id: settingsIcon
-
-                anchors.centerIn: parent
-                text: "settings"
-                fontStyle: Tokens.font.icon.small
+                    root.act(thumbnail.modelData, "focus-preview");
             }
         }
     }
