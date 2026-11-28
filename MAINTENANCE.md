@@ -110,6 +110,27 @@ Hyprland в менеджере входа. Конфигурация проект
 `hyprstack-session start` проверяет всю цепочку запуска службы.
 Команда `hyprstack shell` запускает только интерфейс.
 
+### Вывод Hyprland на экране входа
+
+Если перед появлением greeter или рабочего стола виден вывод Hyprland на TTY,
+перенаправьте его в журнал. В конфигурации менеджера входа добавьте
+`/usr/bin/systemd-cat --identifier=hyprland-greeter` перед командой
+`start-hyprland`, которая запускает композитор для greeter. Сохраните её параметры
+и окружение, включая `dbus-run-session`, если он используется.
+
+Для пользовательского сеанса укажите команду запуска через `systemd-cat`
+в записи Wayland-сеанса, которую читает менеджер входа.
+
+```ini
+Exec=/usr/bin/systemd-cat --identifier=hyprland-session /usr/bin/start-hyprland
+```
+
+Команда ниже показывает оба журнала за текущую загрузку.
+
+```bash
+journalctl -b -t hyprland-greeter -t hyprland-session
+```
+
 ## Сеть и звук
 
 Панель сети использует NetworkManager, звук — PipeWire/WirePlumber:
