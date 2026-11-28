@@ -31,8 +31,11 @@ Item {
     readonly property bool independentCapture: offscreen || preferNative
     readonly property bool canCapture: captureEnabled && !paused
     readonly property bool canStream: canCapture && !!client?.wayland && !independentCapture
-    readonly property bool frameReady: canStream && (stream.item?.hasContent ?? false)
-        && matchesGeometry(stream.item.sourceSize)
+    readonly property string frameKey: {
+        const size = stream.item?.sourceSize;
+        return canStream && stream.item?.hasContent && matchesGeometry(size) ? `${size.width}x${size.height}` : "";
+    }
+    readonly property bool frameReady: frameKey.length > 0
     readonly property bool wantsNative: canCapture && Hypr.usingLua && !!windowData?.stableId
         && (independentCapture || streamTimedOut) && !frameReady
         && (refreshOffscreen || snapshot.status !== Image.Ready)
@@ -80,9 +83,9 @@ Item {
         if (wantsNative)
             Qt.callLater(requestNative);
     }
-    onFrameReadyChanged: {
+    onFrameKeyChanged: {
         ++streamGeneration;
-        stageFrame();
+        Qt.callLater(stageFrame);
     }
 
     function matchesGeometry(size: size): bool {
@@ -95,9 +98,16 @@ Item {
     function stageFrame(): void {
         if (!frameReady || pendingBuffer >= 0)
             return;
+        const index = displayedBuffer === 0 ? 1 : 0;
+        const target = index === 0 ? firstBuffer : secondBuffer;
+        const {width, height} = stream.item;
+        // Record the dimensions with the staged frame. The displayed buffer
+        // keeps its own rectangle when the capture changes size.
+        target.sourceRect = Qt.rect(0, 0, width, height);
+        target.textureSize = Qt.size(Math.max(1, Math.round(width)), Math.max(1, Math.round(height)));
         pendingGeneration = streamGeneration;
-        pendingBuffer = displayedBuffer === 0 ? 1 : 0;
-        (pendingBuffer === 0 ? firstBuffer : secondBuffer).scheduleUpdate();
+        pendingBuffer = index;
+        target.scheduleUpdate();
     }
 
     function presentFrame(buffer: int): void {
@@ -142,8 +152,9 @@ Item {
             sourceComponent: ScreencopyView {
                 objectName: "workspaceWindowThumbnail"
 
-                width: root.textureSide
-                height: root.textureSide
+                constraintSize: Qt.size(root.textureSide, root.textureSide)
+                width: implicitWidth || root.textureSide
+                height: implicitHeight || root.textureSide
                 captureSource: root.canStream ? root.client.wayland : null
                 live: root.canStream
             }
@@ -181,16 +192,17 @@ Item {
     component PreviewBuffer: ShaderEffectSource {
         required property int index
         readonly property bool displayed: root.displayedBuffer === index
+        readonly property real frameAspect: sourceRect.height > 0 ? sourceRect.width / sourceRect.height : 1
 
         objectName: displayed ? "workspaceWindowLiveFrame" : ""
         sourceItem: stream.item
         hideSource: true
-        textureSize: Qt.size(root.textureSide, root.textureSide)
-        width: parent.width
-        height: parent.height
+        width: Math.max(parent.width, parent.height * frameAspect)
+        height: Math.max(parent.height, parent.width / frameAspect)
+        y: (parent.height - height) / 2
         visible: displayed || root.pendingBuffer === index
         // Qt renders the pending texture outside the visible clip.
-        x: displayed && !root.showingNative ? 0 : -width
+        x: displayed && !root.showingNative ? (parent.width - width) / 2 : -width
         live: displayed && root.frameReady && root.displayedGeneration === root.streamGeneration
         onScheduledUpdateCompleted: root.presentFrame(index)
     }
