@@ -50,8 +50,16 @@ class UpdateTests(unittest.TestCase):
         self.uid.start()
         self.tools = patch.object(updates.shutil, "which", side_effect=lambda name: "/usr/bin/" + name)
         self.tools.start()
-        self.capture = patch.object(updates.deployment, "capture", side_effect=lambda cmd:
-            '{"version":"0.57.1","abiHash":"test-abi"}' if cmd[0] == "Hyprland" else "6.10.0")
+        self.config_provider = "lua"
+
+        def capture(command):
+            if command[0] == "Hyprland":
+                return '{"version":"0.57.1","abiHash":"test-abi"}'
+            if command[-1] == "status":
+                return json.dumps({"configProvider": self.config_provider})
+            return "6.10.0"
+
+        self.capture = patch.object(updates.deployment, "capture", side_effect=capture)
         self.capture.start()
         self.manager = updates.Updates("1.0.0")
         self.original_root = updates.deployment.ROOT
@@ -247,7 +255,7 @@ class UpdateTests(unittest.TestCase):
         with patch.object(updates.subprocess, "run", side_effect=lambda command, **kwargs: commands.append(command)), \
              patch.object(updates.deployment, "active_compositors", side_effect=[["test-session"], [], []]):
             self.manager.apply()
-        self.assertIn(["hyprctl", "-i", "test-session", "dispatch", "exit"], commands)
+        self.assertIn(["hyprctl", "-i", "test-session", "dispatch", "hl.dsp.exit()"], commands)
         self.assertEqual(self.binary.read_text(), "NEW BINARY")
         self.assertEqual(self.settings.read_text(), "MY SETTINGS")
         self.assertEqual(self.theme.read_text(), "MY THEME")
@@ -258,6 +266,17 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(self.binary.read_text(), "OLD BINARY")
         self.assertEqual(self.settings.read_text(), "MY SETTINGS")
         self.assertEqual(self.theme.read_text(), "MY THEME")
+
+    def test_hyprlang_session_uses_legacy_exit(self):
+        self.config_provider = "hyprlang"
+        self.installed()
+        self.staged()
+        with patch.object(updates.subprocess, "run") as run, \
+             patch.object(updates.deployment, "active_compositors", side_effect=[["test-session"], [], []]):
+            self.manager.apply()
+        self.assertIn(["hyprctl", "-i", "test-session", "dispatch", "exit"],
+            [call.args[0] for call in run.call_args_list])
+        self.assertEqual(self.binary.read_text(), "NEW BINARY")
 
     def test_failed_install_restores_the_previous_files(self):
         self.installed()
@@ -422,7 +441,12 @@ urllib.request.urlopen = download
         link.parent.mkdir(parents=True)
         link.symlink_to(target, target_is_directory=True)
         retired = installation.data / "hyprstack/shell/services/Retired.qml"
-        before = list(installation.plan()) + [File(link, link=str(target)), File(retired, b"OLD MODULE")]
+        quickshell = installation.bin / "qs"
+        runtime = installation.data / "hyprstack/runtime/quickshell"
+        before = list(installation.plan()) + [
+            File(link, link=str(target)), File(retired, b"OLD MODULE"),
+            File(quickshell, link=str(runtime)), File(runtime, b"LOCAL QUICKSHELL"),
+        ]
         with patch.object(installation, "plan", return_value=iter(before)), redirect_stdout(io.StringIO()):
             installation.transaction("install")
         with redirect_stdout(io.StringIO()):
@@ -431,6 +455,8 @@ urllib.request.urlopen = download
         self.assertTrue(link.is_symlink())
         self.assertEqual((link / "Module.qml").read_text(), "MY MODULE")
         self.assertIn(str(link), json.loads(installation.manifest.read_text())["files"])
+        self.assertTrue(quickshell.is_symlink())
+        self.assertEqual(quickshell.read_bytes(), b"LOCAL QUICKSHELL")
 
     @unittest.skipUnless(shutil.which("node"), "node is required to exercise settings search")
     def test_settings_search_opens_update_controls_in_both_languages(self):

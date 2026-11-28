@@ -299,8 +299,11 @@ class Updates:
             raise ValueError("Close the other Hyprland sessions before installing the update")
         self.save(phase="waiting", pid=os.getpid(), error="")
         if signature in active:
-            subprocess.run(["hyprctl", "-i", signature, "dispatch", "exit"],
-                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
+            target = ["hyprctl", "-i", signature]
+            status = json.loads(deployment.capture([*target, "-j", "status"]) or "{}")
+            dispatcher = "hl.dsp.exit()" if status.get("configProvider") == "lua" else "exit"
+            subprocess.run([*target, "dispatch", dispatcher],
+                check=True, capture_output=True, text=True, timeout=10)
         deadline = time.monotonic() + 60
         while deployment.active_compositors(self.installation):
             if time.monotonic() > deadline:
@@ -408,8 +411,10 @@ def main(argv=None):
     except (OSError, ValueError, URLError, tarfile.TarError, subprocess.SubprocessError) as error:
         # Keep a successful release check and a prepared build after failures.
         detail = str(error)
-        if isinstance(error, subprocess.CalledProcessError) and error.stderr:
-            detail += ": " + str(error.stderr).strip()
+        if isinstance(error, subprocess.CalledProcessError):
+            output = error.stderr or error.stdout
+            if output:
+                detail += ": " + str(output).strip()
         try:
             with deployment.installation_lock(manager.installation):
                 manager.save(phase="error", pid=None, error=detail, error_action=args.action)

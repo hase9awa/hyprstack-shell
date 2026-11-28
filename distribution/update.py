@@ -32,10 +32,12 @@ class Update(Installer):
     staging: Path | None = None
 
     def should_retire(self, path):
-        # Earlier installers share this ledger with private shell overlays and
-        # user-service drop-ins. A public release must leave those files alone.
-        return (any(path.is_relative_to(root) for root in
-                    (self.bin, self.data / "hyprstack", self.config / "hypr"))
+        # Earlier installers share this ledger with private overlays, service
+        # drop-ins and local dependencies such as a custom Quickshell build.
+        package = self.data / "hyprstack"
+        return ((path.parent == self.bin and path.name.startswith("hyprstack"))
+            or (path.is_relative_to(package) and not path.is_relative_to(package / "runtime"))
+            or path.is_relative_to(self.config / "hypr")
             or path in (self.config / "hyprstack/hypr-user.lua",
                 self.config / "systemd/user/hyprstack-session.service",
                 self.config / "systemd/user/hyprstack-vpn.service",
