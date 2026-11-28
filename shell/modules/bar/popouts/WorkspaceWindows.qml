@@ -37,6 +37,7 @@ Item {
     property var windowSizes: []
     property string focusRequest: ""
     property int focusSequence: 0
+    property int snapshotRevision: 0
     property bool holdLayout: false
     property WindowPreview hoveredPreview: null
     readonly property bool capturePaused: focusRequest.length > 0
@@ -74,10 +75,8 @@ Item {
     readonly property real rowWidth: previewSizes.reduce((width, size) => width + size.width, 0)
         + Math.max(0, windowSizes.length - 1) * spacing
     readonly property real rowHeight: previewSizes.reduce((height, size) => Math.max(height, size.height), 0)
-    readonly property real stripHeight: rowHeight + (rowWidth > maxWidth ? Tokens.padding.small : 0)
-
-    implicitWidth: Math.min(maxWidth, windowSizes.length ? Math.max(rowWidth, actions.implicitWidth) : 360 * Tokens.scale)
-    implicitHeight: windowSizes.length ? stripHeight + spacing + actions.height : 46 * Tokens.scale
+    implicitWidth: Math.min(maxWidth, windowSizes.length ? rowWidth : 360 * Tokens.scale)
+    implicitHeight: windowSizes.length ? rowHeight + (rowWidth > maxWidth ? Tokens.padding.small : 0) : 46 * Tokens.scale
 
     Binding on windowSizes {
         when: !root.switchingWindow
@@ -106,10 +105,10 @@ Item {
     onSwitchingWindowChanged: if (!switchingWindow) refreshWindowModel()
     onOpenedChanged: {
         if (opened) {
+            ++snapshotRevision;
             Hypr.extras.refreshOptions();
             if (Hypr.usingLua) {
-                // Offscreen windows get a still image. Wait for any motion
-                // already in progress so that image starts with settled content.
+                // Start the new set of snapshots after any motion already in progress.
                 const args = [popouts.screen.name, beginFocusTransition(false)].map(value => JSON.stringify(value)).join(", ");
                 Hypr.extras.message(`eval hyprstack_layouts.settle_previews(${args}, true)`);
             }
@@ -188,7 +187,10 @@ Item {
     Timer {
         id: hideActions
         interval: 200
-        onTriggered: root.hoveredPreview = null
+        onTriggered: {
+            if (!root.hoveredPreview?.hovered && !actionHover.hovered)
+                root.hoveredPreview = null;
+        }
     }
 
     StyledText {
@@ -205,10 +207,7 @@ Item {
         id: list
         objectName: "workspaceWindowStrip"
 
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: root.stripHeight
+        anchors.fill: parent
         clip: true
         contentWidth: Math.max(width, root.rowWidth)
         contentHeight: height
@@ -252,21 +251,31 @@ Item {
         }
     }
 
-    Row {
+    Grid {
         id: actions
         objectName: "workspaceWindowActions"
 
         readonly property WindowPreview thumbnail: root.hoveredPreview
-        readonly property real buttonSize: 32 * Tokens.scale
         readonly property bool floating: thumbnail?.client?.floating ?? false
         readonly property bool maximized: Hypr.isMaximized(thumbnail?.modelData ?? null)
+        readonly property real minimumSize: 18 * Tokens.scale
+        readonly property real inset: Math.max(root.borderWidth + Tokens.padding.extraSmall, (thumbnail?.rounding ?? 0) / 2)
+        readonly property real offset: (thumbnail?.x ?? 0) - list.contentX
+        readonly property real visibleLeft: Math.max(0, offset)
+        readonly property real visibleRight: Math.min(list.width, offset + (thumbnail?.width ?? 0))
+        readonly property real availableWidth: visibleRight - visibleLeft - 2 * inset
+        readonly property real availableHeight: (thumbnail?.height ?? 0) - 2 * inset
+        readonly property real buttonSize: Math.max(0, Math.min(28 * Tokens.scale,
+            (availableWidth - (columns - 1) * spacing) / columns,
+            (availableHeight - (rows - 1) * spacing) / rows))
 
-        anchors.bottom: parent.bottom
-        x: Math.max(0, Math.min(root.width - width,
-            list.x + (thumbnail?.x ?? 0) - list.contentX + (thumbnail?.width ?? 0) / 2 - width / 2))
+        columns: availableWidth >= 4 * minimumSize + 3 * spacing ? 4
+            : availableWidth >= 2 * minimumSize + spacing ? 2 : 1
+        rows: 4 / columns
+        x: visibleRight - inset - width
+        y: inset
         spacing: Tokens.spacing.extraSmall
-        height: buttonSize
-        visible: root.opened && !!thumbnail?.inViewport && !!thumbnail?.modelData
+        visible: root.opened && !!thumbnail?.inViewport && !!thumbnail?.modelData && buttonSize >= minimumSize
 
         HoverHandler {
             id: actionHover
@@ -311,8 +320,11 @@ Item {
 
         width: actions.buttonSize
         height: actions.buttonSize
-        type: IconButton.Text
+        type: IconButton.Tonal
+        inactiveColour: Qt.alpha(Colours.palette.m3surfaceContainerHigh, 0.92)
+        inactiveOnColour: Colours.palette.m3onSurface
         defaultRadius: Tokens.rounding.small
+        radiusMorph: false
         font: Tokens.font.icon.small
 
         Accessible.role: Accessible.Button
@@ -324,7 +336,7 @@ Item {
             parent: button
             visible: button.visible && button.hovered
             delay: 600
-            y: button.height + Tokens.spacing.extraSmall
+            y: -height - Tokens.spacing.extraSmall
             text: button.actionLabel
         }
     }
@@ -350,24 +362,7 @@ Item {
         Accessible.name: windowTitle
         Accessible.onPressAction: root.act(modelData, "focus-preview")
 
-        StyledClippingRect {
-            anchors.fill: parent
-            anchors.margins: root.borderWidth
-            radius: thumbnail.rounding
-            color: Colours.palette.m3surfaceContainerLowest
-            visible: thumbnail.inViewport
-
-            WindowCapture {
-                objectName: "windowCapture"
-                anchors.fill: parent
-                client: thumbnail.modelData
-                screen: root.popouts.screen
-                captureEnabled: root.opened && thumbnail.inViewport
-                paused: root.capturePaused
-                fit: false
-            }
-        }
-
+        // The image sits above the focus border even while the border repaints.
         Canvas {
             objectName: "workspaceWindowFrame"
 
@@ -388,9 +383,7 @@ Item {
                 if (!visible || width <= thickness || height <= thickness)
                     return;
                 const ctx = getContext("2d");
-                const inset = thickness / 2;
                 ctx.clearRect(0, 0, width, height);
-                ctx.lineWidth = thickness;
                 if (style.colors.length > 1) {
                     const sine = Math.sin(style.angle);
                     const x = Math.sign(Math.cos(style.angle)) * (1 - Math.abs(sine)) / width;
@@ -399,18 +392,38 @@ Item {
                     const gradient = ctx.createLinearGradient(width / 2 - x * span, height / 2 - y * span,
                         width / 2 + x * span, height / 2 + y * span);
                     style.colors.forEach((color, index) => gradient.addColorStop(index / (style.colors.length - 1), color));
-                    ctx.strokeStyle = gradient;
+                    ctx.fillStyle = gradient;
                 } else {
-                    ctx.strokeStyle = style.colors[0];
+                    ctx.fillStyle = style.colors[0];
                 }
                 ctx.beginPath();
                 if (rounding > 0) {
-                    const radius = rounding + inset;
-                    ctx.roundedRect(inset, inset, width - thickness, height - thickness, radius, radius);
+                    const radius = Math.min(rounding + thickness, width / 2, height / 2);
+                    ctx.roundedRect(0, 0, width, height, radius, radius);
                 } else {
-                    ctx.rect(inset, inset, width - thickness, height - thickness);
+                    ctx.rect(0, 0, width, height);
                 }
-                ctx.stroke();
+                ctx.fill();
+            }
+        }
+
+        StyledClippingRect {
+            anchors.fill: parent
+            anchors.margins: root.borderWidth
+            radius: thumbnail.rounding
+            color: Colours.palette.m3surfaceContainerLowest
+            visible: thumbnail.inViewport
+
+            WindowCapture {
+                objectName: "windowCapture"
+                anchors.fill: parent
+                client: thumbnail.modelData
+                screen: root.popouts.screen
+                captureEnabled: root.opened && thumbnail.inViewport
+                paused: root.capturePaused
+                fit: false
+                snapshotOnly: true
+                snapshotRevision: root.snapshotRevision
             }
         }
 
@@ -418,9 +431,12 @@ Item {
             id: hover
             enabled: thumbnail.inViewport
             onHoveredChanged: {
-                if (hovered)
+                if (hovered) {
+                    hideActions.stop();
                     root.hoveredPreview = thumbnail;
-                root.updateActionHover();
+                } else if (root.hoveredPreview === thumbnail) {
+                    root.updateActionHover();
+                }
             }
         }
 

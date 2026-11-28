@@ -15,6 +15,8 @@ Item {
     property bool captureEnabled: visible
     property bool paused: false
     property bool fit: true
+    property bool snapshotOnly: false
+    property int snapshotRevision: 0
 
     readonly property var windowData: Hypr.clientData(client)
     readonly property bool offscreen: {
@@ -26,7 +28,8 @@ Item {
         return x + width <= output.x || y + height <= output.y
             || x >= output.x + screen.width || y >= output.y + screen.height;
     }
-    readonly property bool canStream: captureEnabled && !paused && !!client?.wayland && !offscreen
+    readonly property bool canCapture: captureEnabled && !paused && (!snapshotOnly || snapshot.source.toString() === "")
+    readonly property bool canStream: canCapture && !!client?.wayland && !offscreen
     readonly property bool hasFrame: hasLiveFrame || snapshot.status === Image.Ready
     readonly property real aspect: {
         const size = windowData?.size;
@@ -35,11 +38,35 @@ Item {
 
     property bool hasLiveFrame: false
     property bool streamTimedOut: false
+    // Retain the result while the snapshot uses its in-memory URL.
+    property var grabbedFrame: null
 
-    onClientChanged: {
+    onClientChanged: resetFrame()
+    onSnapshotRevisionChanged: resetFrame()
+
+    function resetFrame(): void {
         hasLiveFrame = false;
         streamTimedOut = false;
         snapshot.source = "";
+        grabbedFrame = null;
+    }
+
+    function keepFrame(view: Item): void {
+        const revision = snapshotRevision;
+        const window = client;
+        const scale = Math.min(1, 400 / Math.max(view.width, view.height));
+        const size = Qt.size(Math.max(1, Math.round(view.width * scale)), Math.max(1, Math.round(view.height * scale)));
+        // Keep the pixels independently of the export buffer and the effects
+        // that display it. Focus and scroll can outlast the compositor's motion.
+        if (!view.grabToImage(result => {
+            if (root.canStream && root.snapshotRevision === revision && root.client === window
+                && stream.item === view && result.url.toString() !== "") {
+                root.grabbedFrame = result;
+                snapshot.source = result.url;
+            }
+        }, size)) {
+            streamTimedOut = true;
+        }
     }
 
     Item {
@@ -57,35 +84,38 @@ Item {
             active: root.canStream || root.hasLiveFrame
 
             sourceComponent: ScreencopyView {
+                id: copy
                 objectName: "workspaceWindowThumbnail"
 
-                // Release any pending export when pausing. It could otherwise
-                // deliver a frame taken while the compositor is moving windows.
+                visible: !root.snapshotOnly
                 captureSource: root.canStream ? root.client.wayland : null
-                live: root.canStream
+                live: root.canStream && !root.snapshotOnly
+                onHasContentChanged: if (root.snapshotOnly && hasContent) root.keepFrame(copy)
             }
         }
 
-        ShaderEffectSource {
-            readonly property bool freshContent: root.canStream && (stream.item?.hasContent ?? false)
-            property bool presenting: false
-
+        Loader {
             anchors.fill: parent
-            sourceItem: stream.item
-            hideSource: true
-            live: freshContent && presenting
-            visible: root.hasLiveFrame || freshContent
-            // Keep the displayed texture through a focus transition. Resume
-            // live updates after the capture has rendered into this texture.
-            onFreshContentChanged: {
-                presenting = false;
-                if (freshContent)
-                    scheduleUpdate();
-            }
-            onScheduledUpdateCompleted: {
-                if (freshContent) {
-                    root.hasLiveFrame = true;
-                    presenting = true;
+            active: !root.snapshotOnly
+
+            sourceComponent: ShaderEffectSource {
+                readonly property bool freshContent: root.canStream && (stream.item?.hasContent ?? false)
+                property bool presenting: false
+
+                sourceItem: stream.item
+                hideSource: true
+                live: freshContent && presenting
+                visible: root.hasLiveFrame || freshContent
+                onFreshContentChanged: {
+                    presenting = false;
+                    if (freshContent)
+                        scheduleUpdate();
+                }
+                onScheduledUpdateCompleted: {
+                    if (freshContent) {
+                        root.hasLiveFrame = true;
+                        presenting = true;
+                    }
                 }
             }
         }
@@ -104,27 +134,32 @@ Item {
 
     Timer {
         interval: 300
-        running: root.captureEnabled && !root.paused && Hypr.usingLua && !root.offscreen && !root.hasFrame && !root.streamTimedOut
+        running: root.canCapture && Hypr.usingLua && !root.offscreen && !root.hasFrame && !root.streamTimedOut
         onTriggered: root.streamTimedOut = true
     }
 
     Process {
         id: capture
         property string requestedWindow
+        property int requestedRevision
 
-        running: root.captureEnabled && !root.paused && Hypr.usingLua && !!root.windowData?.stableId && !root.hasFrame
+        running: root.canCapture && Hypr.usingLua && !!root.windowData?.stableId && !root.hasFrame
             && (root.offscreen || root.streamTimedOut)
         command: {
             const address = JSON.stringify(root.windowData?.address ?? "");
             const stableId = JSON.stringify(root.windowData?.stableId ?? "");
             return ["hyprctl", "repl", `if hl.plugin.hyprstack_previews then return hl.plugin.hyprstack_previews.capture(${address}, ${stableId}) end`];
         }
-        onStarted: requestedWindow = root.windowData?.stableId ?? ""
+        onStarted: {
+            requestedWindow = root.windowData?.stableId ?? "";
+            requestedRevision = root.snapshotRevision;
+        }
 
         stdout: StdioCollector {
             onStreamFinished: {
                 const url = text.trim();
-                if (capture.requestedWindow === root.windowData?.stableId && url.startsWith("data:image/png;base64,"))
+                if (root.canCapture && capture.requestedRevision === root.snapshotRevision
+                    && capture.requestedWindow === root.windowData?.stableId && url.startsWith("data:image/png;base64,"))
                     snapshot.source = url;
             }
         }
