@@ -37,7 +37,6 @@ Item {
     property var windowSizes: []
     property string focusRequest: ""
     property int focusSequence: 0
-    property int snapshotRevision: 0
     property var previewLayout: ({})
     property string layoutPayload: ""
     property bool holdLayout: false
@@ -107,10 +106,9 @@ Item {
     onSwitchingWindowChanged: if (!switchingWindow) refreshWindowModel()
     onOpenedChanged: {
         if (opened) {
-            ++snapshotRevision;
             Hypr.extras.refreshOptions();
             Hypr.extras.refreshClients();
-            waitForLayout();
+            waitForLayout(false);
         } else {
             hoveredPreview = null;
             finishFocusTransition();
@@ -129,10 +127,11 @@ Item {
         layoutPayload = "";
     }
 
-    function waitForLayout(): void {
+    function waitForLayout(resizing: bool): void {
         if (Hypr.usingLua) {
-            const args = [popouts.screen.name, beginFocusTransition(false)].map(value => JSON.stringify(value)).join(", ");
-            Hypr.extras.message(`eval hyprstack_layouts.settle_previews(${args}, true)`);
+            const args = [popouts.screen.name, beginFocusTransition(resizing), true, resizing]
+                .map(value => JSON.stringify(value)).join(", ");
+            Hypr.extras.message(`eval hyprstack_layouts.settle_previews(${args})`);
         }
     }
 
@@ -197,7 +196,7 @@ Item {
                 }
             } else if (root.opened && !root.capturePaused && (event.name === "fullscreen"
                 || (event.name === "custom" && event.data === "hyprstack-column-width:" + root.popouts.screen.name))) {
-                root.waitForLayout();
+                root.waitForLayout(true);
             }
         }
     }
@@ -447,8 +446,7 @@ Item {
                 captureEnabled: root.opened && thumbnail.inViewport
                 paused: root.capturePaused
                 fit: false
-                snapshotOnly: true
-                snapshotRevision: root.snapshotRevision
+                refreshOffscreen: true
                 // Use the standalone renderer for windows covered by native maximize.
                 preferNative: root.previewLayout.standalone === true && thumbnail.layoutState?.visible === false
             }

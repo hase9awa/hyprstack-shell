@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <format>
@@ -7,18 +8,23 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include <cairo.h>
 #include <glib.h>
 #include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/desktop/rule/windowRule/WindowRuleApplicator.hpp>
+#include <hyprland/src/desktop/state/FocusState.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
+#include <hyprland/src/desktop/view/Popup.hpp>
+#include <hyprland/src/desktop/view/WLSurface.hpp>
 #include <hyprland/src/desktop/view/window/Window.hpp>
 #include <hyprland/src/desktop/view/window/WindowPresentation.hpp>
 #include <hyprland/src/managers/SessionLockManager.hpp>
 #include <hyprland/src/output/Monitor.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
+#include <hyprland/src/protocols/core/Compositor.hpp>
 #include <hyprland/src/render/OpenGL.hpp>
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/render/gl/GLFramebuffer.hpp>
@@ -30,6 +36,69 @@ extern "C" {
 }
 
 namespace {
+
+struct CaptureContent {
+    std::vector<WP<CWLSurfaceResource>> surfaces;
+    std::vector<CHyprSignalListener> commits;
+    Time::steady_tp requested;
+    Vector2D size;
+    uint64_t revision = 0;
+};
+
+std::unordered_map<uint64_t, std::unique_ptr<CaptureContent>> trackedContent;
+uint64_t captureRevision = 0;
+
+uint64_t latestContent(PHLWINDOW window, Vector2D size) {
+    const auto now = Time::steadyNow();
+    std::erase_if(trackedContent, [&](const auto& entry) {
+        return now - entry.second->requested > std::chrono::seconds(3);
+    });
+    auto& entry = trackedContent[window->metadata().stableID()];
+    if (!entry)
+        entry = std::make_unique<CaptureContent>();
+    auto& content = *entry;
+    content.requested = now;
+
+    std::vector<WP<CWLSurfaceResource>> surfaces;
+    const auto collect = [&surfaces](SP<CWLSurfaceResource> surface) {
+        if (surface)
+            surface->breadthfirst([&](SP<CWLSurfaceResource> child, const Vector2D&, void*) { surfaces.emplace_back(child); }, nullptr);
+    };
+    collect(window->wlSurface()->resource());
+    if (const auto popups = window->popupHead())
+        popups->breadthfirst([&](SP<Desktop::View::CPopup> popup, void*) {
+            if (popup->wlSurface())
+                collect(popup->wlSurface()->resource());
+        }, nullptr);
+
+    if (surfaces != content.surfaces) {
+        content.surfaces = std::move(surfaces);
+        content.commits.clear();
+        for (const auto& surface : content.surfaces)
+            if (const auto resource = surface.lock())
+                content.commits.emplace_back(resource->m_events.commit.listen([&content] { content.revision = ++captureRevision; }));
+        content.revision = ++captureRevision;
+    }
+    if (content.size != size) {
+        content.size = size;
+        content.revision = ++captureRevision;
+    }
+    return content.revision;
+}
+
+bool awaitingWindowBuffer(PHLWINDOW window) {
+    const auto resource = window->wlSurface()->resource();
+    if (!resource || !resource->m_current.texture)
+        return true;
+    if (window->backend().isX11())
+        return false;
+
+    const auto target = window->size(Desktop::View::IGeometric::GEOMETRIC_GOAL);
+    const auto configured = window->backend().reportedSize();
+    const auto bufferSize = resource->m_current.size;
+    return std::abs(target.x - configured.x) > 2 || std::abs(target.y - configured.y) > 2
+        || bufferSize.x + 2 < configured.x || bufferSize.y + 2 < configured.y;
+}
 
 // Hyprland's toplevel export skips windows that do not intersect their output.
 // Render those windows into a private framebuffer, using its standalone pass.
@@ -113,14 +182,18 @@ std::string encodeThumbnail(const SP<Render::IFramebuffer>& source) {
     }
 
     std::vector<uint32_t> pixels(size_t(width) * height);
+    bool hasPixels = false;
     // RPT_EXPORT already writes rows in the order used by the capture protocol.
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             const auto* pixel = rgba.data() + (size_t(y) * width + x) * 4;
+            hasPixels |= pixel[3] != 0;
             pixels[size_t(y) * width + x] = (uint32_t(pixel[3]) << 24) | (uint32_t(pixel[0]) << 16)
                 | (uint32_t(pixel[1]) << 8) | pixel[2];
         }
     }
+    if (!hasPixels)
+        return {};
 
     const std::unique_ptr<cairo_surface_t, decltype(&cairo_surface_destroy)> surface(
         cairo_image_surface_create_for_data(reinterpret_cast<unsigned char*>(pixels.data()),
@@ -145,6 +218,7 @@ std::string encodeThumbnail(const SP<Render::IFramebuffer>& source) {
 int capture(lua_State* state) {
     const std::string_view address = luaL_checkstring(state, 1);
     const std::string_view stableId = luaL_checkstring(state, 2);
+    const auto previous = luaL_optstring(state, 3, nullptr);
     static const CConfigValue<Config::BOOL> enforcePermissions("ecosystem:enforce_permissions");
     if (*enforcePermissions || !g_pSessionLockManager || g_pSessionLockManager->isSessionLocked()
         || !g_pHyprRenderer || g_pHyprRenderer->type() != Render::IHyprRenderer::RT_GL || g_pHyprRenderer->context().active())
@@ -156,7 +230,8 @@ int capture(lua_State* state) {
             continue;
 
         const auto monitor = window->m_monitor.lock();
-        if (!monitor || !window->m_workspace || (window->m_ruleApplicator && window->m_ruleApplicator->noScreenShare().valueOrDefault()))
+        if (!monitor || !window->m_workspace || !window->wlSurface() || !window->wlSurface()->resource()
+            || (window->m_ruleApplicator && window->m_ruleApplicator->noScreenShare().valueOrDefault()))
             return 0;
         const auto workspace = monitor->m_activeSpecialWorkspace ? monitor->m_activeSpecialWorkspace : monitor->m_activeWorkspace;
         if (window->m_workspace != workspace)
@@ -166,10 +241,22 @@ int capture(lua_State* state) {
         if (size.x < 1 || size.y < 1 || size.x > 8192 || size.y > 8192)
             return 0;
 
+        std::string revision;
+        if (previous) {
+            if (window->sizeAnimation()->isBeingAnimated())
+                return 0;
+            revision = std::to_string(latestContent(window, size));
+            if (revision == previous)
+                return 0;
+        }
         const auto framebuffer = renderThumbnail(window, monitor, size);
         if (!framebuffer)
             return 0;
-        const auto image = encodeThumbnail(framebuffer);
+        auto image = encodeThumbnail(framebuffer);
+        if (image.empty())
+            return 0;
+        if (previous)
+            image.insert(0, revision + ":");
         lua_pushlstring(state, image.data(), image.size());
         return 1;
     }
@@ -185,7 +272,10 @@ int workspaceMoving(lua_State* state) {
             && (window->positionAnimation()->isBeingAnimated() || window->sizeAnimation()->isBeingAnimated()
                 || window->presentation().alpha(Desktop::View::WINDOW_ALPHA_ACTIVE)->isBeingAnimated());
     });
-    lua_pushboolean(state, moving);
+    const auto focused = Desktop::focusState()->window();
+    const bool awaitingBuffer = lua_toboolean(state, 2) && workspace && focused && focused->mapped()
+        && focused->m_workspace == workspace && focused->wlSurface() && awaitingWindowBuffer(focused);
+    lua_pushboolean(state, moving || awaitingBuffer);
     return 1;
 }
 
@@ -204,4 +294,4 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     return {"hyprstack-workspace-previews", "Undecorated previews of workspace windows", "HyprStack", HYPRSTACK_VERSION};
 }
 
-APICALL EXPORT void PLUGIN_EXIT() {}
+APICALL EXPORT void PLUGIN_EXIT() { trackedContent.clear(); }

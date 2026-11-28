@@ -1521,7 +1521,7 @@ function layouts.restore_window(window, focus)
     save()
 end
 
-function layouts.settle_previews(monitor_name, request, only_if_moving)
+function layouts.settle_previews(monitor_name, request, only_if_moving, resizing)
     if type(request) ~= "string" or request == "" then return end
     local previous = preview_timers[monitor_name]
     if previous then previous:set_enabled(false) end
@@ -1552,17 +1552,17 @@ function layouts.settle_previews(monitor_name, request, only_if_moving)
         end
         hl.dispatch(hl.dsp.event("hyprstack-preview-settled:" .. request))
     end
-    if only_if_moving and (not moving or not moving(monitor_name)) then
+    if only_if_moving and (not moving or not moving(monitor_name, resizing)) then
         notify()
         return
     end
 
-    -- Allow clients to commit their first focused frame, even if the
-    -- compositor did not need to move any columns.
-    local elapsed = moving and 160 or 550
+    -- Clients can update their focused content after the compositor stops
+    -- moving. Keep the last frame through that repaint.
+    local elapsed = only_if_moving and 160 or 600
     local function check()
         local previews = hl.plugin.hyprstack_previews
-        if elapsed < 1400 and previews and previews.workspace_moving and previews.workspace_moving(monitor_name) then
+        if elapsed < 1400 and previews and previews.workspace_moving and previews.workspace_moving(monitor_name, resizing) then
             elapsed = elapsed + 32
             preview_timers[monitor_name] = hl.timer(check, { timeout = 32, type = "oneshot" })
             return
@@ -1609,13 +1609,13 @@ function layouts.action(operation, address, stable_id, request)
             if enable_follow then hl.config({ scrolling = { follow_focus = 0 } }) end
             if not ok then error(err) end
         end)
-        layouts.settle_previews(monitor.name, request)
+        layouts.settle_previews(monitor.name, request, false, operation == "maximize-preview")
         return
     end
     if operation == "toggle-floating" then
         local monitor = window.monitor
         without_cursor_warps(function() layouts.toggle_floating(window) end)
-        if monitor then layouts.settle_previews(monitor.name, request) end
+        if monitor then layouts.settle_previews(monitor.name, request, false, true) end
         return
     end
     if layouts.mode() ~= "stacking" then return end
