@@ -4,6 +4,7 @@ import io
 import json
 import os
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import sys
@@ -389,7 +390,25 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(self.binary.read_text(), "OLD BINARY")
         self.assertEqual(json.loads(metadata.read_text())["version"], "1.0.0")
 
+    @unittest.skipUnless(shutil.which("script"), "script is required to exercise terminal confirmation")
+    def test_logout_confirmation_reads_from_the_controlling_terminal(self):
+        command = shlex.join([sys.executable, "-c",
+            "from updates import confirm_logout; print(confirm_logout())"])
+        for answer, confirmed in (("да", True), ("", False)):
+            with self.subTest(answer=answer):
+                result = subprocess.run(["script", "-qec", command, "/dev/null"],
+                    input=answer + "\n", cwd=Path(__file__).resolve().parents[1],
+                    text=True, capture_output=True, timeout=10)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("Установить обновление и выйти?", result.stdout)
+                self.assertEqual(result.stdout.splitlines()[-1].split()[-1], str(confirmed))
+
     def test_piped_bootstrap_downloads_the_tagged_helpers_and_forwards_arguments(self):
+        bin_dir = self.home / "bin"
+        bin_dir.mkdir()
+        stale_updater = bin_dir / "hyprstack-update"
+        stale_updater.write_text("#!/bin/sh\nprintf 'Stale installed updater was used\\n' >&2\nexit 1\n")
+        stale_updater.chmod(0o700)
         mock = self.home / "mock-python"
         mock.mkdir()
         report = self.home / "bootstrap.json"
@@ -405,7 +424,7 @@ def download(request, timeout=30):
 urllib.request.urlopen = download
 ''')
         source = Path(__file__).resolve().parents[2] / "update.sh"
-        environment = dict(os.environ, PATH="/usr/bin:/bin", PYTHONPATH=str(mock), BOOTSTRAP_REPORT=str(report))
+        environment = dict(os.environ, PATH=f"{bin_dir}:/usr/bin:/bin", PYTHONPATH=str(mock), BOOTSTRAP_REPORT=str(report))
         result = subprocess.run(["/usr/bin/bash", "-s", "--", "check"], input=source.read_text(),
             env=environment, text=True, capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)

@@ -328,10 +328,10 @@ class Updates:
 
 def confirm_logout():
     try:
-        with open("/dev/tty", "r+") as terminal:
-            terminal.write("\nСохраните работу и закройте приложения. Установка завершит сеанс Hyprland.\n"
+        with open("/dev/tty") as terminal, open("/dev/tty", "w") as prompt:
+            prompt.write("\nСохраните работу и закройте приложения. Установка завершит сеанс Hyprland.\n"
                 "Установить обновление и выйти? [д/Н]: ")
-            terminal.flush()
+            prompt.flush()
             return terminal.readline().strip().lower() in ("д", "да", "y", "yes")
     except OSError:
         raise ValueError("Для подтверждения выхода нужен терминал. Для заранее согласованного обновления используйте --yes.") from None

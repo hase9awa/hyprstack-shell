@@ -20,15 +20,12 @@ done
 if [[ -n "$project_dir" && -f "$project_dir/distribution/updates.py" ]]; then
     exec python3 "$project_dir/distribution/updates.py" "$@"
 fi
-if command -v hyprstack-update >/dev/null 2>&1; then
-    exec hyprstack-update "$@"
-fi
 if ! command -v python3 >/dev/null 2>&1; then
     printf 'Для обновления Hyprstack требуется python3.\n' >&2
     exit 1
 fi
-# Bootstrap older installations from the published release's updater. Cache the
-# helpers so the detached installer can still read them after the terminal exits.
+# Use the published release's updater even if an older hyprstack-update is installed.
+# Cache the helpers so the detached installer can read them after the terminal exits.
 exec python3 - "$@" <<'PY'
 import json
 import os
