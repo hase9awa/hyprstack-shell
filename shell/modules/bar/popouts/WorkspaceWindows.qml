@@ -38,6 +38,8 @@ Item {
     property string focusRequest: ""
     property int focusSequence: 0
     property int snapshotRevision: 0
+    property var previewLayout: ({})
+    property string layoutPayload: ""
     property bool holdLayout: false
     property WindowPreview hoveredPreview: null
     readonly property bool capturePaused: focusRequest.length > 0
@@ -107,11 +109,8 @@ Item {
         if (opened) {
             ++snapshotRevision;
             Hypr.extras.refreshOptions();
-            if (Hypr.usingLua) {
-                // Start the new set of snapshots after any motion already in progress.
-                const args = [popouts.screen.name, beginFocusTransition(false)].map(value => JSON.stringify(value)).join(", ");
-                Hypr.extras.message(`eval hyprstack_layouts.settle_previews(${args}, true)`);
-            }
+            Hypr.extras.refreshClients();
+            waitForLayout();
         } else {
             hoveredPreview = null;
             finishFocusTransition();
@@ -124,11 +123,22 @@ Item {
 
     function finishFocusTransition(): void {
         focusTimeout.stop();
+        if (opened)
+            Hypr.extras.refreshClients();
         focusRequest = "";
+        layoutPayload = "";
+    }
+
+    function waitForLayout(): void {
+        if (Hypr.usingLua) {
+            const args = [popouts.screen.name, beginFocusTransition(false)].map(value => JSON.stringify(value)).join(", ");
+            Hypr.extras.message(`eval hyprstack_layouts.settle_previews(${args}, true)`);
+        }
     }
 
     function beginFocusTransition(freezeLayout: bool): string {
         holdLayout = freezeLayout;
+        layoutPayload = "";
         focusRequest = `${popouts.screen.name}-${Date.now()}-${++focusSequence}`;
         focusTimeout.restart();
         return focusRequest;
@@ -173,8 +183,22 @@ Item {
         target: Hyprland
 
         function onRawEvent(event: HyprlandEvent): void {
-            if (root.capturePaused && event.name === "custom" && event.data === "hyprstack-preview-settled:" + root.focusRequest)
-                root.finishFocusTransition();
+            if (root.capturePaused && event.name === "custom") {
+                const prefix = "hyprstack-preview-state:" + root.focusRequest + ":";
+                if (event.data.startsWith(prefix)) {
+                    root.layoutPayload += event.data.slice(prefix.length);
+                } else if (event.data === "hyprstack-preview-settled:" + root.focusRequest) {
+                    try {
+                        if (root.layoutPayload)
+                            root.previewLayout = JSON.parse(root.layoutPayload);
+                    } finally {
+                        root.finishFocusTransition();
+                    }
+                }
+            } else if (root.opened && !root.capturePaused && (event.name === "fullscreen"
+                || (event.name === "custom" && event.data === "hyprstack-column-width:" + root.popouts.screen.name))) {
+                root.waitForLayout();
+            }
         }
     }
 
@@ -257,7 +281,7 @@ Item {
 
         readonly property WindowPreview thumbnail: root.hoveredPreview
         readonly property bool floating: thumbnail?.client?.floating ?? false
-        readonly property bool maximized: Hypr.isMaximized(thumbnail?.modelData ?? null)
+        readonly property bool maximized: Hypr.isMaximized(thumbnail?.modelData ?? null) || !!thumbnail?.layoutState?.wide
         readonly property real minimumSize: 18 * Tokens.scale
         readonly property real inset: Math.max(root.borderWidth + Tokens.padding.extraSmall, (thumbnail?.rounding ?? 0) / 2)
         readonly property real offset: (thumbnail?.x ?? 0) - list.contentX
@@ -348,6 +372,7 @@ Item {
         required property HyprlandToplevel modelData
         required property int index
         readonly property var client: Hypr.clientData(modelData)
+        readonly property var layoutState: root.previewLayout.windows?.[client?.stableId]
         readonly property string windowTitle: modelData?.title || client?.class || ""
         readonly property bool inViewport: x + width > list.contentX && x < list.contentX + list.width
         readonly property bool hovered: hover.hovered
@@ -424,6 +449,8 @@ Item {
                 fit: false
                 snapshotOnly: true
                 snapshotRevision: root.snapshotRevision
+                // Use the standalone renderer for windows covered by native maximize.
+                preferNative: root.previewLayout.standalone === true && thumbnail.layoutState?.visible === false
             }
         }
 

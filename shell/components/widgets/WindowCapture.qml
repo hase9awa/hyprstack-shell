@@ -17,6 +17,7 @@ Item {
     property bool fit: true
     property bool snapshotOnly: false
     property int snapshotRevision: 0
+    property bool preferNative: false
 
     readonly property var windowData: Hypr.clientData(client)
     readonly property bool offscreen: {
@@ -28,8 +29,12 @@ Item {
         return x + width <= output.x || y + height <= output.y
             || x >= output.x + screen.width || y >= output.y + screen.height;
     }
-    readonly property bool canCapture: captureEnabled && !paused && (!snapshotOnly || snapshot.source.toString() === "")
-    readonly property bool canStream: canCapture && !!client?.wayland && !offscreen
+    readonly property bool independentCapture: offscreen || preferNative
+    // Scrolling changes the position. Only a size change needs another capture.
+    readonly property string snapshotKey: `${snapshotRevision}:${windowData?.size?.join("x") ?? ""}`
+    readonly property bool canCapture: captureEnabled && !paused && (!snapshotOnly || snapshotKey !== capturedKey)
+    readonly property bool canStream: canCapture && !!client?.wayland && !independentCapture
+    readonly property bool needsFallback: canCapture && Hypr.usingLua && (snapshotOnly || !hasFrame)
     readonly property bool hasFrame: hasLiveFrame || snapshot.status === Image.Ready
     readonly property real aspect: {
         const size = windowData?.size;
@@ -38,33 +43,36 @@ Item {
 
     property bool hasLiveFrame: false
     property bool streamTimedOut: false
+    property string capturedKey: ""
     // Retain the result while the snapshot uses its in-memory URL.
     property var grabbedFrame: null
 
     onClientChanged: resetFrame()
-    onSnapshotRevisionChanged: resetFrame()
+    onSnapshotKeyChanged: streamTimedOut = false
 
     function resetFrame(): void {
         hasLiveFrame = false;
         streamTimedOut = false;
         snapshot.source = "";
         grabbedFrame = null;
+        capturedKey = "";
     }
 
-    function keepFrame(view: Item): void {
-        const revision = snapshotRevision;
+    function keepFrame(view: Item, sourceSize: size): void {
+        const key = snapshotKey;
         const window = client;
-        const scale = Math.min(1, 400 / Math.max(view.width, view.height));
-        const size = Qt.size(Math.max(1, Math.round(view.width * scale)), Math.max(1, Math.round(view.height * scale)));
+        const scale = Math.min(1, 640 / Math.max(sourceSize.width, sourceSize.height));
+        const resolution = Qt.size(Math.max(1, Math.round(sourceSize.width * scale)), Math.max(1, Math.round(sourceSize.height * scale)));
         // Keep the pixels independently of the export buffer and the effects
         // that display it. Focus and scroll can outlast the compositor's motion.
         if (!view.grabToImage(result => {
-            if (root.canStream && root.snapshotRevision === revision && root.client === window
+            if (root.canStream && root.snapshotKey === key && root.client === window
                 && stream.item === view && result.url.toString() !== "") {
                 root.grabbedFrame = result;
                 snapshot.source = result.url;
+                root.capturedKey = key;
             }
-        }, size)) {
+        }, resolution)) {
             streamTimedOut = true;
         }
     }
@@ -90,7 +98,7 @@ Item {
                 visible: !root.snapshotOnly
                 captureSource: root.canStream ? root.client.wayland : null
                 live: root.canStream && !root.snapshotOnly
-                onHasContentChanged: if (root.snapshotOnly && hasContent) root.keepFrame(copy)
+                onHasContentChanged: if (root.snapshotOnly && hasContent) root.keepFrame(copy, sourceSize)
             }
         }
 
@@ -128,23 +136,23 @@ Item {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: false
-            visible: !root.hasLiveFrame && status === Image.Ready
+            retainWhileLoading: true
+            visible: !root.hasLiveFrame
         }
     }
 
     Timer {
         interval: 300
-        running: root.canCapture && Hypr.usingLua && !root.offscreen && !root.hasFrame && !root.streamTimedOut
+        running: root.needsFallback && !root.independentCapture && !root.streamTimedOut
         onTriggered: root.streamTimedOut = true
     }
 
     Process {
         id: capture
         property string requestedWindow
-        property int requestedRevision
+        property string requestedKey
 
-        running: root.canCapture && Hypr.usingLua && !!root.windowData?.stableId && !root.hasFrame
-            && (root.offscreen || root.streamTimedOut)
+        running: root.needsFallback && !!root.windowData?.stableId && (root.independentCapture || root.streamTimedOut)
         command: {
             const address = JSON.stringify(root.windowData?.address ?? "");
             const stableId = JSON.stringify(root.windowData?.stableId ?? "");
@@ -152,15 +160,18 @@ Item {
         }
         onStarted: {
             requestedWindow = root.windowData?.stableId ?? "";
-            requestedRevision = root.snapshotRevision;
+            requestedKey = root.snapshotKey;
         }
 
         stdout: StdioCollector {
             onStreamFinished: {
                 const url = text.trim();
-                if (root.canCapture && capture.requestedRevision === root.snapshotRevision
-                    && capture.requestedWindow === root.windowData?.stableId && url.startsWith("data:image/png;base64,"))
+                if (root.needsFallback && capture.requestedKey === root.snapshotKey
+                    && capture.requestedWindow === root.windowData?.stableId && url.startsWith("data:image/png;base64,")) {
+                    root.grabbedFrame = null;
                     snapshot.source = url;
+                    root.capturedKey = capture.requestedKey;
+                }
             }
         }
     }

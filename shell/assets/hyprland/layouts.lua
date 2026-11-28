@@ -434,6 +434,7 @@ function layouts.toggle_width()
     hl.dispatch(hl.dsp.layout("colresize " .. (column.width >= 0.99 and "0.5" or "1.0")))
     local record = record_for(window)
     if record then record.scroll = scroll_position(window); save() end
+    if window.monitor then hl.dispatch(hl.dsp.event("hyprstack-column-width:" .. window.monitor.name)) end
 end
 
 local function available_geometry(window)
@@ -1527,9 +1528,32 @@ function layouts.settle_previews(monitor_name, request, only_if_moving)
 
     local module = hl.plugin.hyprstack_previews
     local moving = module and module.workspace_moving
-    if only_if_moving and (not moving or not moving(monitor_name)) then
+    local function notify()
         preview_timers[monitor_name] = nil
+        local monitor = hl.get_monitor(monitor_name)
+        local workspace = monitor and (monitor.active_special_workspace or monitor.active_workspace)
+        local windows = {}
+        if workspace then
+            for _, window in ipairs(workspace:get_windows()) do
+                if window.mapped then
+                    local column = not window.floating and window.layout and window.layout.column
+                    windows[window.stable_id] = { wide = column and column.width >= 0.99 or false, visible = window.visible }
+                end
+            end
+        end
+        local state = { windows = windows, standalone = module ~= nil and module.capture ~= nil
+            and not hl.get_config("ecosystem.enforce_permissions") }
+        local payload = json.encode(state)
+        local prefix = "hyprstack-preview-state:" .. request .. ":"
+        -- Hyprland caps the data of a socket event at 1024 bytes.
+        local chunk_size = math.max(1, 1024 - #prefix)
+        for offset = 1, #payload, chunk_size do
+            hl.dispatch(hl.dsp.event(prefix .. payload:sub(offset, offset + chunk_size - 1)))
+        end
         hl.dispatch(hl.dsp.event("hyprstack-preview-settled:" .. request))
+    end
+    if only_if_moving and (not moving or not moving(monitor_name)) then
+        notify()
         return
     end
 
@@ -1543,8 +1567,7 @@ function layouts.settle_previews(monitor_name, request, only_if_moving)
             preview_timers[monitor_name] = hl.timer(check, { timeout = 32, type = "oneshot" })
             return
         end
-        preview_timers[monitor_name] = nil
-        hl.dispatch(hl.dsp.event("hyprstack-preview-settled:" .. request))
+        notify()
     end
     preview_timers[monitor_name] = hl.timer(check, { timeout = elapsed, type = "oneshot" })
 end
@@ -1572,8 +1595,14 @@ function layouts.action(operation, address, stable_id, request)
                 if not monitor.focused then hl.dispatch(hl.dsp.focus({ monitor = monitor })) end
                 hl.dispatch(hl.dsp.focus({ window = window }))
                 if operation == "maximize-preview" then
-                    hl.dispatch(hl.dsp.window.fullscreen({ window = window, mode = "maximized" }))
-                elseif reveal and monitor.focused and window == hl.get_active_window() then
+                    if reveal and window.layout and window.layout.column and window.fullscreen == 0 then
+                        if window == hl.get_active_window() then layouts.toggle_width() end
+                    else
+                        hl.dispatch(hl.dsp.window.fullscreen({ window = window, mode = "maximized" }))
+                    end
+                end
+                if reveal and monitor.focused and window == hl.get_active_window()
+                    and (operation == "focus-preview" or window.fullscreen == 0) then
                     hl.dispatch(hl.dsp.layout("fit_into_view"))
                 end
             end)
